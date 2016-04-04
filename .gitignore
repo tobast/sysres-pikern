@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+
+*~
+
+kernel/build/*
+kernel/kernel.img
