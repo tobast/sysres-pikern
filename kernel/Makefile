@@ -1,9 +1,13 @@
 ###############################################################################
 #	makefile
-#	 by Alex Chadwick
+#	 Original version by Alex Chadwick
+#	 Modified by Théophile Bastian and Nathanaël Courant
 #
 #	A makefile script for generation of raspberry pi kernel images.
 ###############################################################################
+
+# The SDCARD device. Used for target install.
+SDCARD_DEVICE = /dev/mmcblk0p2
 
 # The toolchain to use. arm-none-eabi works, but there does exist 
 # arm-bcm2708-linux-gnueabi.
@@ -55,6 +59,13 @@ $(BUILD)%.o: $(SOURCE)%.s $(BUILD)
 
 $(BUILD):
 	mkdir $@
+
+install:
+	mkdir ./mntpt
+	mount $(SDCARD_DEVICE) ./mntpt
+	cp "$(TARGET)" "./mntpt/boot"
+	umount ./mntpt
+	rmdir mntpt
 
 # Rule to clean files.
 clean : 
