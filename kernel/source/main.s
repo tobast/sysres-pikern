@@ -4,8 +4,8 @@
 _start:
 	ldr r0,=0x7E200000
 	mov r1,#1
-	lsl r1,#18
-	str r1,[r0,#4]
+	lsl r1,#15
+	str r1,[r0,#5]
 
 loop$:
 
@@ -16,8 +16,8 @@ wait1$:
 	bne wait1$
 
 	mov r1,#1
-	lsl r1,#16
-	str r1,[r0,#1C]
+	lsl r1,#25
+	str r1,[r0,#0x1C]
 
 	mov r2,#0x3F0000
 wait2$:
@@ -26,7 +26,7 @@ wait2$:
 	bne wait2$
 
 	mov r1,#1
-	lsl r1,#16
-	str r1,[r0,#28]
+	lsl r1,#25
+	str r1,[r0,#0x28]
 	
 	b loop$
