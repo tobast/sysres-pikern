@@ -29,5 +29,5 @@
 
 *~
 
-kernel/build/*
+kernel/_build/*
 kernel/kernel.img
