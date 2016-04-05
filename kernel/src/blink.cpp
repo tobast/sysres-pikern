@@ -37,6 +37,10 @@ __attribute__((naked)) int main(void) {
 	gpioSetWay(LED_GPIO, GPIO_WAY_OUTPUT);
 	gpioSetWay(ACT_GPIO, GPIO_WAY_OUTPUT);
 
+	gpioUnset(ACT_GPIO);
+	gpioSet(LED_GPIO);
+	while (1) {};
+
 	while(1) {
 		gpioSet(LED_GPIO);
 		gpioUnset(ACT_GPIO);
