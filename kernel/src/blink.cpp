@@ -32,7 +32,9 @@ void sleep_us(Int us) {
 	TIMER[0] &= (~1);
 }
 
-__attribute__((naked)) int main(void) {
+__attribute__((naked))
+__attribute__((section(".init")))
+int main(void) {
 	const Int LED_GPIO = 25, ACT_GPIO = 16;
 	gpioSetWay(LED_GPIO, GPIO_WAY_OUTPUT);
 	gpioSetWay(ACT_GPIO, GPIO_WAY_OUTPUT);

@@ -5,6 +5,9 @@
 *	A linker script for generation of raspberry pi kernel images.
 ******************************************************************************/
 
+_start = 0x8000;
+ENTRY(_start)
+
 SECTIONS {
 	/*
 	* First and formost we need the .init section, containing the code to 

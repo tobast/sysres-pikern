@@ -50,6 +50,15 @@ install:
 	umount ./mntpt
 	rmdir mntpt
 
+checkinstall:
+	mkdir ./mntpt
+	mount $(SDCARD_DEVICE) ./mntpt
+	@md5sum $(TARGET)
+	@md5sum ./mntpt/$(TARGET)
+	umount ./mntpt
+	rmdir ./mntpt
+		
+
 clean:
 	rm -rf $(BUILD)
 	rm -f $(TARGET)
