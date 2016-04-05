@@ -9,17 +9,17 @@ const char GPIO_WAY_OUTPUT =	0b001;
 inline void gpioSet(Int i) {
 	// Sets the bit i of GPIO + 0x1C
 	Int orMask = (1<<(i%32));
-	*(GPIO+0x1C+(i/32)) = orMask;
+	GPIO[7+(i/32)] = orMask;
 }
 inline void gpioUnset(Int i) {
 	// Sets the bit i of GPIO + 0x28
 	Int orMask = (1<<(i%32));
-	*(GPIO+0x28+(i/32)) = orMask;
+	GPIO[10+(i/32)] = orMask;
 }
 inline void gpioSetWay(Int i, Int way) {
 	// Sets the 3 bits at position 3*i%10 of (GPIO+4*i//10) to way
 	Int orMask = (way<<(3*(i%10)));
-	*(GPIO+(i/10)) = orMask;
+	GPIO[i/10] = orMask;
 }
 
 void sleep_us(Int us) {
