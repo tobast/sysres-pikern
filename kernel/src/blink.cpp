@@ -39,7 +39,7 @@ int main(void) {
 	while(1) {
 		gpioSet(LED_GPIO);
 		gpioSet(ACT_GPIO);
-		sleep_us(500000);
+		sleep_us(2*500000);
 		gpioUnset(LED_GPIO);
 		gpioUnset(ACT_GPIO);
 		sleep_us(500000);
