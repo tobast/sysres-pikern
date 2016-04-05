@@ -2,6 +2,7 @@
 #define DEF_NW_BYTES
 
 #include <cstdlib>
+#include <cstdint>
 
 class Bytes {
 	public:
@@ -15,6 +16,14 @@ class Bytes {
 		
 		size_t size() const;
 		/// Returns the number of chars in the object.
+		
+		Bytes& operator<<(char v);
+		Bytes& operator<<(uint8_t v);
+		Bytes& operator<<(uint16_t v);
+		Bytes& operator<<(uint32_t v);
+		Bytes& operator<<(char16_t v);
+		/// Appends the given data to the vector. Returns *this to allow
+		/// chaining.
 	
 	private: //meth
 		void append_bytes(char* bytes, size_t num);
