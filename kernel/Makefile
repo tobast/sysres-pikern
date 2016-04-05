@@ -6,7 +6,7 @@
 #########################################################
 
 ARM_PREFIX = arm-none-eabi
-CC = $(ARM_PREFIX)-gcc
+CC = $(ARM_PREFIX)-g++
 LD = $(ARM_PREFIX)-ld
 AS = $(ARM_PREFIX)-as
 OD = $(ARM_PREFIX)-objdump
@@ -14,7 +14,7 @@ OC = $(ARM_PREFIX)-objcopy
 
 SDCARD_DEVICE = /dev/mmcblk0p1
 
-CFLAGS = -O2 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
+CFLAGS = -O0 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles
 
 BUILD = _build/
@@ -37,7 +37,7 @@ $(TARGET): $(BUILD)output.elf
 $(BUILD)output.elf: $(OBJS) $(LINKER)
 	$(LD) --no-undefined $(OBJS) -Map $(MAP) -o $@ -T $(LINKER)
 
-$(BUILD)%.o: $(SOURCE)%.c $(BUILD)
+$(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) -I $(SOURCE) $< -o $@
 
 $(BUILD):
