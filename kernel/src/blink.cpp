@@ -25,11 +25,13 @@ inline void gpioSetWay(Int i, Int way) {
 void sleep_us(Int us) {
 	//uint32_t cyc = cyc;
 	//unit64_t
-	TIMER[0] &= (~1);
-	uint32_t val = TIMER[1] + us;
-	TIMER[3] = val;
-	while (!(TIMER[0] & 1)) {};
-	TIMER[0] &= (~1);
+	//TIMER[0] &= (~1);
+	//uint32_t val = TIMER[1] + us;
+	//TIMER[3] = val;
+	//while (!(TIMER[0] & 1)) {};
+	//TIMER[0] &= (~1);
+	uint32_t init_count = TIMER[1];
+	while ((uint32_t)(TIMER[1] - init_count) < (uint32_t us)) {};
 }
 
 __attribute__((naked))
@@ -41,7 +43,10 @@ int main(void) {
 
 	gpioUnset(ACT_GPIO);
 	gpioSet(LED_GPIO);
-	while (1) {};
+	sleep(2000000);
+	gpioSet(ACT_GPIO);
+	gpioUnset(LED_GPIO);
+	while(1) {};
 
 	while(1) {
 		gpioSet(LED_GPIO);
