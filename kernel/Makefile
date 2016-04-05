@@ -15,7 +15,7 @@ OC = $(ARM_PREFIX)-objcopy
 SDCARD_DEVICE = /dev/mmcblk0p1
 
 CFLAGS = -O1 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
-	-mtune=arm1176jzf-s -nostartfiles
+	-mtune=arm1176jzf-s -nostartfiles --entry=main
 
 BUILD = _build/
 SOURCE = src/
@@ -47,6 +47,7 @@ install:
 	mkdir ./mntpt
 	mount $(SDCARD_DEVICE) ./mntpt
 	cp "$(TARGET)" "./mntpt/"
+	sync
 	umount ./mntpt
 	rmdir mntpt
 
