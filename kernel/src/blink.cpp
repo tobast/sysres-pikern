@@ -2,6 +2,7 @@
 typedef int32_t Int;
 //typedef int Int;
 #define GPIO	((Int*)0x20200000)
+#define TIMER ((Int*)0x20003000)
 const char GPIO_WAY_INPUT =		0b000;
 const char GPIO_WAY_OUTPUT =	0b001;
 
@@ -21,8 +22,14 @@ inline void gpioSetWay(Int i, Int way) {
 	*(GPIO+(i/10)) = orMask;
 }
 
-void sleep(Int cyc) {
-	for(; cyc > 0; --cyc);
+void sleep_us(Int us) {
+	//uint32_t cyc = cyc;
+	//unit64_t
+	TIMER[0] &= (~1);
+	uint32_t val = TIMER[1] + us;
+	TIMER[3] = val;
+	while (!(TIMER[0] & 1)) {};
+	TIMER[0] &= (~1);
 }
 
 int main(void) __attribute__((naked)); // Never return.
@@ -34,10 +41,12 @@ int main(void) {
 	while(1) {
 		gpioSet(LED_GPIO);
 		gpioUnset(ACT_GPIO);
-		sleep(0x3F0000);
+		//sleep(0x3F0000);
+		sleep_us(500000);
 		gpioUnset(LED_GPIO);
 		gpioSet(ACT_GPIO);
-		sleep(0x3F0000);
+		//sleep(0x3F0000);
+		sleep_us(500000);
 	}
 }
 
