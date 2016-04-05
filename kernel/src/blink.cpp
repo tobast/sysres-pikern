@@ -31,7 +31,7 @@ void sleep_us(Int us) {
 	//while (!(TIMER[0] & 1)) {};
 	//TIMER[0] &= (~1);
 	uint32_t init_count = TIMER[1];
-	while ((uint32_t)(TIMER[1] - init_count) < (uint32_t us)) {};
+	while ((uint32_t)(TIMER[1] - init_count) < (uint32_t) us) {};
 }
 
 __attribute__((naked))
