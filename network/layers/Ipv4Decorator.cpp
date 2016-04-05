@@ -10,7 +10,7 @@ Bytes Ipv4Decorator::decorate(const Bytes& data, const Ipv4Addr destIp) {
 		<< (uchar)((0x0 << 2) | 0x0) // DSCP << 2 | ECN
 		<< (uint16_t)(data.size() + 20)
 		<< uuid
-		<< (uint16_t)((0b010 << 13) | 0x0)
+		<< (uint16_t)((0b000 << 13) | 0x0)
 		<< (uchar)(64)
 		<< (uchar)(0x06)
 		<< (uint16_t)(0) // TODO checksum
