@@ -43,20 +43,20 @@ $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
 $(BUILD):
 	mkdir $@
 
-install:
-	mkdir ./mntpt
-	mount $(SDCARD_DEVICE) ./mntpt
+install: $(TARGET) $(SDCARD_DEVICE)
+	mkdir -p ./mntpt
+	sudo /usr/bin/mount $(SDCARD_DEVICE) ./mntpt
 	cp "$(TARGET)" "./mntpt/"
 	sync
-	umount ./mntpt
+	sudo /usr/bin/umount $(SDCARD_DEVICE)
 	rmdir mntpt
 
 checkinstall:
 	mkdir ./mntpt
-	mount $(SDCARD_DEVICE) ./mntpt
+	sudo /usr/bin/mount $(SDCARD_DEVICE) ./mntpt
 	@md5sum $(TARGET)
 	@md5sum ./mntpt/$(TARGET)
-	umount ./mntpt
+	sudo /usr/bin/umount $(SDCARD_DEVICE)
 	rmdir ./mntpt
 		
 
