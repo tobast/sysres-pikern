@@ -8,12 +8,12 @@ Bytes Ipv4Decorator::decorate(const Bytes& data, const Ipv4Addr destIp) {
 	Bytes out;
 	out << (uchar)((0x4 << 4) | (0x5))
 		<< (uchar)((0x0 << 2) | 0x0) // DSCP << 2 | ECN
-		<< (unsigned int16_t)(data.size() + 20)
+		<< (uint16_t)(data.size() + 20)
 		<< uuid
-		<< (unsigned int16_t)((0b010 << 13) | 0x0)
+		<< (uint16_t)((0b010 << 13) | 0x0)
 		<< (uchar)(64)
 		<< (uchar)(0x06)
-		<< (unsigned int16_t)(0) // TODO checksum
+		<< (uint16_t)(0) // TODO checksum
 		<< sourceIp
 		<< destIp;
 	uuid++;

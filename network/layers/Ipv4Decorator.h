@@ -7,7 +7,7 @@
 
 class Ipv4Decorator {
 	public:
-		typedef int32_t Ipv4Addr;
+		typedef uint32_t Ipv4Addr;
 
 		class IncompletePacket {};
 		/// Thrown when trying to extract a packet that is not complete yet.
@@ -18,7 +18,7 @@ class Ipv4Decorator {
 	
 	private:
 		typedef char16_t Uuid;
-		typedef unsigned char uchar;
+		typedef uint8_t uchar;
 
 		std::unordered_map<Uuid,Bytes> uncompleted;
 		Uuid uuid;
