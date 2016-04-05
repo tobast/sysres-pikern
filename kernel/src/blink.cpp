@@ -1,8 +1,8 @@
 #include <cstdint>
 typedef int32_t Int;
 //typedef int Int;
-#define GPIO	((Int*)0x20200000)
-#define TIMER ((Int*)0x20003000)
+#define GPIO	((Int volatile *)0x20200000)
+#define TIMER ((Int volatile *)0x20003000)
 const char GPIO_WAY_INPUT =		0b000;
 const char GPIO_WAY_OUTPUT =	0b001;
 
