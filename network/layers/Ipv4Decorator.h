@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <cstdint>
+#include <functional>
 #include "../Bytes.h"
 
 class Ipv4Decorator {
@@ -25,10 +26,15 @@ class Ipv4Decorator {
 		/// throws [IncompletePacket].
 	
 	private:
-		typedef char16_t Uuid;
+		typedef uint16_t Uuid;
 		typedef uint8_t uchar;
+		typedef uint16_t ushort;
 
-		std::unordered_map<Uuid,Bytes> uncompleted;
+		struct UuidHash {
+			size_t operator()(const Uuid& v) const;
+		};
+
+		std::unordered_map<Uuid,Bytes,UuidHash> uncompleted;
 		/// Keeps the packets that are not yet fully received.
 		Uuid uuid;
 		/// Current packet UUID, incremented each time.
