@@ -30,11 +30,28 @@ class Ipv4Decorator {
 		typedef uint8_t uchar;
 		typedef uint16_t ushort;
 
-		struct UuidHash {
-			size_t operator()(const Uuid& v) const;
+		struct FragmentIdentifier {
+			FragmentIdentifier(Ipv4Addr from, Ipv4Addr to,
+					Uuid uuid, uchar protocol) :
+					from(from),to(to),uuid(uuid),protocol(protocol) {}
+			Ipv4Addr from, to;
+			Uuid uuid;
+			uchar protocol;
+
+			bool operator==(const FragmentIdentifier& e) const {
+				return (from==e.from && to==e.to && uuid==e.uuid &&
+						protocol == e.protocol);
+			}
+		};
+		struct FragmentIdentifierHash {
+			size_t operator()(const FragmentIdentifier& v) const;
 		};
 
-		std::unordered_map<Uuid,Bytes,UuidHash> uncompleted;
+		typedef
+			std::unordered_map<FragmentIdentifier,Bytes,FragmentIdentifierHash>
+			FragmentIdentifierHashtbl;
+
+		FragmentIdentifierHashtbl uncompleted;
 		/// Keeps the packets that are not yet fully received.
 		Uuid uuid;
 		/// Current packet UUID, incremented each time.

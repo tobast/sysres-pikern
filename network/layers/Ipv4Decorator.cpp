@@ -20,7 +20,13 @@ Bytes Ipv4Decorator::decorate(const Bytes& data, const Ipv4Addr destIp) {
 	return out;
 }
 
-size_t Ipv4Decorator::UuidHash::operator()(const Uuid& v) const {
-	return std::hash<unsigned short>()((unsigned short)v);
+size_t Ipv4Decorator::FragmentIdentifierHash::operator()
+	(const FragmentIdentifier& v) const
+{
+	return (size_t)(
+			std::hash<unsigned int>()(v.from) +
+			std::hash<unsigned int>()(v.to) +
+			std::hash<unsigned short>()(v.uuid) +
+			std::hash<unsigned char>()(v.protocol));
 }
 
