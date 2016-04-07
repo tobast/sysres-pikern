@@ -48,6 +48,53 @@ asm(
     "subs pc,lr,#4\n\t"
 );
 
+void init_stacks() {
+	asm(
+		"mov r0,#0xD2\n\t" // Mode IRQ ; disable IRQ and FIQ
+		"msr cpsr_c,r0\n\t"
+		"mov sp,#0x8000\n\t"
+
+		"mov r0,#0xD1\n\t" // Mode FIQ ; disable IRQ and FIQ
+		"msr cpsr_c,r0\n\t"
+		"mov sp,#0x4000\n\t"
+
+		"mov r0,#0xD3\n\t" // Mode SVC ; disable IRQ and FIQ
+		"msr cpsr_c,r0\n\t"
+   );
+}
+
+inline void enable_irq() {
+	asm(
+		"mrs r0,cpsr\n\t"
+		"bic r0,r0,#0x80\n\t"
+		"msr cpsr_c,r0\n\t"
+	);
+}
+
+inline void disable_irq() {
+	asm(
+		"mrs r0,cpsr\n\t"
+		"orr r0,r0,#0x80\n\t"
+		"msr cpsr_c,r0\n\t"
+	);
+}
+
+inline void enable_fiq() {
+	asm(
+		"mrs r0,cpsr\n\t"
+		"bic r0,r0,#0x40\n\t"
+		"msr cpsr_c,r0\n\t"
+	);
+}
+
+inline void disable_fiq() {
+	asm(
+		"mrs r0,cpsr\n\t"
+		"orr r0,r0,#0x40\n\t"
+		"msr cpsr_c,r0\n\t"
+	);
+}
+
 inline void gpioSet(Int i) {
 	// Sets the bit i of GPIO + 0x1C
 	Int orMask = (1<<(i%32));
@@ -81,26 +128,44 @@ void set_irq_handler(interrupt handler) {
 	*((interrupt*)((Int)vector_table_dst + (Int)irq_handler_addr - (Int)vector_table)) = handler;
 }
 
+Int volatile count = 0;
+
+const Int LED_GPIO = 25;
+const Int ACT_GPIO = 16;
+
 void on_interrupt(Int* args) {
-	
+	count++;
+	if (count & 1) {
+		gpioSet(LED_GPIO);
+		gpioSet(ACT_GPIO);
+	} else {
+		gpioUnset(LED_GPIO);
+		gpioUnset(ACT_GPIO);
+	}
+	TIMER[0] = 0;
+	TIMER[3] = TIMER[1] + 500000;
 }
 
 __attribute__((naked))
 __attribute__((section(".init")))
 int main(void) {
 	init_vector_table();
+	init_stacks();
 	set_irq_handler(&on_interrupt);
-	const Int LED_GPIO = 25, ACT_GPIO = 16;
+	enable_irq();
 	gpioSetWay(LED_GPIO, GPIO_WAY_OUTPUT);
 	gpioSetWay(ACT_GPIO, GPIO_WAY_OUTPUT);
 
-	while(1) {
+	TIMER[3] = TIMER[1] + 500000;
+
+	/*while(1) {
 		gpioSet(LED_GPIO);
 		gpioSet(ACT_GPIO);
 		sleep_us(2*500000);
 		gpioUnset(LED_GPIO);
 		gpioUnset(ACT_GPIO);
 		sleep_us(500000);
-	}
+	}*/
+	while (1) {}
 }
 
