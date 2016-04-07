@@ -3,6 +3,10 @@ typedef int32_t Int;
 //typedef int Int;
 #define GPIO	((Int volatile *)0x20200000)
 #define TIMER ((Int volatile *)0x20003000)
+
+#define IRQ ((Int volatile *)0x2000B200)
+#define ARM_TIMER ((Int volatile *)0x2000B400)
+
 const char GPIO_WAY_INPUT =		0b000;
 const char GPIO_WAY_OUTPUT =	0b001;
 
@@ -141,8 +145,11 @@ void on_interrupt(Int* args) {
 	} else {
 		gpioUnset(LED_GPIO);
 	}
-	TIMER[0] = 0;
-	TIMER[3] = TIMER[1] + 500000;
+	//TIMER[0] = 0;
+	//TIMER[3] = TIMER[1] + 500000;
+
+	ARM_TIMER[3] = 0;
+	ARM_TIMER[0] = 500000 - 20000 * (count & 15);
 }
 
 __attribute__((naked))
@@ -158,7 +165,14 @@ int main(void) {
 	gpioSet(LED_GPIO);
 	gpioUnset(ACT_GPIO);
 
-	TIMER[3] = TIMER[1] + 500000;
+	IRQ[6] = 1;
+	ARM_TIMER[3] = 0;
+	ARM_TIMER[7] = 0xff;
+	ARM_TIMER[2] = 0x3e00a2;
+	ARM_TIMER[0] = 500000;
+	ARM_TIMER[6] = 500000;
+
+	//TIMER[3] = TIMER[1] + 500000;
 
 	/*while(1) {
 		gpioSet(LED_GPIO);
