@@ -135,12 +135,11 @@ const Int ACT_GPIO = 16;
 
 void on_interrupt(Int* args) {
 	count++;
+	gpioSet(ACT_GPIO);
 	if (count & 1) {
 		gpioSet(LED_GPIO);
-		gpioSet(ACT_GPIO);
 	} else {
 		gpioUnset(LED_GPIO);
-		gpioUnset(ACT_GPIO);
 	}
 	TIMER[0] = 0;
 	TIMER[3] = TIMER[1] + 500000;
@@ -155,6 +154,9 @@ int main(void) {
 	enable_irq();
 	gpioSetWay(LED_GPIO, GPIO_WAY_OUTPUT);
 	gpioSetWay(ACT_GPIO, GPIO_WAY_OUTPUT);
+
+	gpioSet(LED_GPIO);
+	gpioUnset(ACT_GPIO);
 
 	TIMER[3] = TIMER[1] + 500000;
 
