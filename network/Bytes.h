@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+#include <vector>
 
 class Bytes {
 	public:
@@ -11,10 +12,10 @@ class Bytes {
 
 		Bytes();
 
-		char& operator[](const size_t pos);
+		uint8_t& operator[](const size_t pos);
 		/// Accesses the [pos]th element. Throws OutOfRange if pos >= size()
 		
-		char at(const size_t pos) const;
+		uint8_t at(const size_t pos) const;
 		/// Same as operator[], but this is a const method.
 		uint16_t ushortAt(const size_t pos) const;
 		/// Accesses the 16 bits unsigned integet at position [pos].
@@ -23,7 +24,6 @@ class Bytes {
 		size_t size() const;
 		/// Returns the number of chars in the object.
 		
-		Bytes& operator<<(char v);
 		Bytes& operator<<(uint8_t v);
 		Bytes& operator<<(uint16_t v);
 		Bytes& operator<<(uint32_t v);
@@ -31,7 +31,6 @@ class Bytes {
 		/// Appends the given data to the vector. Returns *this to allow
 		/// chaining.
 		
-		Bytes& operator>>(char& v);
 		Bytes& operator>>(uint8_t& v);
 		Bytes& operator>>(uint16_t& v);
 		Bytes& operator>>(uint32_t& v);
@@ -41,12 +40,13 @@ class Bytes {
 		/// [len] chars. If [beg+len] >= [size()], throws OutOfRange.
 	
 	private: //meth
-		void append_bytes(char* bytes, size_t num);
-		/// Appends [bytes] to [data]. [bytes] must have size [num].
+		template<typename T> void insertData(T v);
+		template<typename T> void extractData(T& v);
 
 	private:
-		char* data;
+		std::vector<uint8_t> data;
 		size_t len, reserved;
+		size_t firstIndex;
 };
 
 #endif//DEF_NW_BYTES
