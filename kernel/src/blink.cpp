@@ -135,7 +135,7 @@ const Int ACT_GPIO = 16;
 
 void on_interrupt(Int* args) {
 	count++;
-	gpioSet(ACT_GPIO);
+	//gpioSet(ACT_GPIO);
 	if (count & 1) {
 		gpioSet(LED_GPIO);
 	} else {
