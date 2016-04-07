@@ -15,7 +15,7 @@ Bytes Ipv4Decorator::decorateSingle(const Packet& packet,
 		<< uuid
 		<< (uint16_t)((0b00 << 14) | (notLastFragment << 13) | 0x0)
 		<< (uchar)(64)
-		<< (uchar)(0x06)
+		<< packet.proto
 		<< (uint16_t)(0)
 		<< sourceIp
 		<< packet.addr;
@@ -44,7 +44,68 @@ std::vector<Bytes> Ipv4Decorator::decorate(const Packet& packet){
 		Packet subpack;
 		subpack.data = packet.data.sub(pos,subLen);
 		subpack.addr = packet.addr;
+		subpack.proto = packet.proto;
 		out.push_back(decorateSingle(subpack,isLast));
+	}
+	return out;
+}
+
+Ipv4Decorator::Packet Ipv4Decorator::extract(const Bytes& packet) {
+	char version=packet.at(0);
+	char ihl=0;
+	ihl = version & 0xF;
+	version >>= 4;
+
+	if(version != 4)
+		throw (new InvalidPacket);
+
+	Bytes head = packet.sub(1, ihl-1); // we don't want the first byte
+	Bytes body = packet.sub(ihl, packet.size() - ihl);
+
+	// Extract packet
+	char ignore,flags,ttl,proto;
+	uint16_t fullSize,packUuid,offset,chksum;
+	uint32_t source,dest;
+	head >> ignore
+		>> fullSize
+		>> packUuid
+		>> offset
+		>> ttl
+		>> proto
+		>> chksum
+		>> source
+		>> dest;
+
+	flags = offset >> 3;
+	offset &= 0x1FFF;
+	
+	// Check packet size
+	if(fullSize != packet.size())
+		throw (new InvalidPacket);
+
+	// Check the checksum
+	if(checksum(packet.sub(0,ihl)) != chksum)
+		throw (new InvalidPacket);
+	
+	// Check we were meant to receive that
+	if(dest != sourceIp)
+		throw (new InvalidPacket);
+
+	// Check whether the packet is a datagram fragment
+	Packet out;
+	if(flags & (1<<0) || offset > 0) {
+//		FragmentIdentifier fragId(source, dest, packUuid, proto);
+//		DatagramFragment& curFrag = uncompleted[fragId];
+		
+		//TODO
+		throw (new IncompletePacket); // NOT IMPLEMENTED.
+
+		//if(curFrag.frags.empty()) { // First fragment received
+	}
+	else { // Not fragmented
+		out.data = body;
+		out.addr = source;
+		out.proto = proto;
 	}
 	return out;
 }

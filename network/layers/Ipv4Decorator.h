@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <functional>
+#include <set>
 #include <vector>
 #include "../Bytes.h"
 
@@ -13,6 +14,8 @@ class Ipv4Decorator {
 
 		class IncompletePacket {};
 		/// Thrown when trying to extract a packet that is not complete yet.
+		class InvalidPacket {};
+		/// Thrown when a packet is invalid or corrupted.
 		class TooLargePacket {};
 		/// Thrown when trying to decorate a packet without fragmentation that
 		/// cannot fit in a single packet.
@@ -20,6 +23,7 @@ class Ipv4Decorator {
 		struct Packet {
 			Bytes data;
 			Ipv4Addr addr;
+			uint8_t proto;
 		};
 
 		Ipv4Decorator(Ipv4Addr sourceIp);
@@ -40,10 +44,12 @@ class Ipv4Decorator {
 		/// ready to be sent to [packet.addr]. Fragments [data] into
 		/// several packets if needed.
 	
-		Bytes extract(const Bytes& data);
+		Packet extract(const Bytes& packet);
 		/// Extracts the data from the IPv4 decorated packet [data]. If the
 		/// packet is fragmented and is not fully received yet, this function
 		/// throws [IncompletePacket].
+		/// Throws [InvalidPacket] if the packet is corrupted, uses the wrong
+		/// protocol, ...
 
 		static size_t maxPacketLoad();
 		/// Returns the maximum size of the data segment of a packet before
@@ -73,9 +79,22 @@ class Ipv4Decorator {
 		struct FragmentIdentifierHash {
 			size_t operator()(const FragmentIdentifier& v) const;
 		};
+		struct DataFragment {
+			size_t offset;
+			Bytes data;
+			bool operator<(const DataFragment& oth) const {
+				return offset < oth.offset;
+			}
+		};
+		struct DatagramFragment {
+			DatagramFragment() : lastRecv(false) {}
+			std::set<DataFragment> frags;
+			bool lastRecv;
+		};
 
 		typedef
-			std::unordered_map<FragmentIdentifier,Bytes,FragmentIdentifierHash>
+			std::unordered_map<FragmentIdentifier,DatagramFragment,
+				FragmentIdentifierHash>
 			FragmentIdentifierHashtbl;
 
 		FragmentIdentifierHashtbl uncompleted;
