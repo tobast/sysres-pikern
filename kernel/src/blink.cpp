@@ -120,7 +120,7 @@ void async_start(int i, async_func f) {
 	stored_state[i].lr = ((Int)f) + 4;
 	// Find a suitable stack pointer
 	stored_state[i].r13 = 0x100000 + 0x80000 * (i + 1);
-	stored_state[i].spsr = 0x53; // User mode, enable IRQ, disable FIQ // SVC mode actually
+	stored_state[i].spsr = 0x50; // User mode, enable IRQ, disable FIQ
 }
 
 void async_go() {
