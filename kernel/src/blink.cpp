@@ -10,6 +10,9 @@ typedef int32_t Int;
 const char GPIO_WAY_INPUT =		0b000;
 const char GPIO_WAY_OUTPUT =	0b001;
 
+const Int MAX_PROCESS = 10;
+#define NULL (0)
+
 typedef void (*interrupt_handler)(Int*);
 extern interrupt_handler _interrupt_handler_addr;
 interrupt_handler volatile * const interrupt_handler_addr = &_interrupt_handler_addr; 
@@ -77,6 +80,14 @@ void _asm_irq_handler(Int*) {
 	);
 }
 
+void crash();
+
+void assert(bool b) {
+	if (!b) {
+		crash();
+	}
+}
+
 struct context {
 	Int spsr;
 	Int lr;
@@ -101,31 +112,93 @@ struct context {
 		spsr = lr = 0;
 	};
 };
-Int volatile active = 0;
-context stored_state[2];
+struct process {
+	context cont;
+	Int next_process;
+	Int previous_process;
+};
+process processes[MAX_PROCESS];
+Int active_process = 0;
+Int free_process = 1;
 
-void on_irq(Int* stack_pointer) {
+void init_process_table() {
+	processes[0].next_process = 0;
+	processes[0].previous_process = 0;
+	active_process = 0;
+	free_process = 1;
+	for (Int i = 1; i < MAX_PROCESS; i++) {
+		processes[i].next_process = i + 1;
+	}
+}
+
+// Add a process before active_process
+void add_process(Int i) {
+	Int u = active_process;
+	Int v = processes[u].previous_process;
+	processes[u].previous_process = i;
+	processes[v].next_process = i;
+	processes[i].previous_process = v;
+	processes[i].next_process = u;
+	// There was no active process before
+	if (active_process == 0) {
+		active_process = i;
+	}
+}
+
+void delete_process(Int i) {
+	Int u = processes[i].previous_process;
+	Int v = processes[i].next_process;
+	processes[u].next_process = v;
+	processes[v].next_process = u;
+	processes[i].next_process = free_process;
+	free_process = i;
+	if (active_process == i) {
+		active_process = u;
+		if (active_process == 0) {
+			active_process = processes[u].previous_process;
+		}
+	}
+}
+
+Int create_process() {
+	Int i = free_process;
+	assert(i < MAX_PROCESS);
+	free_process = processes[i].next_process;
+	add_process(i);
+	return i;
+}
+
+void next_process() {
+	active_process = processes[active_process].next_process;
+	if (active_process == 0) {
+		active_process = processes[active_process].next_process;
+	}
+}
+
+extern "C" void on_irq(Int* stack_pointer) {
 	context* current_context = (context*)stack_pointer;
-	stored_state[active] = *current_context;
-	active = 1 - active;
-	*current_context = stored_state[active];
+	processes[active_process].cont = *current_context;
+	next_process();
+	*current_context = processes[active_process].cont;
 	ARM_TIMER[3] = 0;
-	//ARM_TIMER[0] = 500000;
 	ARM_TIMER[0] = 500;
 }
 
-typedef void (*async_func)();
-void async_start(int i, async_func f) {
-	stored_state[i] = context();
-	stored_state[i].lr = ((Int)f) + 4;
-	// Find a suitable stack pointer
-	stored_state[i].r13 = 0x100000 + 0x80000 * (i + 1);
-	stored_state[i].spsr = 0x50; // User mode, enable IRQ, disable FIQ
+typedef void (*async_func)(void*);
+void async_start(async_func f, void* arg) {
+	Int i = create_process();
+	processes[i].cont = context();
+	processes[i].cont.lr = ((Int)f) + 4;
+	processes[i].cont.r0 = (Int)arg;
+	// Find a suitable stack pointer; TODO: make that better
+	processes[i].cont.r13 = 0x1000000 + 0x800000 * (i + 1);
+	processes[i].cont.spsr = 0x50; // User mode, enable IRQ, disable FIQ
 }
 
-void async_go() {
+__attribute__((naked))
+void _async_go(context*) {
 	asm(
-		"ldr sp, =stored_state\n\t"
+		"mov sp, r0\n\t"
 		"ldmfd sp!, {r0, lr}\n\t"
 		"msr spsr_cxsf, r0\n\t"
 		"ldmfd sp, {r0-lr}^\n\t"
@@ -134,7 +207,12 @@ void async_go() {
 		"subs pc, lr, #4"
 	);
 }
+void async_go() {
+	assert(active_process != 0);
+	_async_go(&(processes[active_process].cont));
+}
 
+__attribute__((naked))
 void init_stacks() {
 	asm(
 		"mov r0,#0xD2\n\t" // Mode IRQ ; disable IRQ and FIQ
@@ -150,7 +228,8 @@ void init_stacks() {
    );
 }
 
-inline void enable_irq() {
+__attribute__((naked))
+void enable_irq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"bic r0,r0,#0x80\n\t"
@@ -158,7 +237,8 @@ inline void enable_irq() {
 	);
 }
 
-inline void disable_irq() {
+__attribute__((naked))
+void disable_irq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"orr r0,r0,#0x80\n\t"
@@ -166,7 +246,8 @@ inline void disable_irq() {
 	);
 }
 
-inline void enable_fiq() {
+__attribute__((naked))
+void enable_fiq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"bic r0,r0,#0x40\n\t"
@@ -174,7 +255,8 @@ inline void enable_fiq() {
 	);
 }
 
-inline void disable_fiq() {
+__attribute__((naked))
+void disable_fiq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"orr r0,r0,#0x40\n\t"
@@ -213,7 +295,6 @@ void init_vector_table() {
 }
 
 void set_irq_handler(interrupt_handler handler) {
-	//*((interrupt_handler*)((Int)vector_table_dst + (Int)irq_handler_addr - (Int)vector_table)) = handler;
 	*irq_handler_addr = handler;
 }
 
@@ -222,22 +303,19 @@ Int volatile count = 0;
 const Int LED_GPIO = 25;
 const Int ACT_GPIO = 16;
 
-void on_irq_blk(Int* stack_pointer) {
+extern "C" void on_irq_blk(Int* stack_pointer) {
 	count++;
 	if (count & 1) {
 		gpioSet(LED_GPIO);
 	} else {
 		gpioUnset(LED_GPIO);
 	}
-	//TIMER[0] = 0;
-	//TIMER[3] = TIMER[1] + 500000;
 
 	ARM_TIMER[3] = 0;
-	//ARM_TIMER[0] = 500000 - 20000 * (count & 15);
 	ARM_TIMER[0] = 500000;
 }
 
-void led_blink() {
+extern "C" void led_blink(void*) {
 	while(1) {
 		gpioSet(LED_GPIO);
 		sleep_us(2*500000);
@@ -246,7 +324,7 @@ void led_blink() {
 	}
 }
 
-void act_blink() {
+extern "C" void act_blink(void*) {
 	while(1) {
 		gpioSet(ACT_GPIO);
 		sleep_us(2*300000);
@@ -255,11 +333,18 @@ void act_blink() {
 	}
 }
 
+void crash() {
+	gpioSet(ACT_GPIO);
+	gpioUnset(LED_GPIO);
+	while (1) {}
+}
+
 __attribute__((naked))
 __attribute__((section(".init")))
 int main(void) {
 	init_vector_table();
 	init_stacks();
+	init_process_table();
 	set_irq_handler(&on_irq);
 	gpioSetWay(LED_GPIO, GPIO_WAY_OUTPUT);
 	gpioSetWay(ACT_GPIO, GPIO_WAY_OUTPUT);
@@ -271,27 +356,12 @@ int main(void) {
 	ARM_TIMER[3] = 0;
 	ARM_TIMER[7] = 0xff;
 	ARM_TIMER[2] = 0x3e00a2;
-	//ARM_TIMER[0] = 500000;
-	//ARM_TIMER[6] = 500000;
-
-	//TIMER[3] = TIMER[1] + 500000;
-
-	/*while(1) {
-		gpioSet(LED_GPIO);
-		gpioSet(ACT_GPIO);
-		sleep_us(2*500000);
-		gpioUnset(LED_GPIO);
-		gpioUnset(ACT_GPIO);
-		sleep_us(500000);
-	}*/
 	ARM_TIMER[0] = 500;
 	ARM_TIMER[6] = 500;
 
-	async_start(0, &led_blink);
-	async_start(1, &act_blink);
+	async_start(&led_blink, NULL);
+	async_start(&act_blink, NULL);
 	enable_irq();
 	async_go();
-	//act_blink();
-	//while (1) {}
 }
 
