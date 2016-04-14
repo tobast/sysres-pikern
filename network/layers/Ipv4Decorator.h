@@ -10,6 +10,9 @@
 
 namespace network {
 
+const uint8_t IPV4_PROTO_TCP = 0x06;
+const uint8_t IPV4_PROTO_UDP = 0x11;
+
 class Ipv4Decorator {
 	public:
 		typedef uint32_t Ipv4Addr;
