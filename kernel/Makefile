@@ -33,7 +33,7 @@ OBJS = \
 	   $(BUILD)assert.o \
 	   $(BUILD)gpio.o \
 	   $(BUILD)sleep.o \
-	   $(BUILD)blink.o
+	   $(BUILD)kernel.o
 
 all: $(TARGET) $(LIST)
 
