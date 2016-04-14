@@ -37,7 +37,7 @@ $(TARGET): $(BUILD)output.elf
 	$(OC) $< -O binary $@
 
 $(BUILD)output.elf: $(BIN) $(LINKER)
-	$(LD) --no-undefined $(OBJS) -Map $(MAP) -o $@ -T $(LINKER)
+	$(LD) --no-undefined $(BIN) -Map $(MAP) -o $@ -T $(LINKER)
 
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) --entry=main --specs=nosys.specs -I $(SOURCE) $^ -o $@
