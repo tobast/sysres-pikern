@@ -212,7 +212,6 @@ void async_go() {
 	_async_go(&(processes[active_process].cont));
 }
 
-__attribute__((naked))
 void init_stacks() {
 	asm(
 		"mov r0,#0xD2\n\t" // Mode IRQ ; disable IRQ and FIQ
@@ -228,40 +227,36 @@ void init_stacks() {
    );
 }
 
-__attribute__((naked))
-void enable_irq() {
+inline void enable_irq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"bic r0,r0,#0x80\n\t"
 		"msr cpsr_c,r0\n\t"
-	);
+	: : : "r0");
 }
 
-__attribute__((naked))
-void disable_irq() {
+inline void disable_irq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"orr r0,r0,#0x80\n\t"
 		"msr cpsr_c,r0\n\t"
-	);
+	: : : "r0");
 }
 
-__attribute__((naked))
-void enable_fiq() {
+inline void enable_fiq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"bic r0,r0,#0x40\n\t"
 		"msr cpsr_c,r0\n\t"
-	);
+	: : : "r0");
 }
 
-__attribute__((naked))
-void disable_fiq() {
+inline void disable_fiq() {
 	asm(
 		"mrs r0,cpsr\n\t"
 		"orr r0,r0,#0x40\n\t"
 		"msr cpsr_c,r0\n\t"
-	);
+	: : : "r0");
 }
 
 inline void gpioSet(Int i) {
