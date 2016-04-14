@@ -26,7 +26,7 @@ LINKER = kernel.ld
 
 BIN = $(BUILD)master.bin
 
-OBJS = $(BUILD)malloc.o $(BUILD)blink.o
+OBJS = $(BUILD)malloc.o $(BUILD)interrupts.o $(BUILD)process.o $(BUILD)assert.o $(BUILD)blink.o
 
 all: $(TARGET) $(LIST)
 
