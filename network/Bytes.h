@@ -34,6 +34,11 @@ class Bytes {
 		Bytes& operator>>(uint8_t& v);
 		Bytes& operator>>(uint16_t& v);
 		Bytes& operator>>(uint32_t& v);
+		/// Extracts the given data type from the vector. Returns *this to
+		/// allow chaining.
+		
+		void operator=(const Bytes& oth);
+		/// Copies the given Bytes object into its own data.
 
 		Bytes sub(size_t beg, size_t len) const;
 		/// Extracts a sub-bytes, beginning at character [beg], containing
@@ -45,7 +50,6 @@ class Bytes {
 
 	private:
 		std::vector<uint8_t> data;
-		size_t len, reserved;
 		size_t firstIndex;
 };
 

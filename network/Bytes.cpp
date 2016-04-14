@@ -1,6 +1,6 @@
 #include "Bytes.h"
 
-Bytes::Bytes() : data(), len(0), reserved(0), firstIndex(0) {}
+Bytes::Bytes() : data(), firstIndex(0) {}
 
 uint8_t& Bytes::operator[](const size_t pos) {
 	if(pos < size())
@@ -20,7 +20,7 @@ uint16_t Bytes::ushortAt(const size_t pos) const {
 }
 
 size_t Bytes::size() const {
-	return len - firstIndex;
+	return data.size() - firstIndex;
 }
 
 Bytes& Bytes::operator<<(uint8_t v) {
@@ -53,6 +53,14 @@ Bytes& Bytes::operator>>(uint16_t& v) {
 Bytes& Bytes::operator>>(uint32_t& v) {
 	extractData<uint32_t>(v);
 	return *this;
+}
+
+void Bytes::operator=(const Bytes& oth) {
+	firstIndex=0;
+	data.clear();
+	data.reserve(oth.size());
+	for(size_t pos=0; pos < oth.size(); pos++)
+		data.push_back(oth.at(pos));
 }
 
 Bytes Bytes::sub(size_t beg, size_t len) const {
