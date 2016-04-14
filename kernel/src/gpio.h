@@ -11,6 +11,8 @@ namespace gpio {
 	const char WAY_INPUT  = 0b000;
 	const char WAY_OUTPUT = 0b001;
 
+	void init();
+
 	inline void set(int i) {
 		// Sets the bit i of GPIO + 0x1C
 		GPIO[7 + (i >> 5)] = 1 << (i & 0x1f);

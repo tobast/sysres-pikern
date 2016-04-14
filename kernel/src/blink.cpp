@@ -39,13 +39,10 @@ int main(void) {
 	init_vector_table();
 	init_stacks();
 	init_process_table();
-	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
-	gpio::setWay(gpio::ACT_PIN, gpio::WAY_OUTPUT);
-	gpio::setWay(gpio::CRASH_PIN, gpio::WAY_OUTPUT);
 
-	gpio::set(gpio::LED_PIN);
-	gpio::unset(gpio::ACT_PIN);
-	gpio::unset(gpio::CRASH_PIN);
+	gpio::init();
+	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
+	gpio::unset(gpio::LED_PIN);
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);
