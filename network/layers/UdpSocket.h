@@ -1,6 +1,7 @@
 #ifndef DEF_NW_UDPSOCKET
 #define DEF_NW_UDPSOCKET
 
+#include <queue>
 #include <vector>
 
 #include "../Bytes.h"
@@ -8,12 +9,15 @@
 
 namespace network {
 
+void __SEND__(const Bytes&); // TODO IMPLEMENT (not here, though.)
+
 class UdpSocket {
 	public:
 		typedef uint16_t Port;
 		typedef Ipv4Decorator::Ipv4Addr Addr;
 
 		class TooLargePacket {};
+		/// Thrown if a packet is too large to be sent.
 
 		UdpSocket(Addr saddr, Port sport, Addr daddr, Port dport);
 		/// Creates a fresh new UdpSocket, emitting packets from the address
@@ -44,7 +48,7 @@ class UdpSocket {
 		Addr saddr,daddr;
 		Port sport,dport;
 
-		std::vector<Bytes> pendingPackets;
+		std::queue<Bytes> pendingPackets;
 
 		Ipv4Decorator ipv4Decorator;
 };
