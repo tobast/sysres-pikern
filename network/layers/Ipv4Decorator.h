@@ -8,6 +8,8 @@
 #include <vector>
 #include "../Bytes.h"
 
+namespace network {
+
 class Ipv4Decorator {
 	public:
 		typedef uint32_t Ipv4Addr;
@@ -105,5 +107,7 @@ class Ipv4Decorator {
 		Ipv4Addr sourceIp;
 		/// Address from which we are sending packets.
 };
+
+} // END NAMESPACE
 
 #endif//DEF_NW_IPV4

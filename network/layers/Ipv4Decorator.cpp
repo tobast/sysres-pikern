@@ -1,5 +1,7 @@
 #include "Ipv4Decorator.h"
 
+namespace network {
+
 Ipv4Decorator::Ipv4Decorator(Ipv4Addr sourceIp) :
 	uuid(0), sourceIp(sourceIp) {}
 
@@ -137,4 +139,6 @@ size_t Ipv4Decorator::FragmentIdentifierHash::operator()
 			std::hash<unsigned short>()(v.uuid) +
 			std::hash<unsigned char>()(v.protocol));
 }
+
+} // END NAMESPACE
 
