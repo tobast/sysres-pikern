@@ -65,7 +65,7 @@ Ipv4Decorator::Packet Ipv4Decorator::extract(const Bytes& packet) {
 	Bytes body = packet.sub(ihl, packet.size() - ihl);
 
 	// Extract packet
-	char ignore,flags,ttl,proto;
+	uint8_t ignore,flags,ttl,proto;
 	uint16_t fullSize,packUuid,offset,chksum;
 	uint32_t source,dest;
 	head >> ignore
