@@ -27,6 +27,11 @@ class Ipv4Decorator {
 			Ipv4Addr addr;
 			uint8_t proto;
 		};
+		struct RawDatagram {
+			std::vector<Bytes> data;
+			Ipv4Addr addr;
+			uint8_t proto;
+		};
 
 		Ipv4Decorator(Ipv4Addr sourceIp);
 		/// Creates a decorator using the given IP as source of the packets.
@@ -52,6 +57,10 @@ class Ipv4Decorator {
 		/// throws [IncompletePacket].
 		/// Throws [InvalidPacket] if the packet is corrupted, uses the wrong
 		/// protocol, ...
+		
+		RawDatagram extractRaw(const Bytes& packet);
+		/// Does the same as [extract], but does not concatenate the packets
+		/// in one single [Bytes], leaving them in a [vector<Bytes>].
 
 		static size_t maxPacketLoad();
 		/// Returns the maximum size of the data segment of a packet before
