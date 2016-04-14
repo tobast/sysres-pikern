@@ -17,18 +17,18 @@ void sleep_us(int us) {
 
 extern "C" void led_blink(void*) {
 	while(1) {
-		gpioSet(LED_GPIO);
+		gpio::set(gpio::LED_PIN);
 		sleep_us(2*500000);
-		gpioUnset(LED_GPIO);
+		gpio::unset(gpio::LED_PIN);
 		sleep_us(500000);
 	}
 }
 
 extern "C" void act_blink(void*) {
 	while(1) {
-		gpioSet(ACT_GPIO);
+		gpio::set(gpio::ACT_PIN);
 		sleep_us(2*300000);
-		gpioUnset(ACT_GPIO);
+		gpio::unset(gpio::ACT_PIN);
 		sleep_us(300000);
 	}
 }
@@ -39,11 +39,13 @@ int main(void) {
 	init_vector_table();
 	init_stacks();
 	init_process_table();
-	gpioSetWay(LED_GPIO, GPIO_WAY_OUTPUT);
-	gpioSetWay(ACT_GPIO, GPIO_WAY_OUTPUT);
+	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
+	gpio::setWay(gpio::ACT_PIN, gpio::WAY_OUTPUT);
+	gpio::setWay(gpio::CRASH_PIN, gpio::WAY_OUTPUT);
 
-	gpioSet(LED_GPIO);
-	gpioUnset(ACT_GPIO);
+	gpio::set(gpio::LED_PIN);
+	gpio::unset(gpio::ACT_PIN);
+	gpio::unset(gpio::CRASH_PIN);
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

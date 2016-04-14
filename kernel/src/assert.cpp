@@ -8,7 +8,8 @@ void assert(bool b) {
 }
 
 void crash() {
-	gpioSet(ACT_GPIO);
-	gpioSet(LED_GPIO);
+	gpio::set(gpio::ACT_PIN);
+	gpio::unset(gpio::LED_PIN);
+	gpio::set(gpio::CRASH_PIN);
 	while (1) {}
 }
