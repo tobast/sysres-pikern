@@ -15,7 +15,7 @@ OC = $(ARM_PREFIX)-objcopy
 SDCARD_DEVICE = /dev/mmcblk0p1
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
-	-mtune=arm1176jzf-s -nostartfiles
+	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic
 
 BUILD = _build/
 SOURCE = src/
