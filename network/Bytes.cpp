@@ -2,6 +2,12 @@
 
 Bytes::Bytes() : data(), firstIndex(0) {}
 
+Bytes::Bytes(void* buff, size_t len) : firstIndex(0) {
+	data.reserve(len);
+	for(size_t pos=0; pos < len; pos++)
+		data.push_back(((uint8_t*)buff)[pos]);
+}
+
 uint8_t& Bytes::operator[](const size_t pos) {
 	if(pos < size())
 		return data[pos+firstIndex];
@@ -70,6 +76,11 @@ Bytes Bytes::sub(size_t beg, size_t len) const {
 	for(size_t byte=0; byte < len; byte++)
 		out << at(byte+beg);
 	return out;
+}
+
+void Bytes::writeToBuffer(void* buff) const {
+	for(size_t pos=0; pos < size(); pos++)
+		((uint8_t*)buff)[pos] = at(pos);
 }
 
 template<typename T> void Bytes::extractData(T& v) {

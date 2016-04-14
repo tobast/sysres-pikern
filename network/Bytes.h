@@ -11,6 +11,8 @@ class Bytes {
 		/// Exception -- thrown by operator[]
 
 		Bytes();
+		Bytes(void* buff, size_t len);
+		/// Initializes the object with [buff], reading [len] bytes.
 
 		uint8_t& operator[](const size_t pos);
 		/// Accesses the [pos]th element. Throws OutOfRange if pos >= size()
@@ -43,6 +45,10 @@ class Bytes {
 		Bytes sub(size_t beg, size_t len) const;
 		/// Extracts a sub-bytes, beginning at character [beg], containing
 		/// [len] chars. If [beg+len] >= [size()], throws OutOfRange.
+		
+		void writeToBuffer(void* buff) const;
+		/// Writes the contents of this array in the buffer [buff].
+		/// The user must provide a buffer of at least [size()] bytes.
 	
 	private: //meth
 		template<typename T> void insertData(T v);
