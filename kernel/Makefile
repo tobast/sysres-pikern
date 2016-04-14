@@ -24,7 +24,7 @@ LIST = $(BUILD)kernel.list
 MAP = $(BUILD)kernel.map
 LINKER = kernel.ld
 
-OBJS = $(BUILD)blink.o
+OBJS = $(BUILD)malloc.o $(BUILD)blink.o
 
 all: $(TARGET) $(LIST)
 
