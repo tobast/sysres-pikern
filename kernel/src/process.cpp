@@ -2,8 +2,8 @@
 #include "assert.h"
 #include "interrupts.h"
 
-#define IRQ ((s32 volatile *)0x2000B200)
-#define ARM_TIMER ((s32 volatile *)0x2000B400)
+s32 volatile* const IRQ = (s32 volatile*) 0x2000B200;
+s32 volatile* const ARM_TIMER = (s32 volatile *)0x2000B400;
 
 struct context {
 	s32 spsr;
@@ -138,3 +138,4 @@ void async_go() {
 	assert(active_process != 0);
 	_async_go(&(processes[active_process].cont));
 }
+
