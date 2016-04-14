@@ -39,6 +39,17 @@ class TcpSocket {
 		/// [data] if one is readable.
 		/// If a packet was actually read, returns [true], else [false].
 
+	protected: //meth
+		static const uint16_t MAX_WINDOW_SIZE;
+		struct Packet {
+			Port sport,dport;
+			uint32_t seq, ack;
+			uint16_t chksum, urgPtr, winSize;
+			bool f_ns,f_cwr,f_ece,f_urg,f_ack,f_psh,f_rst,f_syn,f_fin;
+		};
+
+		Packet extract(const Bytes& pck);
+
 	private:
 		Addr saddr,daddr;
 		Port sport,dport;
@@ -46,6 +57,8 @@ class TcpSocket {
 		State state;
 
 		std::vector<Bytes> pendingPackets;
+
+		Ipv4Decorator ipv4Decorator;
 };
 
 } // END NAMESPACE
