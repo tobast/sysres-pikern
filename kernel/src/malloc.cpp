@@ -9,6 +9,7 @@ void* malloc(unsigned size) {
 	
 	void* out = (void*)brk;
 	brk += size;
+	brk += -brk & 3; // Aligns to 4-bytes.
 	return out;
 }
 
