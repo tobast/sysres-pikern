@@ -15,7 +15,7 @@ OC = $(ARM_PREFIX)-objcopy
 SDCARD_DEVICE = /dev/mmcblk0p1
 
 CFLAGS = -O1 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
-	-mtune=arm1176jzf-s -nostartfiles --entry=main
+	-mtune=arm1176jzf-s -nostartfiles
 
 BUILD = _build/
 SOURCE = src/
@@ -23,6 +23,8 @@ TARGET = kernel.img
 LIST = $(BUILD)kernel.list
 MAP = $(BUILD)kernel.map
 LINKER = kernel.ld
+
+BIN = $(BUILD)master.bin
 
 OBJS = $(BUILD)malloc.o $(BUILD)blink.o
 
@@ -34,11 +36,14 @@ $(LIST): $(BUILD)output.elf
 $(TARGET): $(BUILD)output.elf
 	$(OC) $< -O binary $@
 
-$(BUILD)output.elf: $(OBJS) $(LINKER)
+$(BUILD)output.elf: $(BIN) $(LINKER)
 	$(LD) --no-undefined $(OBJS) -Map $(MAP) -o $@ -T $(LINKER)
 
+$(BIN): $(OBJS)
+	$(CC) $(CFLAGS) --entry=main --specs=nosys.specs -I $(SOURCE) $^ -o $@
+
 $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
-	$(CC) $(CFLAGS) -I $(SOURCE) $< -o $@
+	$(CC) $(CFLAGS) -I $(SOURCE) -c $< -o $@
 
 $(BUILD):
 	mkdir $@
