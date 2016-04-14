@@ -1,9 +1,7 @@
-#include "process.h"
 #include "assert.h"
+#include "hardware_constants.h"
 #include "interrupts.h"
-
-s32 volatile* const IRQ = (s32 volatile*) 0x2000B200;
-s32 volatile* const ARM_TIMER = (s32 volatile *)0x2000B400;
+#include "process.h"
 
 struct context {
 	s32 spsr;
@@ -46,8 +44,8 @@ extern "C" void on_irq(void* stack_pointer) {
 	processes[active_process].cont = *current_context;
 	next_process();
 	*current_context = processes[active_process].cont;
-	ARM_TIMER[3] = 0;
-	ARM_TIMER[0] = 500;
+	hardware::ARM_TIMER[3] = 0;
+	hardware::ARM_TIMER[0] = 500;
 }
 
 void init_process_table() {
@@ -60,12 +58,12 @@ void init_process_table() {
 	}
 
 	set_irq_handler(&on_irq);
-	IRQ[6] |= 1;
-	ARM_TIMER[3] = 0;
-	ARM_TIMER[7] = 0xff;
-	ARM_TIMER[2] = 0x3e00a2;
-	ARM_TIMER[0] = 500;
-	ARM_TIMER[6] = 500;
+	hardware::IRQ[6] |= 1;
+	hardware::ARM_TIMER[3] = 0;
+	hardware::ARM_TIMER[7] = 0xff;
+	hardware::ARM_TIMER[2] = 0x3e00a2;
+	hardware::ARM_TIMER[0] = 500;
+	hardware::ARM_TIMER[6] = 500;
 }
 
 // Add a process before active_process
