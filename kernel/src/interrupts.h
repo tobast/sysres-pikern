@@ -3,6 +3,7 @@
 #include "common.h"
 
 typedef void (*handler)(void*);
+typedef void (*handler_svc)(void*, int);
 
 inline void enable_irq() {
 	asm(
@@ -36,6 +37,7 @@ inline void disable_fiq() {
 	: : : "r0");
 }
 
-void set_irq_handler(handler int_handler);
+void set_irq_handler(handler irq_handler);
+void set_svc_handler(handler_svc svc_handler);
 void init_vector_table();
 void init_stacks();

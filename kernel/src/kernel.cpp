@@ -26,6 +26,14 @@ extern "C" void act_blink(void*) {
 __attribute__((naked))
 __attribute__((section(".init")))
 int main(void) {
+	// Actually, don't: it doesn't work
+	// TODO: see if it is possible to make it work
+	// Switch to system mode
+	// We can't do that later since it will corrupt stacks
+	//asm ("mov r0,#0xDF\n\t" // System mode ; disable IRQ and FIQ
+	//	 "msr cpsr_c,r0\n\t"
+	//	 "mov sp,#0x6000\n\t" // Init stack pointer
+	//	 : : : "r0");
 	init_vector_table();
 	init_stacks();
 	init_process_table();
@@ -34,8 +42,8 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
-	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);
+	async_start(&led_blink, NULL);
 	enable_irq();
 	async_go();
 }

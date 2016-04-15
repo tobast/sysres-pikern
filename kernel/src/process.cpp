@@ -48,6 +48,10 @@ extern "C" void on_irq(void* stack_pointer) {
 	hardware::ARM_TIMER[0] = 500;
 }
 
+extern "C" void on_svc(void* stack_pointer, int svc_number) {
+	
+}
+
 void init_process_table() {
 	processes[0].next_process = 0;
 	processes[0].previous_process = 0;
@@ -58,6 +62,8 @@ void init_process_table() {
 	}
 
 	set_irq_handler(&on_irq);
+	set_svc_handler(&on_svc);
+
 	hardware::IRQ[6] |= 1;
 	hardware::ARM_TIMER[3] = 0;
 	hardware::ARM_TIMER[7] = 0xff;
