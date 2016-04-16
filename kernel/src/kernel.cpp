@@ -2,6 +2,7 @@
 #include "common.h"
 #include "gpio.h"
 #include "interrupts.h"
+#include "mailbox.h"
 #include "process.h"
 #include "sleep.h"
 
@@ -45,6 +46,11 @@ int main(void) {
 	gpio::unset(gpio::LED2_PIN);
 
 	gpio::blinkValue(42);
+
+	sleep_us(1000*1000);
+
+	uint32_t rev = mailbox::getBoardRevision();
+	gpio::blinkValue(rev);
 
 	sleep_us(1000*1000);
 
