@@ -2,11 +2,11 @@
 
 namespace gpio {
 	void init() {
-		gpio::setWay(gpio::ACT_PIN, gpio::WAY_OUTPUT);
-		gpio::setWay(gpio::CRASH_PIN, gpio::WAY_OUTPUT);
+		setWay(ACT_PIN, WAY_OUTPUT);
+		setWay(CRASH_PIN, WAY_OUTPUT);
 
-		gpio::set(gpio::ACT_PIN);
-		gpio::unset(gpio::CRASH_PIN);
+		unset(ACT_PIN);
+		set(CRASH_PIN);
 	}
 
 	void blinkValue(uint32_t val) {
