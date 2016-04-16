@@ -36,6 +36,7 @@ OBJS = \
 	   $(BUILD)assert.o \
 	   $(BUILD)gpio.o \
 	   $(BUILD)sleep.o \
+	   $(BUILD)mailbox.o \
 	   $(BUILD)kernel.o
 
 all: $(TARGET) $(LIST)
