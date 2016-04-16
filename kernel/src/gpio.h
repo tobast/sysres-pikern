@@ -26,6 +26,8 @@ namespace gpio {
 	inline void setWay(int i, int way) {
 		// Sets the 3 bits at position 3 * (i % 10) of
 		// (GPIO + 4 * i // 10) to way
-		hardware::GPIO[i / 10] = way << (3 * (i % 10));
+		int shift = 3 * (i % 10);
+		s32 masked = hardware::GPIO[i / 10] & (~(7 << shift));
+		hardware::GPIO[i / 10] = masked | (way << shift);
 	}
 }
