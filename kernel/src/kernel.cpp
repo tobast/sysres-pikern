@@ -40,7 +40,13 @@ int main(void) {
 
 	gpio::init();
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
+	gpio::setWay(gpio::LED2_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
+	gpio::unset(gpio::LED2_PIN);
+
+	gpio::blinkValue(42);
+
+	sleep_us(1000*1000);
 
 	async_start(&act_blink, NULL);
 	async_start(&led_blink, NULL);
