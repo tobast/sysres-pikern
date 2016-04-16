@@ -5,8 +5,8 @@ namespace gpio {
 		setWay(ACT_PIN, WAY_OUTPUT);
 		setWay(CRASH_PIN, WAY_OUTPUT);
 
-		unset(ACT_PIN);
-		set(CRASH_PIN);
+		set(ACT_PIN);
+		unset(CRASH_PIN);
 	}
 
 	void blinkValue(uint32_t val) {
