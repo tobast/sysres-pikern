@@ -35,6 +35,7 @@ uint32_t* initBuffer(uint32_t* buffer) {
 	return (uint32_t*)(buffer+2);
 }
 
+
 /// Closes the tag [buffer], which next free-to-write position is [pos].
 void closeBuffer(uint32_t* buffer, uint8_t* pos) {
 	// End tag (0x00000000)
@@ -45,13 +46,13 @@ void closeBuffer(uint32_t* buffer, uint8_t* pos) {
 
 	// Pad to 16-bytes aligned.
 	pos += 4;
-	while((Ptr)pos % 16 != 0) {
+	while(((Ptr)pos & 0x3) != 0) {
 		*pos = 0x00;
 		pos++;
 	}
 
 	// Tag size
-	buffer[0] = (uint32_t)pos - (uint32_t)buffer;
+	buffer[0] = (uint32_t) ((Ptr)pos - (Ptr)buffer);
 }
 
 uint32_t* writeTag(uint32_t* buffer, uint32_t tagId,
@@ -146,7 +147,7 @@ uint32_t getBoardModel() {
 	free(freePtr);
 	return out;
 }
-	
+
 uint32_t getBoardRevision() {
 	uint32_t *buff, *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
