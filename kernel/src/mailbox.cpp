@@ -1,4 +1,5 @@
 #include "mailbox.h"
+#include "barriers.h"
 #include "malloc.h"
 #include "sleep.h"
 #include "hardware_constants.h"
@@ -114,16 +115,18 @@ void readTag(uint32_t* buffer, uint32_t timeout) {
 	// Wait for the answer to be readable
 	slept = 0;
 	while(true) {
-		while((hardware::mailbox::STATUS[0] & STATUS_EMPTY) == 0) {
+		while((hardware::mailbox::STATUS[0] & STATUS_EMPTY)) {
+			flushcache();
 			sleepWithCrash(SLEEP_DELAY, timeout, slept);
 		}
-		uint32_t out = hardware::mailbox::STATUS[0];
-		if((out & 0x0F) == 0x08 && // right channel
+		uint32_t out = hardware::mailbox::READ[0];
+		if((out & 0x0F) == 0x08  && // right channel
 				(out & 0xFFFFFFF0) == (Ptr)buffer) // right buffer (cf async)
 		{
 			break;
 		}
 	}
+	buffer = (uint32_t*)((hardware::mailbox::READ[0]) & 0xFFFFFFF0);
 }
 
 void makeBuffer(uint32_t*& buff, uint32_t*& freePtr, size_t size) {
