@@ -27,7 +27,7 @@ void getMac(uint8_t* out);
 uint32_t getRamSize();
 // Returns the RAM size.
 
-void readTag(uint32_t* buffer, uint32_t timeout=0);
+void readTag(uint32_t volatile* buffer, uint32_t timeout=0);
 /// Reads the tag passed in [buffer], responding in [buffer] itself.
 /// [buffer] must be 16-bytes aligned, else WrongAlignment is thrown.
 /// If after more than [timeout] microseconds, no answer is received, calls

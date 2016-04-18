@@ -22,7 +22,7 @@ const uint32_t VAL_RAMSIZE = 0x00010005;
 
 typedef uint32_t Ptr;
 
-void checkAlignment(uint32_t* buffer) {
+void checkAlignment(uint32_t volatile* buffer) {
 	if(((Ptr)buffer & 0xFFFFFFF0) != (Ptr)buffer)
 		throw new WrongAlignment;
 }
@@ -99,7 +99,7 @@ void sleepWithCrash(int time, uint32_t timeout, uint32_t& slept) {
 	slept += time;
 }
 
-void readTag(uint32_t* buffer, uint32_t timeout) {
+void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	static const int SLEEP_DELAY = 5;
 
 	checkAlignment(buffer); // If the alignment is wrong, we could hang forever
@@ -127,7 +127,6 @@ void readTag(uint32_t* buffer, uint32_t timeout) {
 			break;
 		}
 	}
-	buffer = (uint32_t*)((hardware::mailbox::READ[0]) & 0xFFFFFFF0);
 }
 
 void makeBuffer(uint32_t*& buff, uint32_t*& freePtr, size_t size) {
