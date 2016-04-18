@@ -2,35 +2,33 @@
 
 namespace gpio {
 	void init() {
-		setWay(ACT_PIN, WAY_OUTPUT);
-		setWay(CRASH_PIN, WAY_OUTPUT);
+		gpio::setWay(gpio::ACT_PIN, gpio::WAY_OUTPUT);
+		gpio::setWay(gpio::CRASH_PIN, gpio::WAY_OUTPUT);
+		gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
+		for(int i=0; i < 8; i++) {
+			setWay(BYTE_PINS[i], gpio::WAY_OUTPUT);
+			unset(BYTE_PINS[i]);
+		}
 
-		set(ACT_PIN);
-		unset(CRASH_PIN);
+		gpio::set(gpio::ACT_PIN);
+		gpio::unset(gpio::CRASH_PIN);
+		gpio::unset(gpio::LED_PIN);
+	}
+
+	void dispByte(uint8_t val) {
+		for(int pos=0; pos < 8; pos++)
+			setVal(BYTE_PINS[pos], val & (0x1 << pos));
 	}
 
 	void blinkValue(uint32_t val) {
-		static const int TIME_STEP = 500*1000; // us
-		
-		// Firing 4 short edges, to tell the reader the message will start
 		for(int i=0; i < 4; i++) {
 			set(LED_PIN);
-			sleep_us(TIME_STEP/10);
+			dispByte((val >> (8*i)) & 0xFF);
+			sleep_us(200*1000);
 			unset(LED_PIN);
-			sleep_us(TIME_STEP/10);
+			sleep_us(3800*1000);
 		}
-
-		sleep_us(TIME_STEP);
-		while(val > 0) {
-			set(LED_PIN);
-			setTo(LED2_PIN, val%2 > 0);
-			val /= 2;
-			sleep_us(TIME_STEP/10);
-			unset(LED_PIN);
-			sleep_us(TIME_STEP);
-		}
-
-		unset(LED_PIN);
-		unset(LED2_PIN);
 	}
+
 }
+
