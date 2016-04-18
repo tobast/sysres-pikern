@@ -66,6 +66,7 @@ int create_socket() {
 	free_socket = sockets[i].start;
 	sockets[i].start = 0;
 	sockets[i].length = 0;
+	return i;
 }
 
 void close_socket(int i) {
@@ -265,6 +266,7 @@ bool ready(int i) {
 				return false;
 			}
 		}
+		default: return false;
 
 	}
 }

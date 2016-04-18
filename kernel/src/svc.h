@@ -8,14 +8,6 @@ enum svcs {
 	SVC_WRITE = 3
 };
 
-inline int get_pid() {
-	asm volatile ("svc #1");
-}
-
-inline int read(int fd, void* data, int num_bytes) {
-	asm volatile ("svc #2");
-}
-
-inline int write(int fd, void* data, int num_bytes) {
-	asm volatile ("svc #3");
-}
+int get_pid();
+int read(int fd, void* data, int num_bytes);
+int write(int fd, void* data, int num_bytes);
