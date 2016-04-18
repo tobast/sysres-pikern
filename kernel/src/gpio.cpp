@@ -15,6 +15,15 @@ namespace gpio {
 		gpio::unset(gpio::LED_PIN);
 	}
 
+	void blink(int pin) {
+		unset(pin);
+		sleep_us(100*1000);
+		set(pin);
+		sleep_us(200*1000);
+		unset(pin);
+		sleep_us(100*1000);
+	}
+
 	void dispByte(uint8_t val) {
 		for(int pos=0; pos < 8; pos++)
 			setVal(BYTE_PINS[pos], val & (0x1 << pos));

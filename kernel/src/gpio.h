@@ -41,6 +41,8 @@ namespace gpio {
 		hardware::GPIO[i / 10] = masked | (way << shift);
 	}
 
+	void blink(int pin);
+
 	void dispByte(uint8_t val);
 	void blinkValue(uint32_t val);
 }
