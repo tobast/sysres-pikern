@@ -2,6 +2,7 @@
 #include "hardware_constants.h"
 #include "interrupts.h"
 #include "process.h"
+#include "svc.h"
 
 struct context {
 	s32 spsr;
@@ -27,38 +28,159 @@ struct context {
 		spsr = lr = 0;
 	};
 };
+
+enum pstate {
+	PROCESS_ACTIVE,
+	PROCESS_WAIT_READ,
+	PROCESS_WAIT_WRITE
+};
+
 struct process {
 	context cont;
 	int next_process;
 	int previous_process;
+	pstate process_state;
+	int state_info;
 };
 
 const int MAX_PROCESS = 10;
+// TODO: dynamic allocation
 process processes[MAX_PROCESS];
 int active_process = 0;
 int free_process = 1;
 
+const int SOCKET_BUFFER_SIZE = 1024;
+const int MAX_SOCKETS = 10;
+// TODO: file/socket descriptor table
+struct socket {
+	int start;
+	int length;
+	char buffer[SOCKET_BUFFER_SIZE];
+};
+int free_socket = 0;
+socket sockets[MAX_SOCKETS];
 
-extern "C" void on_irq(void* stack_pointer) {
-	context* current_context = (context*)stack_pointer;
+int create_socket() {
+	int i = free_socket;
+	assert(i < MAX_SOCKETS);
+	free_socket = sockets[i].start;
+	sockets[i].start = 0;
+	sockets[i].length = 0;
+}
+
+void close_socket(int i) {
+	// TODO: processes that use that socket
+	// --> file descriptors table?
+	sockets[i].start = free_socket;
+	free_socket = i;
+}
+
+int sread(int i, void* addr, int num) {
+	int do_read = min(sockets[i].length, num);
+	int index = sockets[i].start;
+	for (int k = 0; k < do_read; k++) {
+		((char*)addr)[k] = sockets[i].buffer[index];
+		index++;
+		if (index == SOCKET_BUFFER_SIZE) {
+			index = 0;
+		}
+	}
+	sockets[i].start = index;
+	sockets[i].length -= do_read;
+	return do_read;
+}
+
+int swrite(int i, void* addr, int num) {
+	int do_write = min(SOCKET_BUFFER_SIZE - sockets[i].length, num);
+	int index = (sockets[i].start + sockets[i].length) % SOCKET_BUFFER_SIZE;
+	for (int k = 0; k < do_write; k++) {
+		sockets[i].buffer[index] = ((char*)addr)[k]; 
+		index++;
+		if (index == SOCKET_BUFFER_SIZE) {
+			index = 0;
+		}
+	}
+	sockets[i].length += do_write;
+	return do_write;
+}
+
+void reset_timer() {
+	hardware::ARM_TIMER[3] = 0;
+	if (active_process == 0) {
+		// No process is active
+		// Wait longer
+		hardware::ARM_TIMER[0] = 1000000;
+	} else {
+		hardware::ARM_TIMER[0] = 500;
+	}
+}
+
+void go_next_process(context* current_context) {
 	processes[active_process].cont = *current_context;
 	next_process();
 	*current_context = processes[active_process].cont;
-	hardware::ARM_TIMER[3] = 0;
-	hardware::ARM_TIMER[0] = 500;
+}
+
+extern "C" void on_irq(void* stack_pointer) {
+	go_next_process((context*)stack_pointer);
+	reset_timer();
 }
 
 extern "C" void on_svc(void* stack_pointer, int svc_number) {
-	
+	context* current_context = (context*)stack_pointer;
+	switch (svc_number) {
+		case SVC_GET_PID: {
+			current_context->r0 = active_process;
+			return;
+		}
+		case SVC_READ: {
+			int socket = (int)current_context->r0;
+			void* addr = (void*)current_context->r1;
+			int size = (int)current_context->r2;
+			int num_read = sread(socket, addr, size);
+			if (num_read > 0) {
+				current_context->r0 = num_read;
+			} else {
+				processes[active_process].process_state = PROCESS_WAIT_READ;
+				go_next_process(current_context);
+				reset_timer();
+			}
+			return;
+		}
+		case SVC_WRITE: {
+			int socket = (int)current_context->r0;
+			void* addr = (void*)current_context->r1;
+			int size = (int)current_context->r2;
+			int num_written = swrite(socket, addr, size);
+			if (num_written > 0) {
+				current_context->r0 = num_written;
+			} else {
+				processes[active_process].process_state = PROCESS_WAIT_WRITE;
+				go_next_process(current_context);
+				reset_timer();
+			}
+			return;
+		}
+		default:
+			// Invalid svc
+			// Kill process?
+			return;
+	}
 }
 
 void init_process_table() {
 	processes[0].next_process = 0;
 	processes[0].previous_process = 0;
+	processes[0].process_state = PROCESS_ACTIVE;
 	active_process = 0;
 	free_process = 1;
 	for (int i = 1; i < MAX_PROCESS; i++) {
 		processes[i].next_process = i + 1;
+	}
+	
+	free_socket = 0;
+	for (int i = 0; i < MAX_SOCKETS; i++) {
+		sockets[i].start = i + 1;
 	}
 
 	set_irq_handler(&on_irq);
@@ -80,6 +202,7 @@ void add_process(int i) {
 	processes[v].next_process = i;
 	processes[i].previous_process = v;
 	processes[i].next_process = u;
+	processes[i].process_state = PROCESS_ACTIVE;
 	// There was no active process before
 	if (active_process == 0) {
 		active_process = i;
@@ -109,10 +232,51 @@ int create_process() {
 	return i;
 }
 
+bool ready(int i) {
+	switch (processes[i].process_state) {
+		case PROCESS_ACTIVE: {
+			return true;
+		}
+		case PROCESS_WAIT_READ: {
+			int sock = processes[i].cont.r0;
+			if (sockets[sock].length > 0) {
+				// TODO: quand y'aura le MMU, danger...
+				int num_read = sread(sock, (void*)processes[i].cont.r1,
+				                                  processes[i].cont.r2);
+			    assert(num_read > 0);
+				processes[i].cont.r0 = num_read;
+				processes[i].process_state = PROCESS_ACTIVE;
+				return true;
+			} else {
+				return false;
+			}
+		}
+		case PROCESS_WAIT_WRITE: {
+			int sock = processes[i].cont.r0;
+			if (sockets[sock].length < SOCKET_BUFFER_SIZE) {
+				// TODO: quand y'aura le MMU, danger...
+				int num_written = swrite(sock, (void*)processes[i].cont.r1,
+				                                      processes[i].cont.r2);
+			    assert(num_written > 0);
+				processes[i].cont.r0 = num_written;
+				processes[i].process_state = PROCESS_ACTIVE;
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+	}
+}
+
 void next_process() {
-	active_process = processes[active_process].next_process;
-	if (active_process == 0) {
+	do {
 		active_process = processes[active_process].next_process;
+	} while (!ready(active_process));
+	if (active_process == 0) {
+		do {
+			active_process = processes[active_process].next_process;
+		} while (!ready(active_process));
 	}
 }
 
@@ -138,8 +302,18 @@ void _async_go(context*) {
 		"subs pc, lr, #4"
 	);
 }
+void wait() {
+	while (1) {
+		asm volatile ("wfi");
+	}
+}
 void async_go() {
-	assert(active_process != 0);
+	// Init the waiting process
+	processes[0].cont = context();
+	processes[0].cont.lr = ((s32)&wait) + 4;
+	// Find a suitable stack pointer; TODO: make that better
+	processes[0].cont.r13 = 0x1100000;
+	processes[0].cont.spsr = 0x53; // SVC mode, enable IRQ, disable FIQ
+
 	_async_go(&(processes[active_process].cont));
 }
-

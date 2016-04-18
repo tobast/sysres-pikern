@@ -4,6 +4,12 @@
 
 void init_process_table();
 
+// Create a new socket
+int create_socket();
+
+// Close the socket number i
+void close_socket(int i);
+
 // Add a process before active_process
 void add_process(int i);
 

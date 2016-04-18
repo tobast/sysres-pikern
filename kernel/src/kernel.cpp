@@ -4,6 +4,7 @@
 #include "interrupts.h"
 #include "process.h"
 #include "sleep.h"
+#include "svc.h"
 
 extern "C" void led_blink(void*) {
 	while(1) {
@@ -20,6 +21,32 @@ extern "C" void act_blink(void*) {
 		sleep_us(2*300000);
 		gpio::unset(gpio::ACT_PIN);
 		sleep_us(300000);
+	}
+}
+
+
+extern "C" void led_blink_writer(void* arg) {
+	int sock = (int)arg;
+	char zero = 0;
+	char one = 1;
+	while(1) {
+		write(sock, (void*)&one, 1);
+		sleep_us(2*500000);
+		write(sock, (void*)&zero, 0);
+		sleep_us(500000);
+	}
+}
+
+extern "C" void led_blink_listener(void* arg) {
+	int sock = (int)arg;
+	while(1) {
+		char c;
+		read(sock, (void*)&c, 1);
+		if (c) {
+			gpio::set(gpio::LED_PIN);
+		} else {
+			gpio::unset(gpio::LED_PIN);
+		}
 	}
 }
 
@@ -43,7 +70,12 @@ int main(void) {
 	gpio::unset(gpio::LED_PIN);
 
 	async_start(&act_blink, NULL);
-	async_start(&led_blink, NULL);
+	//async_start(&led_blink, NULL);
+
+	int socket = create_socket();
+	async_start(&led_blink_writer, (void*)socket);
+	async_start(&led_blink_listener, (void*)socket);
+
 	enable_irq();
 	async_go();
 }
