@@ -27,7 +27,7 @@ void checkAlignment(uint32_t volatile* buffer) {
 		throw new WrongAlignment;
 }
 
-uint32_t* initBuffer(uint32_t* buffer) {
+uint32_t* initBuffer(uint32_t volatile* buffer) {
 	/// Returns the next position to write, as an uint32_t*
 	checkAlignment(buffer);
 	buffer[0] = 0x00000000;
@@ -37,7 +37,7 @@ uint32_t* initBuffer(uint32_t* buffer) {
 
 
 /// Closes the tag [buffer], which next free-to-write position is [pos].
-void closeBuffer(uint32_t* buffer, uint8_t* pos) {
+void closeBuffer(uint32_t volatile* buffer, uint8_t* pos) {
 	// End tag (0x00000000)
 	pos[0] = 0x00;
 	pos[1] = 0x00;
@@ -55,7 +55,7 @@ void closeBuffer(uint32_t* buffer, uint8_t* pos) {
 	buffer[0] = (uint32_t) ((Ptr)pos - (Ptr)buffer);
 }
 
-uint32_t* writeTag(uint32_t* buffer, uint32_t tagId,
+uint32_t* writeTag(uint32_t volatile* buffer, uint32_t tagId,
 		size_t bufLen, size_t valLen, uint8_t* data)
 	/// Returns the next writeable position.
 {
@@ -72,22 +72,22 @@ uint32_t* writeTag(uint32_t* buffer, uint32_t tagId,
 	return (uint32_t*) ((uint8_t*)(buffer + 3) + bufLen);
 }
 
-void buildMacRequest(uint32_t* buffer) {
+void buildMacRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_MACADDR, 6, 0, NULL);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
-void buildModelRequest(uint32_t* buffer) {
+void buildModelRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_MODEL, 4, 0, NULL);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
-void buildRevisionRequest(uint32_t* buffer) {
+void buildRevisionRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_REV, 4, 0, NULL);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
-void buildTotalRamRequest(uint32_t* buffer) {
+void buildTotalRamRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_RAMSIZE, 8, 0, NULL);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
@@ -107,11 +107,14 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	uint32_t slept=0;
 	// Wait for the buffer to be writeable
 	while((hardware::mailbox::STATUS[0] & STATUS_FULL) != 0) {
+		flushcache();
 		sleepWithCrash(SLEEP_DELAY, timeout, slept);
 	}
 
-	// Mailbox is readable
+	// Write the request
+	dataMemoryBarrier();
 	hardware::mailbox::WRITE[0] = (uint32_t)buffer | 0x08;
+	dataMemoryBarrier();
 
 	// Wait for the answer to be readable
 	slept = 0;
@@ -129,7 +132,8 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	}
 }
 
-void makeBuffer(uint32_t*& buff, uint32_t*& freePtr, size_t size) {
+void makeBuffer(uint32_t volatile*& buff, uint32_t*& freePtr,
+		size_t size) {
 	uint8_t* mem = (uint8_t*)malloc(size+16);
 	buff = (uint32_t*) (mem + ((16 - ((Ptr)mem & 0xFFFFFFF0)) & (0xFFFFFFF0)));
 	freePtr = (uint32_t*) mem;
@@ -138,7 +142,8 @@ void makeBuffer(uint32_t*& buff, uint32_t*& freePtr, size_t size) {
 // ========= Easy access functions
 
 uint32_t getBoardModel() {
-	uint32_t *buff, *freePtr;
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
 	buildModelRequest(buff);
 	readTag(buff, 1000*1000);
@@ -148,7 +153,8 @@ uint32_t getBoardModel() {
 }
 
 uint32_t getBoardRevision() {
-	uint32_t *buff, *freePtr;
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
 	buildRevisionRequest(buff);
 	readTag(buff, 1000*1000);
@@ -158,7 +164,8 @@ uint32_t getBoardRevision() {
 }
 	
 void getMac(uint8_t* out) {
-	uint32_t *buff, *freePtr;
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
 	buildMacRequest(buff);
 	readTag(buff, 1000*1000);
@@ -169,7 +176,8 @@ void getMac(uint8_t* out) {
 }
 	
 uint32_t getRamSize() {
-	uint32_t *buff, *freePtr;
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
 	buildTotalRamRequest(buff);
 	readTag(buff, 1000*1000);
