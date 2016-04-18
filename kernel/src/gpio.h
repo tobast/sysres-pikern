@@ -8,6 +8,8 @@ namespace gpio {
 	const int ACT_PIN = 16;
 	const int CRASH_PIN = 7;
 
+	const int BYTE_PINS[] = { 2,3,4, 9,10,11, 14,15 };
+
 	const char WAY_INPUT  = 0x0; //0b000
 	const char WAY_OUTPUT = 0x1; //0b001
 
