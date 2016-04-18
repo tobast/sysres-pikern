@@ -24,6 +24,7 @@ extern "C" void act_blink(void*) {
 	}
 }
 
+#include "barriers.h" // FIXME debug
 __attribute__((naked))
 __attribute__((section(".init")))
 int main(void) {
@@ -45,14 +46,58 @@ int main(void) {
 	gpio::unset(gpio::LED_PIN);
 	gpio::unset(gpio::LED2_PIN);
 
-	gpio::blinkValue(42);
+	/*
+//	uint32_t rev = mailbox::getBoardRevision();
+//	uint32_t rev = 42;
+	volatile uint32_t * req_buffer = (uint32_t*)0x10F00000;;
+   	req_buffer[0]=28;
+	req_buffer[1]=0;
+	req_buffer[2]=0x00010002;
+	req_buffer[3]=8;
+	req_buffer[4]=0;
+	req_buffer[5]=0;
+	req_buffer[6]=0;
+//	assert(hardware::mailbox::STATUS[0] & 0x40000000);
+
+	hardware::mailbox::WRITE[0] = (uint32_t)req_buffer | 0x08;
+
+	mailbox::readTag(req_buffer, 2000*1000);
+*/
+	//uint32_t rev = mailbox::getBoardRevision();
+	volatile uint32_t* req_buffer = (volatile uint32_t*)0x10F00000;
+   	req_buffer[0]=32;
+	req_buffer[1]=0;
+	req_buffer[2]=0x00010003;
+	req_buffer[3]=8;
+	req_buffer[4]=0;
+	req_buffer[5]=0;
+	req_buffer[6]=0;
+	req_buffer[7]=0;
+	assert(hardware::mailbox::STATUS[0] & 0x40000000);
+
+	hardware::mailbox::WRITE[0] = (uint32_t)req_buffer | 0x08;
+
+	for(int wait=0; !(hardware::mailbox::STATUS[0] & 0x80000000); wait++) {
+		flushcache();
+		if(wait > (1<<20))
+			break;
+	}
+
+	dataMemoryBarrier();
+	uint32_t macBeg = ((uint32_t*)(hardware::mailbox::READ[0] & 0xFFFFFFF0))[5];
+	uint32_t macEnd = ((uint32_t*)(hardware::mailbox::READ[0] & 0xFFFFFFF0))[6];
+//	rev = req_buffer[5];
+	dataMemoryBarrier();
+//	mailbox::readTag(req_buffer, 0);
+//	rev = ((uint32_t*)(hardware::mailbox::READ[0] & 0xFFFFFFF0))[5];
+
+	gpio::blinkValue(((uint32_t*)(hardware::mailbox::READ[0] & 0xFFFFFFF0))[1]);
+	gpio::blinkValue(macBeg);
+	gpio::blinkValue(macEnd);
+	//*/
 
 	sleep_us(1000*1000);
-
-	uint32_t rev = mailbox::getBoardRevision();
-	gpio::blinkValue(rev);
-
-	sleep_us(1000*1000);
+	crash();
 
 	async_start(&act_blink, NULL);
 	async_start(&led_blink, NULL);
