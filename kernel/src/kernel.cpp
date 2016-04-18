@@ -44,6 +44,7 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
+	/*
 	volatile uint32_t* req_buffer = (volatile uint32_t*)0x10F00000;
    	req_buffer[0]=32;
 	req_buffer[1]=0;
@@ -74,6 +75,12 @@ int main(void) {
 
 	gpio::blinkValue(dataPtr[5]);
 	gpio::blinkValue(dataPtr[6]);
+*/
+	uint8_t *mac = (uint8_t) 0x10ff0000;
+	mailbox::getMac(mac);
+	uint32_t* mac32 = (uint32_t*) mac;
+	gpio::blinkValue(mac32[0]);
+	gpio::blinkValue(mac32[1]);
 
 	sleep_us(1000*1000);
 	crash();
