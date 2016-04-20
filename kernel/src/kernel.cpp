@@ -44,51 +44,20 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
-	//*
-	volatile uint32_t* req_buffer = (volatile uint32_t*)0x10F00000;
-   	req_buffer[0]=32;
-	req_buffer[1]=0;
-	req_buffer[2]=0x00010003;
-	req_buffer[3]=8;
-	req_buffer[4]=0;
-	req_buffer[5]=0;
-	req_buffer[6]=0;
-	req_buffer[7]=0;
+	sleep_us(1000); // Let everything settle down
+	// (If we don't, mailbox will not work)
 
-	/*
-	flushcache();
-	assert((hardware::mailbox::STATUS[0] & 0x80000000) == 0);
+	uint64_t mac = mailbox::getMac();
+	gpio::blinkValue((uint32_t) mac);
+	gpio::blinkValue((uint32_t)(mac >> 32));
 
-	dataMemoryBarrier();
-	hardware::mailbox::WRITE[0] = (uint32_t)req_buffer | 0x08;
+	uint32_t model = mailbox::getBoardModel();
+	gpio::blinkValue(model);
+	uint32_t rev = mailbox::getBoardRevision();
+	gpio::blinkValue(rev);
+	uint32_t ramSize = mailbox::getRamSize();
+	gpio::blinkValue(ramSize);
 
-	for(int wait=0; (hardware::mailbox::STATUS[0] & 0x40000000); wait++) {
-		flushcache();
-		if(wait > (1<<20))
-			break;
-	}
-
-	dataMemoryBarrier();
-	uint32_t data = hardware::mailbox::READ[0];
-	dataMemoryBarrier();
-	assert((data & 0xF) == 8);
-	uint32_t* dataPtr = (uint32_t*)(data & 0xFFFFFFF0);
-//	*/
-
-	mailbox::readTag(req_buffer, 1000*1000);
-
-	gpio::blinkValue(req_buffer[5]);
-	gpio::blinkValue(req_buffer[6]);
-// */
-/*
-	uint8_t *mac = (uint8_t) 0x10ff0000;
-	mailbox::getMac(mac);
-	uint32_t* mac32 = (uint32_t*) mac;
-	gpio::blinkValue(mac[0]);
-	gpio::blinkValue(mac[1]);
-*/
-
-	sleep_us(1000*1000);
 	crash();
 
 	async_start(&act_blink, NULL);
