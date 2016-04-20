@@ -106,13 +106,16 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 
 	checkAlignment(buffer); // If the alignment is wrong, we could hang forever
 
+	gpio::blink(gpio::LED_PIN);
+
 	uint32_t slept=0;
 	uint32_t out;
 	// Wait for the buffer to be writeable
-	while((hardware::mailbox::STATUS[0] & STATUS_FULL) != 0) {
+	while(hardware::mailbox::STATUS[0] & STATUS_FULL) {
 		flushcache();
 		sleepWithCrash(SLEEP_DELAY, timeout, slept);
 	}
+//	gpio::blink(gpio::LED_PIN);
 
 	// Write the request
 	dataMemoryBarrier();
@@ -122,20 +125,19 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	// Wait for the answer to be readable
 	slept = 0;
 	while(true) {
-		while((hardware::mailbox::STATUS[0] & STATUS_EMPTY) != 0) {
+		while(hardware::mailbox::STATUS[0] & STATUS_EMPTY) {
 			flushcache();
 			sleepWithCrash(SLEEP_DELAY, timeout, slept);
 		}
 		dataMemoryBarrier();
 		out = hardware::mailbox::READ[0];
 		dataMemoryBarrier();
-		if((out & 0x0F) == 0x08) // && // right channel
-//				(out & 0xFFFFFFF0) == (Ptr)buffer) // right buffer (cf async)
+		if((out & 0x0F) == 0x08 && // right channel
+				(out & 0xFFFFFFF0) == (Ptr)buffer) // right buffer (cf async)
 		{
 			break;
 		}
 	}
-	gpio::blink(gpio::LED_PIN);
 }
 
 void makeBuffer(uint32_t volatile*& buff, uint32_t*& freePtr,

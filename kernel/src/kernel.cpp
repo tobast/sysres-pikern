@@ -44,7 +44,7 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
-	/*
+	//*
 	volatile uint32_t* req_buffer = (volatile uint32_t*)0x10F00000;
    	req_buffer[0]=32;
 	req_buffer[1]=0;
@@ -55,13 +55,14 @@ int main(void) {
 	req_buffer[6]=0;
 	req_buffer[7]=0;
 
+	/*
 	flushcache();
-	assert(hardware::mailbox::STATUS[0] & 0x40000000);
+	assert((hardware::mailbox::STATUS[0] & 0x80000000) == 0);
 
 	dataMemoryBarrier();
 	hardware::mailbox::WRITE[0] = (uint32_t)req_buffer | 0x08;
 
-	for(int wait=0; !(hardware::mailbox::STATUS[0] & 0x80000000); wait++) {
+	for(int wait=0; (hardware::mailbox::STATUS[0] & 0x40000000); wait++) {
 		flushcache();
 		if(wait > (1<<20))
 			break;
@@ -72,15 +73,20 @@ int main(void) {
 	dataMemoryBarrier();
 	assert((data & 0xF) == 8);
 	uint32_t* dataPtr = (uint32_t*)(data & 0xFFFFFFF0);
+//	*/
 
-	gpio::blinkValue(dataPtr[5]);
-	gpio::blinkValue(dataPtr[6]);
-*/
+	mailbox::readTag(req_buffer, 1000*1000);
+
+	gpio::blinkValue(req_buffer[5]);
+	gpio::blinkValue(req_buffer[6]);
+// */
+/*
 	uint8_t *mac = (uint8_t) 0x10ff0000;
 	mailbox::getMac(mac);
 	uint32_t* mac32 = (uint32_t*) mac;
-	gpio::blinkValue(mac32[0]);
-	gpio::blinkValue(mac32[1]);
+	gpio::blinkValue(mac[0]);
+	gpio::blinkValue(mac[1]);
+*/
 
 	sleep_us(1000*1000);
 	crash();
