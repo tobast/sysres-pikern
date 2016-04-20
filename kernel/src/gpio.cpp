@@ -35,7 +35,7 @@ namespace gpio {
 			dispByte((val >> (8*i)) & 0xFF);
 			sleep_us(200*1000);
 			unset(LED_PIN);
-			sleep_us(3800*1000);
+			sleep_us(1800*1000);
 		}
 	}
 
