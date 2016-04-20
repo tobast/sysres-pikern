@@ -4,8 +4,6 @@
 #include "sleep.h"
 #include "hardware_constants.h"
 
-#include "gpio.h"
-
 namespace mailbox {
 
 // ========= MAILBOX CONSTANTS ===========
@@ -106,8 +104,6 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 
 	checkAlignment(buffer); // If the alignment is wrong, we could hang forever
 
-	gpio::blink(gpio::LED_PIN);
-
 	uint32_t slept=0;
 	uint32_t out;
 	// Wait for the buffer to be writeable
@@ -115,7 +111,6 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 		flushcache();
 		sleepWithCrash(SLEEP_DELAY, timeout, slept);
 	}
-//	gpio::blink(gpio::LED_PIN);
 
 	// Write the request
 	dataMemoryBarrier();
@@ -170,17 +165,16 @@ uint32_t getBoardRevision() {
 	free(freePtr);
 	return out;
 }
-	
-void getMac(uint8_t* out) {
+
+uint64_t getMac() {
 	uint32_t volatile *buff;
 	uint32_t *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
 	buildMacRequest(buff);
 	readTag(buff, 1000*1000);
-	uint8_t* readPos = (uint8_t*) (buff+5);
-	for(int pos=0; pos < 6; pos++)
-		out[pos] = readPos[pos];
+	uint64_t out = buff[5] | (((uint64_t)buff[6]) << 32);
 	free(freePtr);
+	return out;
 }
 	
 uint32_t getRamSize() {

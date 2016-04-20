@@ -22,7 +22,8 @@ uint32_t getBoardModel();
 // Returns the board model.
 uint32_t getBoardRevision();
 // Returns the board revision.
-void getMac(uint8_t* out);
+
+uint64_t getMac();
 // Stores the 6 bytes of the ethernet MAC address in [out] (in network order).
 uint32_t getRamSize();
 // Returns the RAM size.
