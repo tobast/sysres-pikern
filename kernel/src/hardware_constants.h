@@ -7,6 +7,13 @@
 #include "common.h"
 
 namespace hardware {
+	namespace mailbox {
+		// Mailbox protocol
+		u32 volatile* const READ = (u32*) 0x2000b880;
+		u32 volatile* const STATUS = (u32*) 0x2000b898;
+		u32 volatile* const WRITE = (u32*) 0x2000b8a0;
+	}
+
 #ifdef HW_PI_1B
 	s32 volatile * const GPIO = (s32 volatile *)0x20200000;
 

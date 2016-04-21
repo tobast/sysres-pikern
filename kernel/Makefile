@@ -37,6 +37,7 @@ OBJS = \
 	   $(BUILD)gpio.o \
 	   $(BUILD)sleep.o \
 	   $(BUILD)svc.o \
+	   $(BUILD)mailbox.o \
 	   $(BUILD)kernel.o
 
 all: $(TARGET) $(LIST)
@@ -61,7 +62,7 @@ $(BUILD):
 
 install: $(TARGET) $(SDCARD_DEVICE)
 	mkdir -p ./mntpt
-	sudo /usr/bin/mount $(SDCARD_DEVICE) ./mntpt
+	sudo /usr/bin/mount $(SDCARD_DEVICE) ./mntpt -o nosuid,uid=$$(id -u)
 	cp "$(TARGET)" "./mntpt/"
 	sync
 	sudo /usr/bin/umount $(SDCARD_DEVICE)
@@ -69,7 +70,7 @@ install: $(TARGET) $(SDCARD_DEVICE)
 
 checkinstall:
 	mkdir ./mntpt
-	sudo /usr/bin/mount $(SDCARD_DEVICE) ./mntpt
+	sudo /usr/bin/mount $(SDCARD_DEVICE) ./mntpt -o nosuid,uid=$$(id -u)
 	@md5sum $(TARGET)
 	@md5sum ./mntpt/$(TARGET)
 	sudo /usr/bin/umount $(SDCARD_DEVICE)

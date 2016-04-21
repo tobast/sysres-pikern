@@ -2,6 +2,7 @@
 #include "common.h"
 #include "gpio.h"
 #include "interrupts.h"
+#include "mailbox.h"
 #include "process.h"
 #include "sleep.h"
 #include "svc.h"
@@ -23,7 +24,6 @@ extern "C" void act_blink(void*) {
 		sleep_us(300000);
 	}
 }
-
 
 extern "C" void led_blink_writer(void* arg) {
 	int sock = (int)arg;
@@ -68,6 +68,20 @@ int main(void) {
 	gpio::init();
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
+
+	sleep_us(1000); // Let everything settle down
+	// (If we don't, mailbox will not work)
+
+	uint64_t mac = mailbox::getMac();
+	gpio::blinkValue((uint32_t) mac);
+	gpio::blinkValue((uint32_t)(mac >> 32));
+
+	uint32_t model = mailbox::getBoardModel();
+	gpio::blinkValue(model);
+	uint32_t rev = mailbox::getBoardRevision();
+	gpio::blinkValue(rev);
+	uint32_t ramSize = mailbox::getRamSize();
+	gpio::blinkValue(ramSize);
 
 	async_start(&act_blink, NULL);
 	//async_start(&led_blink, NULL);

@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "hardware_constants.h"
+#include "sleep.h"
 
 namespace gpio {
 	const int LED_PIN = 25;
@@ -25,6 +26,13 @@ namespace gpio {
 		hardware::GPIO[10 + (i >> 5)] = 1 << (i & 0x1f);
 	}
 
+	inline void setVal(int i, bool v) {
+		if(v)
+			set(i);
+		else
+			unset(i);
+	}
+
 	inline void setWay(int i, int way) {
 		// Sets the 3 bits at position 3 * (i % 10) of
 		// (GPIO + 4 * i // 10) to way
@@ -32,4 +40,9 @@ namespace gpio {
 		s32 masked = hardware::GPIO[i / 10] & (~(7 << shift));
 		hardware::GPIO[i / 10] = masked | (way << shift);
 	}
+
+	void blink(int pin);
+
+	void dispByte(uint8_t val);
+	void blinkValue(uint32_t val);
 }
