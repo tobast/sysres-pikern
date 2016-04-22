@@ -7,9 +7,9 @@
 #pragma once
 
 /// For protocol infos, see
-/// https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
+/// [1] https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
 /// and
-/// http://raspberryalphaomega.org.uk/2013/01/13/
+/// [2] http://raspberryalphaomega.org.uk/2013/01/13/
 ///		how-to-read-raspberry-pi-board-revision-and-memory-size/
 
 #include <cstdint>
@@ -18,6 +18,7 @@ namespace mailbox {
 
 class WrongAlignment{};
 
+// =============== ACCESS HARDWARE INFOS =====================
 uint32_t getBoardModel();
 // Returns the board model.
 uint32_t getBoardRevision();
@@ -27,6 +28,27 @@ uint64_t getMac();
 // Stores the 6 bytes of the ethernet MAC address in [out] (in network order).
 uint32_t getRamSize();
 // Returns the RAM size.
+
+// =============== DEVICES POWER STATE ========================
+uint32_t getPowerState(uint32_t deviceId);
+/// Returns the power state of a device, in the format described on [1]
+/// TL;DR: LSB = 0 if powered off, 1 if powered up + other infos.
+
+uint32_t getPowerupTiming(uint32_t deviceId);
+/// Returns the time (microseconds) needed after powering up the given device
+/// for the power to be stable.
+
+uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus);
+/// Sets the power state of [deviceId] to [powerStatus] (see [1])
+
+// ============== HARDWARE MEASUREMENTS =======================
+double getCpuTemp();
+/// Returns the CPU temperature (degree C)
+
+double getCriticalCpuTemp();
+/// Returns the CPU critical temperature (degree C)
+
+// ============== LOW-LEVEL FUNCTIONS =========================
 
 void readTag(uint32_t volatile* buffer, uint32_t timeout=0);
 /// Reads the tag passed in [buffer], responding in [buffer] itself.

@@ -16,10 +16,15 @@ const uint32_t STATUS_FULL = 0x80000000;
 const uint32_t STATUS_EMPTY = 0x40000000;
 
 // Tag values
-const uint32_t VAL_MODEL = 0x00010001;
-const uint32_t VAL_REV = 0x00010002;
-const uint32_t VAL_MACADDR = 0x00010003;
-const uint32_t VAL_RAMSIZE = 0x00010005;
+const uint32_t VAL_MODEL =		0x00010001;
+const uint32_t VAL_REV =		0x00010002;
+const uint32_t VAL_MACADDR =	0x00010003;
+const uint32_t VAL_RAMSIZE =	0x00010005;
+const uint32_t GET_POWSTATE =	0x00020001;
+const uint32_t GET_POWTIMING =	0x00020001;
+const uint32_t SET_POWSTATE =	0x00028001;
+const uint32_t GET_TEMP =		0x00030006;
+const uint32_t GET_CRIT_TEMP =	0x0003000A;
 // ===== END MAILBOX CONSTANTS ===========
 
 typedef uint32_t Ptr;
@@ -181,6 +186,83 @@ uint32_t getRamSize() {
 	buildTotalRamRequest(buff);
 	readTag(buff, 1000*1000);
 	uint32_t out = buff[6];
+	free(freePtr);
+	return out;
+}
+
+uint32_t getPowerState(uint32_t deviceId) {
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
+	makeBuffer(buff, freePtr, 16*4);
+	uint32_t* writePos = initBuffer(buff);
+	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, (uint8_t*)(&deviceId));
+	closeBuffer(buff, (uint8_t*)writePos);
+
+	readTag(buff, 1000*1000);
+	uint32_t out = buff[7];
+	free(freePtr);
+	return out;
+}
+	
+uint32_t getPowerupTiming(uint32_t deviceId) {
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
+	makeBuffer(buff, freePtr, 16*4);
+	uint32_t* writePos = initBuffer(buff);
+	writePos = writeTag(writePos, GET_POWTIMING, 8, 4, (uint8_t*)(&deviceId));
+	closeBuffer(buff, (uint8_t*)writePos);
+
+	readTag(buff, 1000*1000);
+	uint32_t out = buff[7];
+	free(freePtr);
+	return out;
+}
+	
+uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus) {
+	uint32_t reqContents[2];
+	reqContents[0] = deviceId;
+	reqContents[1] = powerStatus;
+
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
+	makeBuffer(buff, freePtr, 16*4);
+	uint32_t* writePos = initBuffer(buff);
+	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, (uint8_t*)(reqContents));
+	closeBuffer(buff, (uint8_t*)writePos);
+
+	readTag(buff, 1000*1000);
+	uint32_t out = buff[7];
+	free(freePtr);
+	return out;
+}
+
+double getCpuTemp() {
+	uint32_t reqContents = 0;
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
+	makeBuffer(buff, freePtr, 16*4);
+	uint32_t* writePos = initBuffer(buff);
+	writePos = writeTag(writePos, GET_TEMP, 8, 4, (uint8_t*)(&reqContents));
+	closeBuffer(buff, (uint8_t*)writePos);
+
+	readTag(buff, 1000*1000);
+	double out = buff[6] * 0.001;
+	free(freePtr);
+	return out;
+}
+
+double getCriticalCpuTemp() {
+	uint32_t reqContents = 0;
+	uint32_t volatile *buff;
+	uint32_t *freePtr;
+	makeBuffer(buff, freePtr, 16*4);
+	uint32_t* writePos = initBuffer(buff);
+	writePos = writeTag(writePos, GET_CRIT_TEMP, 8, 4,
+			(uint8_t*)(&reqContents));
+	closeBuffer(buff, (uint8_t*)writePos);
+
+	readTag(buff, 1000*1000);
+	double out = buff[6] * 0.001;
 	free(freePtr);
 	return out;
 }
