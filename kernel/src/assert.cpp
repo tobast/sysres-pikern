@@ -1,8 +1,9 @@
 #include "assert.h"
 #include "gpio.h"
 
-void assert(bool b) {
+void assert(bool b, uint8_t assertId) {
 	if (!b) {
+		gpio::dispByte(assertId);
 		crash();
 	}
 }
