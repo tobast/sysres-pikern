@@ -38,6 +38,7 @@ OBJS = \
 	   $(BUILD)sleep.o \
 	   $(BUILD)svc.o \
 	   $(BUILD)mailbox.o \
+	   $(BUILD)uspi_interface.o \
 	   $(BUILD)kernel.o
 
 all: $(TARGET) $(LIST)
