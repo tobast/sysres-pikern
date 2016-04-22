@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "interrupts.h"
 #include "mailbox.h"
+#include "malloc.h"
 #include "process.h"
 #include "sleep.h"
 #include "svc.h"
@@ -64,6 +65,8 @@ int main(void) {
 	init_vector_table();
 	init_stacks();
 	init_process_table();
+
+	mallocInit();
 
 	gpio::init();
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
