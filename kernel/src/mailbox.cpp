@@ -4,6 +4,8 @@
 #include "sleep.h"
 #include "hardware_constants.h"
 
+#include "gpio.h"
+
 namespace mailbox {
 
 // ========= MAILBOX CONSTANTS ===========
@@ -93,23 +95,15 @@ void buildTotalRamRequest(uint32_t volatile* buffer) {
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
 
-void sleepWithCrash(int time, uint32_t timeout, uint32_t& slept) {
-	assert(timeout == 0 || slept < timeout);
-	sleep_us(time);
-	slept += time;
-}
-
 void readTag(uint32_t volatile* buffer, uint32_t timeout) {
-	static const int SLEEP_DELAY = 50;
-
 	checkAlignment(buffer); // If the alignment is wrong, we could hang forever
 
-	uint32_t slept=0;
+	uint32_t start_us = ellapsed_us();
 	uint32_t out;
 	// Wait for the buffer to be writeable
 	while(hardware::mailbox::STATUS[0] & STATUS_FULL) {
 		flushcache();
-		sleepWithCrash(SLEEP_DELAY, timeout, slept);
+		assert(timeout == 0 || (ellapsed_us() - start_us) < timeout, 0x02);
 	}
 
 	// Write the request
@@ -118,11 +112,12 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	dataMemoryBarrier();
 
 	// Wait for the answer to be readable
-	slept = 0;
+	// NOTE: shall we reset start_us here? Do we want a global timeout, or a
+	// 		timeout per mailbox interaction?
 	while(true) {
 		while(hardware::mailbox::STATUS[0] & STATUS_EMPTY) {
 			flushcache();
-			sleepWithCrash(SLEEP_DELAY, timeout, slept);
+			assert(timeout == 0 || (ellapsed_us() - start_us) < timeout, 0x03);
 		}
 		dataMemoryBarrier();
 		out = hardware::mailbox::READ[0];
@@ -133,6 +128,8 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 			break;
 		}
 	}
+	
+	// TODO maybe check result code?
 }
 
 void makeBuffer(uint32_t volatile*& buff, uint32_t*& freePtr,
