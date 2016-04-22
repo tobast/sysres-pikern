@@ -72,9 +72,6 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
-	sleep_us(1000); // Let everything settle down
-	// (If we don't, mailbox will not work)
-
 	uint64_t mac = mailbox::getMac();
 	gpio::blinkValue((uint32_t) mac);
 	gpio::blinkValue((uint32_t)(mac >> 32));
