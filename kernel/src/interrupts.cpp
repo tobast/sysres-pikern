@@ -1,4 +1,6 @@
 #include "interrupts.h"
+#include "common.h"
+#include "assert.h"
 
 extern handler volatile interrupt_handler;
 extern handler volatile asm_irq_handler;
@@ -88,6 +90,10 @@ void set_svc_handler(handler_svc int_handler) {
 	svc_handler = int_handler;
 }
 
+void interrupt_crash() {
+	assert(false, 42);
+}
+
 void init_vector_table() {
 	for (int i = 0; i < vector_table_length; i++) {
 		vector_table_dst[i] = vector_table[i];
@@ -100,6 +106,11 @@ void init_vector_table() {
 		((s32)vector_table_dst +
 			(s32)(&asm_svc_handler) -
 			(s32)vector_table)) = _asm_svc_handler;
+	*((handler*)
+		((s32)vector_table_dst +
+			(s32)(&interrupt_handler) -
+			(s32)vector_table)) = (handler)interrupt_crash;
+
 }
 
 void init_stacks() {

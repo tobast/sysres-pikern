@@ -4,6 +4,8 @@
 #include "process.h"
 #include "svc.h"
 
+#include "gpio.h"
+
 struct context {
 	s32 spsr;
 	s32 lr;
@@ -128,10 +130,6 @@ extern "C" void on_irq(void* stack_pointer) {
 }
 
 extern "C" void on_svc(void* stack_pointer, int svc_number) {
-	disable_irq();
-	//go_next_process((context*)stack_pointer);
-	enable_irq();
-/*
 	context* current_context = (context*)stack_pointer;
 	switch (svc_number) {
 		case SVC_GET_PID: {
@@ -171,7 +169,6 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			// Kill process?
 			return;
 	}
-*/
 }
 
 void init_process_table() {
@@ -325,5 +322,7 @@ void async_go() {
 	cpsr &= ~0xdf;
 	cpsr |= 0x53;
 	processes[0].cont.spsr = 0x53; // SVC mode, enable IRQ, disable FIQ
-	_async_go(&(processes[active_process].cont));
+	context* svc_stack_address = (context*)(0x6000);
+	*svc_stack_address = processes[active_process].cont;
+	_async_go(svc_stack_address);
 }

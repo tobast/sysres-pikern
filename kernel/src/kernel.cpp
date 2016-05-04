@@ -28,28 +28,22 @@ extern "C" void act_blink(void*) {
 	}
 }
 
-extern "C" void led_blink_writer(void* arg) {
+extern "C" void byte_blink_writer(void* arg) {
 	int sock = (int)arg;
-	char zero = 0;
-	char one = 1;
+	char n = 0;
 	while(1) {
-		write(sock, (void*)&one, 1);
-		sleep_us(2*500000);
-		write(sock, (void*)&zero, 0);
-		sleep_us(500000);
+		write(sock, (void*)&n, 1);
+		sleep_us(350000);
+		n++;
 	}
 }
 
-extern "C" void led_blink_listener(void* arg) {
+extern "C" void byte_blink_listener(void* arg) {
 	int sock = (int)arg;
 	while(1) {
 		char c;
 		read(sock, (void*)&c, 1);
-		if (c) {
-			gpio::set(gpio::LED_PIN);
-		} else {
-			gpio::unset(gpio::LED_PIN);
-		}
+		gpio::dispByte(c);
 	}
 }
 
@@ -74,6 +68,7 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
+/*
 	uint64_t mac = mailbox::getMac();
 	gpio::blinkValue((uint32_t) mac);
 	gpio::blinkValue((uint32_t)(mac >> 32));
@@ -84,13 +79,14 @@ int main(void) {
 	gpio::blinkValue(rev);
 	uint32_t ramSize = mailbox::getRamSize();
 	gpio::blinkValue(ramSize);
+*/
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);
 
 	int socket = create_socket();
-	//async_start(&led_blink_writer, (void*)socket);
-	//async_start(&led_blink_listener, (void*)socket);
+	async_start(&byte_blink_writer, (void*)socket);
+	async_start(&byte_blink_listener, (void*)socket);
 
 	enable_irq();
 	async_go();
