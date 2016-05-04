@@ -120,3 +120,8 @@ void init_stacks() {
 //		"msr cpsr_c,r0\n\t"
    );
 }
+
+__attribute__((naked))
+s32 get_cpsr() {
+	asm volatile ("mrs r0, cpsr\n\tbx lr");
+}

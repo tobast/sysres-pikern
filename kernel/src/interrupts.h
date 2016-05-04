@@ -13,6 +13,8 @@ inline void enable_irq() {
 	: : : "r0");
 }
 
+s32 get_cpsr();
+
 inline void disable_irq() {
 	asm(
 		"mrs r0,cpsr\n\t"

@@ -10,6 +10,7 @@
 
 extern "C" void led_blink(void*) {
 	while(1) {
+		asm volatile ("svc #42");
 		gpio::set(gpio::LED_PIN);
 		sleep_us(2*500000);
 		gpio::unset(gpio::LED_PIN);
@@ -19,6 +20,7 @@ extern "C" void led_blink(void*) {
 
 extern "C" void act_blink(void*) {
 	while(1) {
+		asm volatile ("svc #43");
 		gpio::set(gpio::ACT_PIN);
 		sleep_us(2*300000);
 		gpio::unset(gpio::ACT_PIN);
@@ -83,12 +85,12 @@ int main(void) {
 	uint32_t ramSize = mailbox::getRamSize();
 	gpio::blinkValue(ramSize);
 
+	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);
-	//async_start(&led_blink, NULL);
 
 	int socket = create_socket();
-	async_start(&led_blink_writer, (void*)socket);
-	async_start(&led_blink_listener, (void*)socket);
+	//async_start(&led_blink_writer, (void*)socket);
+	//async_start(&led_blink_listener, (void*)socket);
 
 	enable_irq();
 	async_go();

@@ -128,6 +128,10 @@ extern "C" void on_irq(void* stack_pointer) {
 }
 
 extern "C" void on_svc(void* stack_pointer, int svc_number) {
+	disable_irq();
+	//go_next_process((context*)stack_pointer);
+	enable_irq();
+/*
 	context* current_context = (context*)stack_pointer;
 	switch (svc_number) {
 		case SVC_GET_PID: {
@@ -167,6 +171,7 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			// Kill process?
 			return;
 	}
+*/
 }
 
 void init_process_table() {
@@ -217,6 +222,7 @@ void delete_process(int i) {
 	processes[v].next_process = u;
 	processes[i].next_process = free_process;
 	free_process = i;
+	// TODO
 	if (active_process == i) {
 		active_process = u;
 		if (active_process == 0) {
@@ -315,7 +321,9 @@ void async_go() {
 	processes[0].cont.lr = ((s32)&wait) + 4;
 	// Find a suitable stack pointer; TODO: make that better
 	processes[0].cont.r13 = 0x1100000;
+	s32 cpsr = get_cpsr();
+	cpsr &= ~0xdf;
+	cpsr |= 0x53;
 	processes[0].cont.spsr = 0x53; // SVC mode, enable IRQ, disable FIQ
-
 	_async_go(&(processes[active_process].cont));
 }
