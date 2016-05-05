@@ -14,3 +14,8 @@ __attribute__((naked))
 int write(int, void*, int) {
 	asm volatile ("svc #3\n\tbx lr");
 }
+
+__attribute__((naked))
+void sleep(int) {
+	asm volatile ("svc #4\n\tbx lr");
+}

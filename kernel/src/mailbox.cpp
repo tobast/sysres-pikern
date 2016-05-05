@@ -103,12 +103,12 @@ void buildTotalRamRequest(uint32_t volatile* buffer) {
 void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	checkAlignment(buffer); // If the alignment is wrong, we could hang forever
 
-	uint32_t start_us = ellapsed_us();
+	uint32_t start_us = elapsed_us();
 	uint32_t out;
 	// Wait for the buffer to be writeable
 	while(hardware::mailbox::STATUS[0] & STATUS_FULL) {
 		flushcache();
-		assert(timeout == 0 || (ellapsed_us() - start_us) < timeout, 0x02);
+		assert(timeout == 0 || (((u32)elapsed_us()) - start_us) < timeout, 0x02);
 	}
 
 	// Write the request
@@ -122,7 +122,7 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	while(true) {
 		while(hardware::mailbox::STATUS[0] & STATUS_EMPTY) {
 			flushcache();
-			assert(timeout == 0 || (ellapsed_us() - start_us) < timeout, 0x03);
+			assert(timeout == 0 || (((u32)elapsed_us()) - start_us) < timeout, 0x03);
 		}
 		dataMemoryBarrier();
 		out = hardware::mailbox::READ[0];

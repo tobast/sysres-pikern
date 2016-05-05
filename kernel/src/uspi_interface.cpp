@@ -1,5 +1,6 @@
 #include "uspi_interface.h"
 
+#include "assert.h"
 #include "common.h"
 #include "sleep.h"
 #include "mailbox.h"
@@ -24,10 +25,11 @@ int SetPowerStateOn(unsigned nDeviceId) {
 	}
 
 	uint32_t nState = mailbox::setPowerState(nDeviceId, 0x11);
-	if(nState & 0x01 == 0) { // Not powered up
+	if((nState & 0x01) == 0) { // Not powered up
 		return 0;
 	}
 	sleep_us(3*stabTime);
+	return 1;
 }
 
 /// Returns the MAC address of the device.
@@ -49,3 +51,11 @@ void LogWrite(const char* /*pSource*/,
 	// TODO when we'll be able to dump it somewhere.
 }
 
+void uspi_assertion_failed (const char *pExpr, const char *pFile, unsigned nLine) {
+	assert(false, 19);
+}
+
+// display hex dump (pSource can be 0)
+void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource /* = 0 */) {
+	// TODO
+}

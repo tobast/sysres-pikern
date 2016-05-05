@@ -9,8 +9,9 @@ void sleep_us(int us) {
 	while ((u32)(hardware::GPIO_TIMER[1] - init_count) < (u32) us) {};
 }
 
-u32 ellapsed_us() {
-	return hardware::GPIO_TIMER[1];
-	// Copied from above. @Ekdohibs: TODO review
+u64 elapsed_us() {
+	u32 hi = hardware::GPIO_TIMER[2];
+	u32 lo = hardware::GPIO_TIMER[1];
+	return (((u64)hi) << 32) | lo;
 }
 

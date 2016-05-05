@@ -1,10 +1,12 @@
 #include "assert.h"
+#include "barriers.h"
 #include "hardware_constants.h"
 #include "interrupts.h"
+#include "pool_allocator.h"
 #include "process.h"
+#include "sleep.h"
 #include "svc.h"
-
-#include "gpio.h"
+#include "uspi_interface.h"
 
 struct context {
 	s32 spsr;
@@ -45,8 +47,84 @@ struct process {
 	int state_info;
 };
 
+const int NUMBER_INTERRUPTS = 64;
+struct interrupt_context {
+	TInterruptHandler* handler;
+	void* param;
+};
+interrupt_context bound_interrupts[NUMBER_INTERRUPTS];
+void init_interrupts() {
+	for (int i = 0; i < NUMBER_INTERRUPTS; i++) {
+		bound_interrupts[i].handler = NULL;
+	}
+}
+void ConnectInterrupt(unsigned nIRQ, TInterruptHandler *pHandler, void *pParam) {
+	bound_interrupts[nIRQ].handler = pHandler;
+	bound_interrupts[nIRQ].param = pParam;
+	hardware::IRQ_ENABLE_1[nIRQ >> 5] = 1 << (nIRQ & 31);
+}
+
+
+const int MAX_TIMERS = 256;
+struct timer_context {
+	TKernelTimerHandler* handler;
+	void* param;
+	void* context;
+	u64 trigger_time;
+};
+
+timer_context timers[MAX_TIMERS];
+u64 first_trigger = (u64)(-1);
+void init_timers() {
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		timers[i].handler = NULL;
+	}
+}
+int get_timer_context() {
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		if (timers[i].handler == NULL) {
+			return i;
+		}
+	}
+	assert(false, 0x13);
+	return 0;
+}
+void recalc_trigger() {
+	first_trigger = (u64)(-1);
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		if (timers[i].handler != NULL) {
+			first_trigger = min(first_trigger, timers[i].trigger_time);
+		}
+	}
+}
+void check_and_run_timers() {
+	u64 current_time = elapsed_us();
+	if (current_time < first_trigger) return;
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		if (timers[i].handler != NULL && timers[i].trigger_time <= current_time) {
+			timers[i].handler(i, timers[i].param, timers[i].context);
+			timers[i].handler = NULL;
+		}
+	}
+	recalc_trigger();
+}
+unsigned StartKernelTimer (unsigned nHzDelay,
+		TKernelTimerHandler *pHandler, void *pParam, void *pContext) {
+	u64 current_time = elapsed_us();
+	int i = get_timer_context();
+	timers[i].handler = pHandler;
+	timers[i].param = pParam;
+	timers[i].context = pContext;
+	timers[i].trigger_time = current_time + nHzDelay * 1000000 / HZ;
+	return (unsigned)i;
+}
+void CancelKernelTimer (unsigned timer) {
+	timers[timer].handler = NULL;
+}
+
+
 const int MAX_PROCESS = 10;
-// TODO: dynamic allocation
+// TODO: dynamic allocation?
 process processes[MAX_PROCESS];
 int active_process = 0;
 int free_process = 1;
@@ -59,13 +137,16 @@ struct socket {
 	int length;
 	char buffer[SOCKET_BUFFER_SIZE];
 };
-int free_socket = 0;
 socket sockets[MAX_SOCKETS];
+pool_allocator<MAX_SOCKETS, socket, sockets> sockets_allocator;
+//int free_socket = 0;
+//socket sockets[MAX_SOCKETS];
 
 int create_socket() {
-	int i = free_socket;
-	assert(i < MAX_SOCKETS);
-	free_socket = sockets[i].start;
+	int i = sockets_allocator.alloc();
+	//int i = free_socket;
+	//assert (i < MAX_SOCKETS);
+	//free_socket = sockets[i].start;
 	sockets[i].start = 0;
 	sockets[i].length = 0;
 	return i;
@@ -74,8 +155,9 @@ int create_socket() {
 void close_socket(int i) {
 	// TODO: processes that use that socket
 	// --> file descriptors table?
-	sockets[i].start = free_socket;
-	free_socket = i;
+	sockets_allocator.dealloc(i);
+	//sockets[i].start = free_socket;
+	//free_socket = i;
 }
 
 int sread(int i, void* addr, int num) {
@@ -109,13 +191,7 @@ int swrite(int i, void* addr, int num) {
 
 void reset_timer() {
 	hardware::ARM_TIMER[3] = 0;
-	if (active_process == 0) {
-		// No process is active
-		// Wait longer
-		hardware::ARM_TIMER[0] = 1000000;
-	} else {
-		hardware::ARM_TIMER[0] = 500;
-	}
+	hardware::ARM_TIMER[0] = 500;
 }
 
 void go_next_process(context* current_context) {
@@ -125,8 +201,24 @@ void go_next_process(context* current_context) {
 }
 
 extern "C" void on_irq(void* stack_pointer) {
-	go_next_process((context*)stack_pointer);
-	reset_timer();
+	dataMemoryBarrier();
+	for (int i = 0; i < NUMBER_INTERRUPTS; i++) {
+		if (hardware::IRQ_PENDING_1[i >> 5] & (1 << (i & 31))) {
+			if (bound_interrupts[i].handler != NULL) {
+				bound_interrupts[i].handler(bound_interrupts[i].param);
+				dataMemoryBarrier();
+			} else {
+				hardware::IRQ_DISABLE_1[i >> 5] = 1 << (i & 31);
+			}
+		}
+	}
+	dataMemoryBarrier();
+	if ((*hardware::IRQ_BASIC_PENDING) & 1) {
+		check_and_run_timers();
+		go_next_process((context*)stack_pointer);
+		reset_timer();
+	}
+	dataMemoryBarrier();
 }
 
 extern "C" void on_svc(void* stack_pointer, int svc_number) {
@@ -164,6 +256,10 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			}
 			return;
 		}
+		case SVC_SLEEP: {
+			// TODO
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?
@@ -181,15 +277,18 @@ void init_process_table() {
 		processes[i].next_process = i + 1;
 	}
 	
-	free_socket = 0;
-	for (int i = 0; i < MAX_SOCKETS; i++) {
-		sockets[i].start = i + 1;
-	}
+	//free_socket = 0;
+	//for (int i = 0; i < MAX_SOCKETS; i++) {
+	//	sockets[i].start = i + 1;
+	//}
+	sockets_allocator.init();
 
 	set_irq_handler(&on_irq);
 	set_svc_handler(&on_svc);
 
-	hardware::IRQ[6] |= 1;
+	init_timers();
+
+	*hardware::IRQ_ENABLE_BASIC |= 1;
 	hardware::ARM_TIMER[3] = 0;
 	hardware::ARM_TIMER[7] = 0xff;
 	hardware::ARM_TIMER[2] = 0x3e00a2;
