@@ -25,7 +25,7 @@ int SetPowerStateOn(unsigned nDeviceId) {
 	}
 
 	uint32_t nState = mailbox::setPowerState(nDeviceId, 0x11);
-	if((nState & 0x01) == 0) { // Not powered up
+	if(!(nState & 0x01)) { // Not powered up
 		return 0;
 	}
 	sleep_us(3*stabTime);
