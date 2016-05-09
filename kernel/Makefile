@@ -26,22 +26,21 @@ BIN = $(BUILD)master.bin
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic \
 	-I $(SOURCE) -I $(USPI_INCLUDE_DIR)
-CLIBS = -L $(LIBUSPI_DIR) -luspi
+CLIBS = -L$(LIBUSPI_DIR) -luspi
 HARDWARE= -DHW_PI_1B
 BIN_CFLAGS= --entry=main --specs=nosys.specs
 
-
 OBJS = \
-	   $(BUILD)malloc.o \
-	   $(BUILD)interrupts.o \
-	   $(BUILD)process.o \
-	   $(BUILD)assert.o \
-	   $(BUILD)gpio.o \
-	   $(BUILD)sleep.o \
-	   $(BUILD)svc.o \
-	   $(BUILD)mailbox.o \
-	   $(BUILD)uspi_interface.o \
-	   $(BUILD)kernel.o
+		$(BUILD)kernel.o \
+		$(BUILD)uspi_interface.o \
+		$(BUILD)mailbox.o \
+		$(BUILD)malloc.o \
+		$(BUILD)interrupts.o \
+		$(BUILD)assert.o \
+		$(BUILD)process.o \
+		$(BUILD)gpio.o \
+		$(BUILD)sleep.o \
+		$(BUILD)svc.o
 
 LIBUSPI=uspi/lib/libuspi.a
 LIBUSPI_CFG=uspi/Config.mk
@@ -60,10 +59,13 @@ $(BUILD)output.elf: $(BIN) $(LINKER)
 	$(LD) --no-undefined $(BIN) -Map $(MAP) -o $@ -T $(LINKER)
 
 $(BIN): $(LIBUSPI) $(OBJS)
-	$(CC) $(CFLAGS) $(CLIBS) $(HARDWARE) $(BIN_CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(HARDWARE) $(BIN_CFLAGS) \
+		$(OBJS) \
+		$(CLIBS) \
+		-o $@
 
 $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
-	$(CC) $(CFLAGS) $(CLIBS) $(HARDWARE) -c $< -o $@
+	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
 
 $(BUILD):
 	mkdir $@

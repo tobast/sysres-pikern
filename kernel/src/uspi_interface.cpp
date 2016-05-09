@@ -4,6 +4,7 @@
 #include "common.h"
 #include "sleep.h"
 #include "mailbox.h"
+#include "gpio.h"
 
 void usDelay(unsigned nMicroSeconds) {
 	sleep_us(nMicroSeconds);
@@ -33,7 +34,7 @@ int SetPowerStateOn(unsigned nDeviceId) {
 }
 
 /// Returns the MAC address of the device.
-int GetMacAddress(u8 Buffer[6]) {
+int GetMACAddress(u8 Buffer[6]) {
 	uint64_t mac = mailbox::getMac();
 	for(int i=0; i < 6; i++) {
 		// FIXME: right byte order?
@@ -53,6 +54,9 @@ void LogWrite(const char* /*pSource*/,
 
 void uspi_assertion_failed (const char *pExpr, const char *pFile,
 		unsigned nLine) {
+	gpio::blink(gpio::CRASH_PIN);
+	gpio::blink(gpio::CRASH_PIN);
+	gpio::blinkValue(nLine);
 	assert(false, 19);
 }
 
