@@ -51,11 +51,13 @@ void LogWrite(const char* /*pSource*/,
 	// TODO when we'll be able to dump it somewhere.
 }
 
-void uspi_assertion_failed (const char *pExpr, const char *pFile, unsigned nLine) {
+void uspi_assertion_failed (const char *pExpr, const char *pFile,
+		unsigned nLine) {
 	assert(false, 19);
 }
 
 // display hex dump (pSource can be 0)
-void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource /* = 0 */) {
+void DebugHexdump (const void *pBuffer, unsigned nBufLen,
+		const char *pSource /* = 0 */) {
 	// TODO
 }
