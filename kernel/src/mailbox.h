@@ -42,11 +42,11 @@ uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus);
 /// Sets the power state of [deviceId] to [powerStatus] (see [1])
 
 // ============== HARDWARE MEASUREMENTS =======================
-double getCpuTemp();
-/// Returns the CPU temperature (degree C)
+uint32_t getCpuTemp();
+/// Returns the CPU temperature (0.001th of degree C)
 
-double getCriticalCpuTemp();
-/// Returns the CPU critical temperature (degree C)
+uint32_t getCriticalCpuTemp();
+/// Returns the CPU critical temperature (0.001th of degree C)
 
 // ============== LOW-LEVEL FUNCTIONS =========================
 

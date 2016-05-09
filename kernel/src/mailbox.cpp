@@ -43,19 +43,10 @@ uint32_t* initBuffer(uint32_t volatile* buffer) {
 }
 
 /// Closes the tag [buffer], which next free-to-write position is [pos].
-void closeBuffer(uint32_t volatile* buffer, uint8_t* pos) {
+void closeBuffer(uint32_t volatile* buffer, uint32_t* pos) {
 	// End tag (0x00000000)
 	pos[0] = 0x00;
-	pos[1] = 0x00;
-	pos[2] = 0x00;
-	pos[3] = 0x00;
-
-	// Pad to 16-bytes aligned.
-	pos += 4;
-	while(((Ptr)pos & 0x3) != 0) {
-		*pos = 0x00;
-		pos++;
-	}
+	pos++;
 
 	// Tag size
 	buffer[0] = (uint32_t) ((Ptr)pos - (Ptr)buffer);
@@ -74,7 +65,7 @@ uint32_t* writeTag(uint32_t volatile* buffer, uint32_t tagId,
 	buffer[1] = bufLen;
 	buffer[2] = 0x7fffffff & valLen;
 
-	for(int pos=3; pos < bufLen+3; pos++)
+	for(size_t pos=3; pos < bufLen+3; pos++)
 		buffer[pos] = 0x00;
 
 	if(bufPos != NULL)
@@ -86,22 +77,22 @@ uint32_t* writeTag(uint32_t volatile* buffer, uint32_t tagId,
 void buildMacRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_MACADDR, 8, 0);
-	closeBuffer(buffer, (uint8_t*)writeAddr);
+	closeBuffer(buffer, writeAddr);
 }
 void buildModelRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_MODEL, 4, 0);
-	closeBuffer(buffer, (uint8_t*)writeAddr);
+	closeBuffer(buffer, writeAddr);
 }
 void buildRevisionRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_REV, 4, 0);
-	closeBuffer(buffer, (uint8_t*)writeAddr);
+	closeBuffer(buffer, writeAddr);
 }
 void buildTotalRamRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
 	writeAddr = writeTag(writeAddr, VAL_RAMSIZE, 8, 0);
-	closeBuffer(buffer, (uint8_t*)writeAddr);
+	closeBuffer(buffer, writeAddr);
 }
 
 void readTag(uint32_t volatile* buffer, uint32_t timeout) {
@@ -204,7 +195,7 @@ uint32_t getPowerState(uint32_t deviceId) {
 	uint32_t* writePos = initBuffer(buff);
 	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, &argsPos);
 	argsPos[0] = deviceId;
-	closeBuffer(buff, (uint8_t*)writePos);
+	closeBuffer(buff, writePos);
 
 	readTag(buff, 1000*1000);
 
@@ -220,7 +211,7 @@ uint32_t getPowerupTiming(uint32_t deviceId) {
 	uint32_t* writePos = initBuffer(buff);
 	writePos = writeTag(writePos, GET_POWTIMING, 8, 4, &argsPtr);
 	argsPtr[0] = deviceId;
-	closeBuffer(buff, (uint8_t*)writePos);
+	closeBuffer(buff, writePos);
 
 	readTag(buff, 1000*1000);
 	uint32_t out = buff[6];
@@ -236,7 +227,7 @@ uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus) {
 	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, &argsPtr);
 	argsPtr[0] = deviceId;
 	argsPtr[1] = powerStatus;
-	closeBuffer(buff, (uint8_t*)writePos);
+	closeBuffer(buff, writePos);
 
 	gpio::blinkValue(buff[5]);
 	gpio::blinkValue(buff[6]);
@@ -252,32 +243,34 @@ uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus) {
 	return out;
 }
 
-double getCpuTemp() {
+uint32_t getCpuTemp() {
 	uint32_t volatile *buff;
 	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
 	writePos = writeTag(writePos, GET_TEMP, 8, 4, &argsPtr);
 	argsPtr[0] = 0x00;
-	closeBuffer(buff, (uint8_t*)writePos);
+	closeBuffer(buff, writePos);
 
 	readTag(buff, 1000*1000);
-	double out = buff[6] * 0.001;
+	uint32_t out = buff[6];
 	free(freePtr);
 	return out;
 }
 
-double getCriticalCpuTemp() {
+uint32_t getCriticalCpuTemp() {
 	uint32_t volatile *buff;
 	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
 	writePos = writeTag(writePos, GET_CRIT_TEMP, 8, 4, &argsPtr);
 	argsPtr[0] = 0x00;
-	closeBuffer(buff, (uint8_t*)writePos);
+	closeBuffer(buff, writePos);
+	
+	gpio::blink(gpio::LED_PIN);
 
 	readTag(buff, 1000*1000);
-	double out = buff[6] * 0.001;
+	uint32_t out = buff[6];
 	free(freePtr);
 	return out;
 }
