@@ -4,8 +4,6 @@
 #include "sleep.h"
 #include "hardware_constants.h"
 
-#include "gpio.h"
-
 namespace mailbox {
 
 // ========= MAILBOX CONSTANTS ===========
@@ -229,15 +227,7 @@ uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus) {
 	argsPtr[1] = powerStatus;
 	closeBuffer(buff, writePos);
 
-	gpio::blinkValue(buff[5]);
-	gpio::blinkValue(buff[6]);
-	gpio::blink(gpio::LED_PIN);
-
 	readTag(buff, 1000*1000);
-	gpio::blinkValue(buff[5]);
-	gpio::blinkValue(buff[6]);
-	gpio::blink(gpio::LED_PIN);
-
 	uint32_t out = buff[6];
 	free(freePtr);
 	return out;
@@ -267,8 +257,6 @@ uint32_t getCriticalCpuTemp() {
 	argsPtr[0] = 0x00;
 	closeBuffer(buff, writePos);
 	
-	gpio::blink(gpio::LED_PIN);
-
 	readTag(buff, 1000*1000);
 	uint32_t out = buff[6];
 	free(freePtr);
