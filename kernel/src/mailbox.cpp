@@ -42,7 +42,6 @@ uint32_t* initBuffer(uint32_t volatile* buffer) {
 	return (uint32_t*)(buffer+2);
 }
 
-
 /// Closes the tag [buffer], which next free-to-write position is [pos].
 void closeBuffer(uint32_t volatile* buffer, uint8_t* pos) {
 	// End tag (0x00000000)
@@ -63,40 +62,45 @@ void closeBuffer(uint32_t volatile* buffer, uint8_t* pos) {
 }
 
 uint32_t* writeTag(uint32_t volatile* buffer, uint32_t tagId,
-		size_t bufLen, size_t valLen, uint8_t* data)
-	/// Returns the next writeable position.
+		size_t bufLen, size_t valLen, uint32_t** bufPos = NULL);
+uint32_t* writeTag(uint32_t volatile* buffer, uint32_t tagId,
+		size_t bufLen, size_t valLen, uint32_t** bufPos)
+	/// Returns the next writeable position. If bufPos != NULL, sets
+	/// *bufPos to the address where the tag's values can be written.
 {
+	assert(bufLen % 4 == 0, 0x88); // 32b-padded
+
 	buffer[0] = tagId;
 	buffer[1] = bufLen;
 	buffer[2] = 0x7fffffff & valLen;
 
-	uint8_t* valBuffer = (uint8_t*)(buffer+3);
-	for(size_t pos=0; pos < valLen; pos++)
-		valBuffer[pos] = data[pos];
-	for(size_t pos=valLen; pos < bufLen; pos++)
-		valBuffer[pos] = 0x00;
+	for(int pos=3; pos < bufLen+3; pos++)
+		buffer[pos] = 0x00;
+
+	if(bufPos != NULL)
+		*bufPos = (uint32_t*)buffer+3;
 	
-	return (uint32_t*) ((uint8_t*)(buffer + 3) + bufLen);
+	return (uint32_t*) (buffer + 3 + bufLen/4);
 }
 
 void buildMacRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
-	writeAddr = writeTag(writeAddr, VAL_MACADDR, 6, 0, NULL);
+	writeAddr = writeTag(writeAddr, VAL_MACADDR, 8, 0);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
 void buildModelRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
-	writeAddr = writeTag(writeAddr, VAL_MODEL, 4, 0, NULL);
+	writeAddr = writeTag(writeAddr, VAL_MODEL, 4, 0);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
 void buildRevisionRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
-	writeAddr = writeTag(writeAddr, VAL_REV, 4, 0, NULL);
+	writeAddr = writeTag(writeAddr, VAL_REV, 4, 0);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
 void buildTotalRamRequest(uint32_t volatile* buffer) {
 	uint32_t* writeAddr = initBuffer(buffer);
-	writeAddr = writeTag(writeAddr, VAL_RAMSIZE, 8, 0, NULL);
+	writeAddr = writeTag(writeAddr, VAL_RAMSIZE, 8, 0);
 	closeBuffer(buffer, (uint8_t*)writeAddr);
 }
 
@@ -108,7 +112,8 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	// Wait for the buffer to be writeable
 	while(hardware::mailbox::STATUS[0] & STATUS_FULL) {
 		flushcache();
-		assert(timeout == 0 || (((u32)elapsed_us()) - start_us) < timeout, 0x02);
+		assert(timeout == 0 || (((u32)elapsed_us()) - start_us) < timeout,
+				0x02);
 	}
 
 	// Write the request
@@ -122,7 +127,8 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 	while(true) {
 		while(hardware::mailbox::STATUS[0] & STATUS_EMPTY) {
 			flushcache();
-			assert(timeout == 0 || (((u32)elapsed_us()) - start_us) < timeout, 0x03);
+			assert(timeout == 0 || (((u32)elapsed_us()) - start_us) < timeout,
+					0x03);
 		}
 		dataMemoryBarrier();
 		out = hardware::mailbox::READ[0];
@@ -192,57 +198,67 @@ uint32_t getRamSize() {
 
 uint32_t getPowerState(uint32_t deviceId) {
 	uint32_t volatile *buff;
-	uint32_t *freePtr;
+	uint32_t *freePtr, *argsPos;
+
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
-	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, (uint8_t*)(&deviceId));
+	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, &argsPos);
+	argsPos[0] = deviceId;
 	closeBuffer(buff, (uint8_t*)writePos);
 
 	readTag(buff, 1000*1000);
-	uint32_t out = buff[7];
+
+	uint32_t out = buff[6];
 	free(freePtr);
 	return out;
 }
 	
 uint32_t getPowerupTiming(uint32_t deviceId) {
 	uint32_t volatile *buff;
-	uint32_t *freePtr;
+	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
-	writePos = writeTag(writePos, GET_POWTIMING, 8, 4, (uint8_t*)(&deviceId));
+	writePos = writeTag(writePos, GET_POWTIMING, 8, 4, &argsPtr);
+	argsPtr[0] = deviceId;
 	closeBuffer(buff, (uint8_t*)writePos);
 
 	readTag(buff, 1000*1000);
-	uint32_t out = buff[7];
+	uint32_t out = buff[6];
 	free(freePtr);
 	return out;
 }
 	
 uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus) {
-	uint32_t reqContents[2];
-	reqContents[0] = deviceId;
-	reqContents[1] = powerStatus;
-
 	uint32_t volatile *buff;
-	uint32_t *freePtr;
+	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
-	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, (uint8_t*)(reqContents));
+	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, &argsPtr);
+	argsPtr[0] = deviceId;
+	argsPtr[1] = powerStatus;
 	closeBuffer(buff, (uint8_t*)writePos);
 
+	gpio::blinkValue(buff[5]);
+	gpio::blinkValue(buff[6]);
+	gpio::blink(gpio::LED_PIN);
+
 	readTag(buff, 1000*1000);
-	uint32_t out = buff[7];
+	gpio::blinkValue(buff[5]);
+	gpio::blinkValue(buff[6]);
+	gpio::blink(gpio::LED_PIN);
+
+	uint32_t out = buff[6];
 	free(freePtr);
 	return out;
 }
 
 double getCpuTemp() {
-	uint32_t reqContents = 0;
 	uint32_t volatile *buff;
-	uint32_t *freePtr;
+	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
-	writePos = writeTag(writePos, GET_TEMP, 8, 4, (uint8_t*)(&reqContents));
+	writePos = writeTag(writePos, GET_TEMP, 8, 4, &argsPtr);
+	argsPtr[0] = 0x00;
 	closeBuffer(buff, (uint8_t*)writePos);
 
 	readTag(buff, 1000*1000);
@@ -252,13 +268,12 @@ double getCpuTemp() {
 }
 
 double getCriticalCpuTemp() {
-	uint32_t reqContents = 0;
 	uint32_t volatile *buff;
-	uint32_t *freePtr;
+	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
-	writePos = writeTag(writePos, GET_CRIT_TEMP, 8, 4,
-			(uint8_t*)(&reqContents));
+	writePos = writeTag(writePos, GET_CRIT_TEMP, 8, 4, &argsPtr);
+	argsPtr[0] = 0x00;
 	closeBuffer(buff, (uint8_t*)writePos);
 
 	readTag(buff, 1000*1000);
