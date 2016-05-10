@@ -8,6 +8,8 @@
 #include "sleep.h"
 #include "svc.h"
 
+#include <uspi.h>
+
 extern "C" void led_blink(void*) {
 	while(1) {
 		asm volatile ("svc #42");
@@ -47,7 +49,13 @@ extern "C" void byte_blink_listener(void* arg) {
 	}
 }
 
-__attribute__((naked))
+static int staticVal = 42;
+
+void doStuff() {
+	staticVal++;
+}
+
+//__attribute__((naked))
 __attribute__((section(".init")))
 int main(void) {
 	// Actually, don't: it doesn't work
@@ -58,6 +66,7 @@ int main(void) {
 	//	 "msr cpsr_c,r0\n\t"
 	//	 "mov sp,#0x6000\n\t" // Init stack pointer
 	//	 : : : "r0");
+	
 	init_vector_table();
 	init_stacks();
 	init_process_table();
@@ -68,6 +77,9 @@ int main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
+	gpio::blinkValue(staticVal);
+
+	assert(USPiInitialize() != 0, 0xFF);
 /*
 	uint64_t mac = mailbox::getMac();
 	gpio::blinkValue((uint32_t) mac);
@@ -80,6 +92,10 @@ int main(void) {
 	uint32_t ramSize = mailbox::getRamSize();
 	gpio::blinkValue(ramSize);
 */
+
+	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
+
+	sleep_us(10*1000*1000);
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);
