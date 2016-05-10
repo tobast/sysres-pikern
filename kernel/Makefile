@@ -31,6 +31,7 @@ HARDWARE= -DHW_PI_1B
 BIN_CFLAGS= --entry=main --specs=nosys.specs
 
 OBJS = \
+		$(BUILD)init.o \
 		$(BUILD)kernel.o \
 		$(BUILD)uspi_interface.o \
 		$(BUILD)mailbox.o \
@@ -63,6 +64,9 @@ $(BIN): $(LIBUSPI) $(OBJS)
 		$(OBJS) \
 		$(CLIBS) \
 		-o $@
+
+$(BUILD)init.o: $(SOURCE)init.s $(BUILD)
+	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
 
 $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@

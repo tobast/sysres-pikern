@@ -7,6 +7,7 @@
 
 _start = 0x8000;
 ENTRY(_start)
+ALIGN(0x1000)
 
 SECTIONS {
 	/*
@@ -28,12 +29,15 @@ SECTIONS {
 	/* 
 	* Next we put the data.
 	*/
+	
 	.data : {
 		*(.data)
 	}
 
 	.bss : {
+		sbss = .
 		*(.bss)
+		ebss = .
 	}
 
 	/*
