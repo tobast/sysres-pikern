@@ -69,21 +69,11 @@ void kernel_main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
+	enable_irq();
+
 	assert(USPiInitialize() != 0, 0xFF);
 	gpio::blink(gpio::LED_PIN);
 
-/*
-	uint64_t mac = mailbox::getMac();
-	gpio::blinkValue((uint32_t) mac);
-	gpio::blinkValue((uint32_t)(mac >> 32));
-
-	uint32_t model = mailbox::getBoardModel();
-	gpio::blinkValue(model);
-	uint32_t rev = mailbox::getBoardRevision();
-	gpio::blinkValue(rev);
-	uint32_t ramSize = mailbox::getRamSize();
-	gpio::blinkValue(ramSize);
-*/
 	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
 
 	sleep_us(10*1000*1000);
@@ -95,7 +85,6 @@ void kernel_main(void) {
 	async_start(&byte_blink_writer, (void*)socket);
 	async_start(&byte_blink_listener, (void*)socket);
 
-	enable_irq();
 	async_go();
 }
 

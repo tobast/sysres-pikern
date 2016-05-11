@@ -8,6 +8,8 @@
 #include "svc.h"
 #include "uspi_interface.h"
 
+#include "gpio.h" // FIXME DEBUG
+
 struct context {
 	s32 spsr;
 	s32 lr;
@@ -288,7 +290,7 @@ void init_process_table() {
 
 	init_timers();
 
-	*hardware::IRQ_ENABLE_BASIC |= 1;
+//	*hardware::IRQ_ENABLE_BASIC |= 1;
 	hardware::ARM_TIMER[3] = 0;
 	hardware::ARM_TIMER[7] = 0xff;
 	hardware::ARM_TIMER[2] = 0x3e00a2;
