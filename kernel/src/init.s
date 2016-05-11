@@ -1,39 +1,22 @@
-	 .text
-start:
-        @@ Copy data to RAM.
-        ldr   r0, =flash_sdata
-        ldr   r1, =ram_sdata
-        ldr   r2, =data_size
+.section ".text.startup"
 
-        @@ Handle data_size == 0
-        cmp   r2, #0
-        beq   init_bss
-copy:
-        ldrb   r4, [r0], #1
-        strb   r4, [r1], #1
-        subs   r2, r2, #1
-        bne    copy
+.global _start
+.global _get_stack_pointer
 
-init_bss:
-        @@ Initialize .bss
-        ldr   r0, =sbss
-        ldr   r1, =ebss
-        ldr   r2, =bss_size
+_start:
+	// Place stack pointer (growing downwards, 32k should be ok)
+	ldr sp, =0x8000
 
-        @@ Handle bss_size == 0
-        cmp   r2, #0
-        beq   init_stack
+	// Then run the startup function
+	b _c_init
 
-        mov   r4, #0
-zero:
-        strb  r4, [r0], #1
-        subs  r2, r2, #1
-        bne   zero
+_exitloop: // If anything bad occurs, we want to loop here.
+	b _exitloop
 
-init_stack:
-        @@ Initialize the stack pointer
-        ldr   sp, =0xA4000000
+_get_stack_pointer:
+    // Return the stack pointer value
+    str     sp, [sp]
+    ldr     r0, [sp]
 
-        bl    main
-
-stop:   b     stop
+    // Return from the function
+    mov     pc, lr

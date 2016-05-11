@@ -21,7 +21,7 @@ LIST = $(BUILD)kernel.list
 MAP = $(BUILD)kernel.map
 LINKER = kernel.ld
 
-BIN = $(BUILD)master.bin
+ELF = $(BUILD)output.elf
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic \
@@ -31,6 +31,7 @@ HARDWARE= -DHW_PI_1B
 BIN_CFLAGS= --entry=main --specs=nosys.specs
 
 OBJS = \
+		$(BUILD)cinit.o \
 		$(BUILD)init.o \
 		$(BUILD)kernel.o \
 		$(BUILD)uspi_interface.o \
@@ -50,19 +51,17 @@ USPI_INCLUDE_DIR=uspi/include
 
 all: $(TARGET) $(LIST)
 
-$(LIST): $(BUILD)output.elf
+$(LIST): $(ELF)
 	$(OD) -d $< > $@
 
-$(TARGET): $(BUILD)output.elf
+$(TARGET): $(ELF)
 	$(OC) $< -O binary $@
 
-$(BUILD)output.elf: $(BIN) $(LINKER)
-	$(LD) --no-undefined $(BIN) -Map $(MAP) -o $@ -T $(LINKER)
-
-$(BIN): $(LIBUSPI) $(OBJS)
+$(ELF): $(LIBUSPI) $(OBJS) $(LINKER)
 	$(CC) $(CFLAGS) $(HARDWARE) $(BIN_CFLAGS) \
 		$(OBJS) \
 		$(CLIBS) \
+		-T $(LINKER) \
 		-o $@
 
 $(BUILD)init.o: $(SOURCE)init.s $(BUILD)
