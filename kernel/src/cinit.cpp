@@ -3,7 +3,7 @@ extern int __bss_start__;
 extern int __bss_end__;
 
 // Defined in kernel.cpp
-extern int kernel_main(void);
+extern void kernel_main(void);
 
 extern "C" {
 void _c_init()

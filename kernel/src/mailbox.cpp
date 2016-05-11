@@ -19,7 +19,7 @@ const uint32_t VAL_REV =		0x00010002;
 const uint32_t VAL_MACADDR =	0x00010003;
 const uint32_t VAL_RAMSIZE =	0x00010005;
 const uint32_t GET_POWSTATE =	0x00020001;
-const uint32_t GET_POWTIMING =	0x00020001;
+const uint32_t GET_POWTIMING =	0x00020002;
 const uint32_t SET_POWSTATE =	0x00028001;
 const uint32_t GET_TEMP =		0x00030006;
 const uint32_t GET_CRIT_TEMP =	0x0003000A;
@@ -222,7 +222,7 @@ uint32_t setPowerState(uint32_t deviceId, uint32_t powerStatus) {
 	uint32_t *freePtr, *argsPtr;
 	makeBuffer(buff, freePtr, 16*4);
 	uint32_t* writePos = initBuffer(buff);
-	writePos = writeTag(writePos, GET_POWSTATE, 8, 4, &argsPtr);
+	writePos = writeTag(writePos, SET_POWSTATE, 8, 8, &argsPtr);
 	argsPtr[0] = deviceId;
 	argsPtr[1] = powerStatus;
 	closeBuffer(buff, writePos);

@@ -49,15 +49,7 @@ extern "C" void byte_blink_listener(void* arg) {
 	}
 }
 
-static int staticVal = 42;
-
-void doStuff() {
-	staticVal++;
-}
-
-//__attribute__((naked))
-//__attribute__((section(".init")))
-int kernel_main(void) {
+void kernel_main(void) {
 	// Actually, don't: it doesn't work
 	// TODO: see if it is possible to make it work
 	// Switch to system mode
@@ -77,9 +69,9 @@ int kernel_main(void) {
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);
 	gpio::unset(gpio::LED_PIN);
 
-	gpio::blinkValue(staticVal);
-
 	assert(USPiInitialize() != 0, 0xFF);
+	gpio::blink(gpio::LED_PIN);
+
 /*
 	uint64_t mac = mailbox::getMac();
 	gpio::blinkValue((uint32_t) mac);
@@ -92,7 +84,6 @@ int kernel_main(void) {
 	uint32_t ramSize = mailbox::getRamSize();
 	gpio::blinkValue(ramSize);
 */
-
 	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
 
 	sleep_us(10*1000*1000);

@@ -45,11 +45,20 @@ int GetMACAddress(u8 Buffer[6]) {
 }
 
 void LogWrite(const char* /*pSource*/,
-		unsigned /*Severity*/,
-		const char* /*pMessage*/,
+		unsigned Severity,
+		const char* pMessage,
 		...)
 {
 	// TODO when we'll be able to dump it somewhere.
+	if(Severity >= LOG_ERROR) {
+		gpio::blink(gpio::CRASH_PIN);
+		gpio::dispByte(pMessage[0]);
+		sleep_us(1000*1000);
+		gpio::dispByte(pMessage[7]);
+		sleep_us(1000*1000);
+		gpio::blink(gpio::CRASH_PIN);
+		gpio::blink(gpio::LED_PIN);
+	}
 }
 
 void uspi_assertion_failed (const char *pExpr, const char *pFile,
