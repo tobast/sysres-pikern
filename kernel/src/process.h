@@ -21,6 +21,7 @@ void next_process();
 
 typedef void (*async_func)(void*);
 
-void async_start(async_func f, void* arg);
+// Default mode : user mode, enable IRQ, disable FIQ)
+void async_start(async_func f, void* arg, s32 mode = 0x50);
 
 void async_go();

@@ -290,7 +290,7 @@ void init_process_table() {
 
 	init_timers();
 
-//	*hardware::IRQ_ENABLE_BASIC |= 1;
+	*hardware::IRQ_ENABLE_BASIC |= 1;
 	hardware::ARM_TIMER[3] = 0;
 	hardware::ARM_TIMER[7] = 0xff;
 	hardware::ARM_TIMER[2] = 0x3e00a2;
@@ -386,14 +386,14 @@ void next_process() {
 	}
 }
 
-void async_start(async_func f, void* arg) {
+void async_start(async_func f, void* arg, s32 mode) {
 	int i = create_process();
 	processes[i].cont = context();
 	processes[i].cont.lr = ((s32)f) + 4;
 	processes[i].cont.r0 = (s32)arg;
 	// Find a suitable stack pointer; TODO: make that better
 	processes[i].cont.r13 = 0x1000000 + 0x100000 * (i + 1);
-	processes[i].cont.spsr = 0x50; // User mode, enable IRQ, disable FIQ
+	processes[i].cont.spsr = mode;
 }
 
 __attribute__((naked))

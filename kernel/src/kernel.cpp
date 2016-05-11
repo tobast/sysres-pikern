@@ -49,6 +49,28 @@ extern "C" void byte_blink_listener(void* arg) {
 	}
 }
 
+void kernel_run(void*) {
+
+	assert(USPiInitialize() != 0, 0xFF);
+	gpio::blink(gpio::LED_PIN);
+
+	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
+
+	sleep_us(10*1000*1000);
+
+	async_start(&led_blink, NULL);
+	async_start(&act_blink, NULL);
+
+	int socket = create_socket();
+	async_start(&byte_blink_writer, (void*)socket);
+	async_start(&byte_blink_listener, (void*)socket);
+
+	// Fixme: replace that with a clean exit call
+	while (1) {
+		asm volatile ("wfi");
+	}
+}
+
 void kernel_main(void) {
 	// Actually, don't: it doesn't work
 	// TODO: see if it is possible to make it work
@@ -70,20 +92,7 @@ void kernel_main(void) {
 	gpio::unset(gpio::LED_PIN);
 
 	enable_irq();
-
-	assert(USPiInitialize() != 0, 0xFF);
-	gpio::blink(gpio::LED_PIN);
-
-	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
-
-	sleep_us(10*1000*1000);
-
-	async_start(&led_blink, NULL);
-	async_start(&act_blink, NULL);
-
-	int socket = create_socket();
-	async_start(&byte_blink_writer, (void*)socket);
-	async_start(&byte_blink_listener, (void*)socket);
+	async_start(&kernel_run, NULL, 0x53); // SVC mode, enable IRQ, disable FIQ
 
 	async_go();
 }
