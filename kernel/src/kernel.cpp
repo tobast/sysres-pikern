@@ -57,7 +57,7 @@ void doStuff() {
 
 //__attribute__((naked))
 //__attribute__((section(".init")))
-int main(void) {
+int kernel_main(void) {
 	// Actually, don't: it doesn't work
 	// TODO: see if it is possible to make it work
 	// Switch to system mode
