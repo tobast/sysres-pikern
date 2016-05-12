@@ -92,7 +92,7 @@ void kernel_main(void) {
 	gpio::unset(gpio::LED_PIN);
 
 	enable_irq();
-	async_start(&kernel_run, NULL, 0x53); // SVC mode, enable IRQ, disable FIQ
+	async_start(&kernel_run, NULL, 0x5f); // System mode, enable IRQ, disable FIQ
 
 	async_go();
 }

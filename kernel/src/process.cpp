@@ -419,6 +419,7 @@ void async_go() {
 	processes[0].cont.lr = ((s32)&wait) + 4;
 	// Find a suitable stack pointer; TODO: make that better
 	processes[0].cont.r13 = 0x1100000;
+	processes[0].process_state = PROCESS_ACTIVE;
 	s32 cpsr = get_cpsr();
 	cpsr &= ~0xdf;
 	cpsr |= 0x53;
