@@ -50,6 +50,7 @@ void LogWrite(const char* /*pSource*/,
 		...)
 {
 	// TODO when we'll be able to dump it somewhere.
+	/*
 	if(Severity >= LOG_ERROR) {
 		gpio::blink(gpio::CRASH_PIN);
 		gpio::dispByte(pMessage[0]);
@@ -59,6 +60,7 @@ void LogWrite(const char* /*pSource*/,
 		gpio::blink(gpio::CRASH_PIN);
 		gpio::blink(gpio::LED_PIN);
 	}
+	*/
 }
 
 void uspi_assertion_failed (const char *pExpr, const char *pFile,

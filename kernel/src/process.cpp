@@ -206,6 +206,7 @@ extern "C" void on_irq(void* stack_pointer) {
 	dataMemoryBarrier();
 	for (int i = 0; i < NUMBER_INTERRUPTS; i++) {
 		if (hardware::IRQ_PENDING_1[i >> 5] & (1 << (i & 31))) {
+			hardware::IRQ_PENDING_1[i >> 5] = 1 << (i & 31);
 			if (bound_interrupts[i].handler != NULL) {
 				bound_interrupts[i].handler(bound_interrupts[i].param);
 				dataMemoryBarrier();
@@ -216,6 +217,7 @@ extern "C" void on_irq(void* stack_pointer) {
 	}
 	dataMemoryBarrier();
 	if ((*hardware::IRQ_BASIC_PENDING) & 1) {
+		*hardware::IRQ_BASIC_PENDING = 1;
 		check_and_run_timers();
 		go_next_process((context*)stack_pointer);
 		reset_timer();

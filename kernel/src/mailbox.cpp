@@ -128,14 +128,13 @@ void readTag(uint32_t volatile* buffer, uint32_t timeout) {
 			break;
 		}
 	}
-	
 	// TODO maybe check result code?
 }
 
 void makeBuffer(uint32_t volatile*& buff, uint32_t*& freePtr,
 		size_t size) {
 	uint8_t* mem = (uint8_t*)malloc(size+16);
-	buff = (uint32_t*) (mem + ((16 - ((Ptr)mem & 0xFFFFFFF0)) & (0xFFFFFFF0)));
+	buff = (uint32_t*) (mem + ((16 - ((Ptr)mem & 0xF)) & (0xFFFFFFF0)));
 	freePtr = (uint32_t*) mem;
 }
 

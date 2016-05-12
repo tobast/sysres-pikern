@@ -24,9 +24,9 @@ extern "C" void act_blink(void*) {
 	while(1) {
 		asm volatile ("svc #43");
 		gpio::set(gpio::ACT_PIN);
-		sleep_us(2*300000);
+		sleep_us(100000);
 		gpio::unset(gpio::ACT_PIN);
-		sleep_us(300000);
+		sleep_us(100000);
 	}
 }
 
@@ -51,7 +51,12 @@ extern "C" void byte_blink_listener(void* arg) {
 
 void kernel_run(void*) {
 
+	sleep_us(2 * 1000 * 1000);
+	gpio::blink(gpio::LED_PIN);
+	
 	assert(USPiInitialize() != 0, 0xFF);
+	sleep_us(2 * 1000 * 1000);
+	gpio::blink(gpio::LED_PIN);
 	gpio::blink(gpio::LED_PIN);
 
 	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
@@ -92,6 +97,7 @@ void kernel_main(void) {
 	gpio::unset(gpio::LED_PIN);
 
 	enable_irq();
+	async_start(&act_blink, NULL);
 	async_start(&kernel_run, NULL, 0x5f); // System mode, enable IRQ, disable FIQ
 
 	async_go();
