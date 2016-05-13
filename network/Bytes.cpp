@@ -2,7 +2,7 @@
 
 Bytes::Bytes() : data(), firstIndex(0) {}
 
-Bytes::Bytes(void* buff, size_t len) : firstIndex(0) {
+Bytes::Bytes(const void* buff, size_t len) : firstIndex(0) {
 	data.reserve(len);
 	for(size_t pos=0; pos < len; pos++)
 		data.push_back(((uint8_t*)buff)[pos]);
@@ -92,7 +92,8 @@ template<typename T> void Bytes::extractData(T& v) {
 }
 
 template<typename T> void Bytes::insertData(T v) {
-	for(size_t byte=sizeof(v)-1; byte >= 0; byte--)
-		data.push_back((uint8_t) v >> (8*byte));
+	for(int byte=sizeof(v)-1; byte >= 0; byte--) {
+		data.push_back((uint8_t) (v >> (8*byte)));
+	}
 }
 

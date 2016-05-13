@@ -11,7 +11,7 @@ class Bytes {
 		/// Exception -- thrown by operator[]
 
 		Bytes();
-		Bytes(void* buff, size_t len);
+		Bytes(const void* buff, size_t len);
 		/// Initializes the object with [buff], reading [len] bytes.
 
 		uint8_t& operator[](const size_t pos);
