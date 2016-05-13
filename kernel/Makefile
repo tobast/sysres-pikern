@@ -42,6 +42,7 @@ OBJS = \
 		$(BUILD)process.o \
 		$(BUILD)gpio.o \
 		$(BUILD)sleep.o \
+		$(BUILD)udp.o \
 		$(BUILD)svc.o
 
 LIBUSPI=uspi/lib/libuspi.a

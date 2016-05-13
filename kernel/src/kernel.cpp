@@ -7,6 +7,7 @@
 #include "process.h"
 #include "sleep.h"
 #include "svc.h"
+#include "udp.h"
 
 #include <uspi.h>
 
@@ -49,6 +50,21 @@ extern "C" void byte_blink_listener(void* arg) {
 	}
 }
 
+uint32_t invEndianness(uint32_t v) {
+	uint32_t out=0;
+	for(int i=0; i < 4; i++) {
+		out <<= 8;
+		out += v & 0xff;
+		v >>= 8;
+	}
+	return out;
+}
+
+int fillHelloWorldUdp(uint8_t* buff) {
+	return udp::formatPacket(buff, "Hello, world!", 14,
+			0x0a0000ff, 22, 0x0a000001, 3141);
+}
+
 void kernel_run(void*) {
 
 	sleep_us(2 * 1000 * 1000);
@@ -59,7 +75,16 @@ void kernel_run(void*) {
 	gpio::blink(gpio::LED_PIN);
 	gpio::blink(gpio::LED_PIN);
 
-	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
+//	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
+
+	uint8_t* udpPack = (uint8_t*)malloc(0x50);
+	udpPack = udpPack + ((32 - ((uint32_t)udpPack % 32)) % 32);
+	unsigned udpPackLen = fillHelloWorldUdp(udpPack);
+	while(true) {
+		gpio::dispByte(USPiSendFrame(udpPack, udpPackLen));
+		sleep_us(1000*1000);
+	}
+
 
 	sleep_us(10*1000*1000);
 
