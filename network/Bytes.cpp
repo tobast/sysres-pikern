@@ -48,6 +48,12 @@ Bytes& Bytes::operator<<(const Bytes& v) {
 	return *this;
 }
 
+Bytes& Bytes::appendHw(HwAddr v) {
+	insertData<uint32_t>(v >> 16);
+	insertData<uint16_t>(v & 0xFFFF);
+	return *this;
+}
+
 Bytes& Bytes::operator>>(uint8_t& v) {
 	extractData<uint8_t>(v);
 	return *this;
@@ -58,6 +64,16 @@ Bytes& Bytes::operator>>(uint16_t& v) {
 }
 Bytes& Bytes::operator>>(uint32_t& v) {
 	extractData<uint32_t>(v);
+	return *this;
+}
+
+Bytes& Bytes::extractHw(HwAddr& v) {
+	uint32_t buff=0;
+	extractData<uint32_t>(buff);
+	v = ((HwAddr)buff) << 16;
+	uint16_t buff16=0;
+	extractData<uint16_t>(buff16);
+	v += buff16;
 	return *this;
 }
 

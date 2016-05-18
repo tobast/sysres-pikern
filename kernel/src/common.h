@@ -21,3 +21,8 @@ template<typename T>
 inline T max(T a, T b) {
 	return (a > b) ? a : b;
 }
+
+// Networking
+typedef uint32_t Ipv4Addr;
+typedef uint64_t HwAddr;
+

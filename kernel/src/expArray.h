@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * Expandable array ("vector").
+ * Expendable array ("vector").
  **/
 
 #include "malloc.h"
@@ -22,7 +22,11 @@ public:
 			return data[pos];
 		throw OutOfBounds();
 	}
-	const T& operator[](unsigned pos) const;
+	const T& operator[](unsigned pos) const {
+		if(inBounds(pos))
+			return data[pos];
+		throw OutOfBounds();
+	}
 	void push_back(const T& val) {
 		if(nPos >= phySize)
 			realloc(2*phySize);
@@ -63,7 +67,7 @@ private: //meth
 		data = nData;
 		phySize = nSize;
 	}
-	bool inBounds(unsigned pos) {
+	bool inBounds(unsigned pos) const {
 		return pos >= 0 && pos < size();
 	}
 

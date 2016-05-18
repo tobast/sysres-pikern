@@ -1,9 +1,10 @@
 #ifndef DEF_NW_BYTES
 #define DEF_NW_BYTES
 
-#include <cstdlib>
 #include <cstdint>
-#include <vector>
+
+#include "common.h"
+#include "expArray.h"
 
 class Bytes {
 	public:
@@ -32,12 +33,18 @@ class Bytes {
 		Bytes& operator<<(const Bytes& v);
 		/// Appends the given data to the vector. Returns *this to allow
 		/// chaining.
+
+		Bytes& appendHw(HwAddr v);
+		/// Appends a hardware address to the vector.
 		
 		Bytes& operator>>(uint8_t& v);
 		Bytes& operator>>(uint16_t& v);
 		Bytes& operator>>(uint32_t& v);
 		/// Extracts the given data type from the vector. Returns *this to
 		/// allow chaining.
+		
+		Bytes& extractHw(HwAddr& v);
+		/// Extracts a hardware address from the vector.
 		
 		void operator=(const Bytes& oth);
 		/// Copies the given Bytes object into its own data.
@@ -55,7 +62,7 @@ class Bytes {
 		template<typename T> void extractData(T& v);
 
 	private:
-		std::vector<uint8_t> data;
+		ExpArray<uint8_t> data;
 		size_t firstIndex;
 };
 
