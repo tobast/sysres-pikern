@@ -24,7 +24,7 @@ LINKER = kernel.ld
 ELF = $(BUILD)output.elf
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
-	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic \
+	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -static \
 	-I $(SOURCE) -I $(USPI_INCLUDE_DIR)
 CLIBS = -L$(LIBUSPI_DIR) -luspi
 HARDWARE= -DHW_PI_1B
@@ -42,7 +42,10 @@ OBJS = \
 		$(BUILD)malloc.o \
 		$(BUILD)gpio.o \
 		$(BUILD)sleep.o \
+		$(BUILD)Bytes.o \
 		$(BUILD)udp.o \
+		$(BUILD)arp.o \
+		$(BUILD)networkCore.o \
 		$(BUILD)svc.o
 
 LIBUSPI=uspi/lib/libuspi.a
