@@ -163,12 +163,18 @@ uint32_t getBoardRevision() {
 }
 
 uint64_t getMac() {
+	static uint64_t cached = 0x0; // Cache the result for future use.
+	
+	if(cached != 0)
+		return cached;
+
 	uint32_t volatile *buff;
 	uint32_t *freePtr;
 	makeBuffer(buff,freePtr, 16*4);
 	buildMacRequest(buff);
 	readTag(buff, 1000*1000);
 	uint64_t out = buff[5] | (((uint64_t)buff[6]) << 32);
+	cached = out;
 	free(freePtr);
 	return out;
 }
