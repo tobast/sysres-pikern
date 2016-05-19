@@ -7,7 +7,7 @@
 
 void mallocInit();
 
-void* malloc(uint32_t size);
+void* malloc(unsigned size);
 /// Allocates a block of [size] bytes in memory, returns a pointer to the first
 /// byte of the allocated block.
 /// Crashes the system whenever the memory limit is reached.

@@ -9,7 +9,7 @@ void mallocInit() {
 	brk = MEMORY_START;
 }
 
-void* malloc(uint32_t size) {
+void* malloc(unsigned size) {
 	// For now, this is just a SBRK function.
 	assert(brk + size <= MEMORY_END);
 	
