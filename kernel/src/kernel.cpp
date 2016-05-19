@@ -15,9 +15,9 @@ extern "C" void led_blink(void*) {
 	while(1) {
 		asm volatile ("svc #42");
 		gpio::set(gpio::LED_PIN);
-		sleep_us(2*500000);
+		sleep(2*500000);
 		gpio::unset(gpio::LED_PIN);
-		sleep_us(500000);
+		sleep(500000);
 	}
 }
 
@@ -25,9 +25,9 @@ extern "C" void act_blink(void*) {
 	while(1) {
 		asm volatile ("svc #43");
 		gpio::set(gpio::ACT_PIN);
-		sleep_us(100000);
+		sleep(100000);
 		gpio::unset(gpio::ACT_PIN);
-		sleep_us(100000);
+		sleep(100000);
 	}
 }
 
@@ -36,7 +36,7 @@ extern "C" void byte_blink_writer(void* arg) {
 	char n = 0;
 	while(1) {
 		write(sock, (void*)&n, 1);
-		sleep_us(350000);
+		sleep(350000);
 		n++;
 	}
 }

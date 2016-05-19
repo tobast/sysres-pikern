@@ -12,4 +12,4 @@ enum svcs {
 int get_pid();
 int read(int fd, void* data, int num_bytes);
 int write(int fd, void* data, int num_bytes);
-void sleep(int num_ms);
+void sleep(int num_us);
