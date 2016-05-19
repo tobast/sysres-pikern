@@ -1,6 +1,8 @@
 #include "malloc.h"
 
 #include "gpio.h"
+#include "svc.h"
+#include "interrupts.h"
 
 const uint32_t MEMORY_START(0x2000000), MEMORY_END(0x10000000);
 uint32_t brk(MEMORY_START);
@@ -9,7 +11,7 @@ void mallocInit() {
 	brk = MEMORY_START;
 }
 
-void* malloc(uint32_t size) {
+void* malloc_nocheck(uint32_t size) {
 	// For now, this is just a SBRK function.
 	assert(brk + size <= MEMORY_END);
 	
@@ -19,6 +21,22 @@ void* malloc(uint32_t size) {
 	return out;
 }
 
-void free(void*) {
+void free_nocheck(void*) {
+}
+
+void* malloc(uint32_t size) {
+	u32 cpsr = get_cpsr();
+	if ((cpsr & 0x1f) == 0x12) {
+		return malloc_nocheck(size);
+	}
+	return malloc_svc(size);
+}
+
+void free(void* ptr) {
+	u32 cpsr = get_cpsr();
+	if ((cpsr & 0x1f) == 0x12) {
+		return free_nocheck(ptr);
+	}
+	return free_svc(ptr);
 }
 

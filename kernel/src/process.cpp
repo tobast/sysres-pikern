@@ -7,7 +7,7 @@
 #include "sleep.h"
 #include "svc.h"
 #include "uspi_interface.h"
-
+#include "malloc.h"
 #include "gpio.h" // FIXME DEBUG
 
 struct context {
@@ -268,6 +268,14 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			processes[active_process].state_info = trigger_time;
 			return;
 		}
+		case SVC_MALLOC: {
+			current_context->r0 = (u32)malloc_nocheck(current_context->r0);
+			return;
+	    }
+		case SVC_FREE: {
+			free_nocheck((void*)current_context->r0);
+			return;
+	    }
 		default:
 			// Invalid svc
 			// Kill process?

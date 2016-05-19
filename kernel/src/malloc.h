@@ -7,6 +7,9 @@
 
 void mallocInit();
 
+void* malloc_nocheck(uint32_t size);
+void free_nocheck(void* ptr);
+
 void* malloc(uint32_t size);
 /// Allocates a block of [size] bytes in memory, returns a pointer to the first
 /// byte of the allocated block.
