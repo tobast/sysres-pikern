@@ -22,6 +22,14 @@ public:
 			return data[pos];
 		throw OutOfBounds();
 	}
+
+	void operator=(const ExpArray<T>& oth) {
+		clear();
+		reserve(oth.size());
+		for(unsigned pos=0; pos < oth.size(); pos++)
+			(*this)[pos] = oth[pos];
+	}
+
 	const T& operator[](unsigned pos) const {
 		if(inBounds(pos))
 			return data[pos];

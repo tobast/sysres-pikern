@@ -26,3 +26,12 @@ inline T max(T a, T b) {
 typedef uint32_t Ipv4Addr;
 typedef uint64_t HwAddr;
 
+// String
+inline unsigned str_len(const char* s) {
+	for(unsigned pos=0; ; pos++) {
+		if(s[pos] == '\0')
+			return pos;
+	}
+	return -1; // to please g++
+}
+
