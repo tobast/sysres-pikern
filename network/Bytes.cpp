@@ -47,6 +47,13 @@ Bytes& Bytes::operator<<(const Bytes& v) {
 		data.push_back(v.at(byte));
 	return *this;
 }
+Bytes& Bytes::operator<<(const char* str) {
+	unsigned len = str_len(str);
+	data.reserve(data.size() + len);
+	for(unsigned byte=0; byte < len; byte++)
+		data.push_back(str[byte]);
+	return *this;
+}
 
 Bytes& Bytes::appendHw(HwAddr v) {
 	insertData<uint32_t>(v >> 16);

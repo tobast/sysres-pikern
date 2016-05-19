@@ -31,6 +31,7 @@ class Bytes {
 		Bytes& operator<<(uint16_t v);
 		Bytes& operator<<(uint32_t v);
 		Bytes& operator<<(const Bytes& v);
+		Bytes& operator<<(const char* str);
 		/// Appends the given data to the vector. Returns *this to allow
 		/// chaining.
 

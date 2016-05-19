@@ -9,6 +9,7 @@ const uint16_t ETHERTYPE = 0x0800,
 	  ETHER_HEAD_LEN = 14, IPV4_HEAD_LEN = 20, UDP_HEAD_LEN = 8;
 const uint16_t HEAD_LEN = ETHER_HEAD_LEN + IPV4_HEAD_LEN + UDP_HEAD_LEN;
 
+/*
 unsigned add(uint8_t v, uint8_t* pck, unsigned pos) {
 	pck[pos] = v;
 	return pos+1;
@@ -44,7 +45,7 @@ unsigned formatPacket(void* packet, const void* data, unsigned length,
    	pos = add((uint16_t)(selfAddr), out, pos);
 	pos = add(ETHERTYPE, out, pos);
 
-	// ========== ETHERNET LAYER PROTOCOL =============
+	// ========== IPv4 LAYER PROTOCOL =============
 	pos = add((uint8_t) 0x45, out, pos);
    	pos = add((uint8_t) 0x00, out, pos);
 	pos = add((uint16_t)(length + IPV4_HEAD_LEN + UDP_HEAD_LEN), out, pos);
@@ -78,6 +79,39 @@ unsigned formatPacket(void* packet, const void* data, unsigned length,
 	packetId += 7;
 
 	return pos + length;
+}
+*/
+Bytes& formatPacket(Bytes& pck, const Bytes& data,
+		uint16_t fromPort,
+		Ipv4Addr toAddr, uint16_t toPort)
+{
+	static uint16_t packetId = 42;
+
+	unsigned ipv4BegPos = pck.size();
+
+	// ==== IPv4 head ====
+	pck << (uint8_t) 0x45 << (uint8_t) 0x00
+		<< (uint16_t) (data.size() + IPV4_HEAD_LEN + UDP_HEAD_LEN)
+		<< packetId << (uint16_t) 0x00 << (uint8_t) 0xff
+		<< (uint8_t) 0x11 << (uint16_t) 0x00 << nw::getEthAddr() << toAddr;
+	// IPv4 checksum
+	uint32_t chksum = 0;
+	for(unsigned cpos=ipv4BegPos; cpos < pck.size(); cpos+=2) {
+		chksum += (((uint16_t)pck[cpos])<<8)+(pck[cpos+1]);
+		chksum = (chksum & 0xffff) + (chksum >> 16);
+	}
+	uint16_t fChksum = ~((uint16_t)chksum);
+	pck[ipv4BegPos + 10] = (fChksum >> 8);
+	pck[ipv4BegPos + 11] = (fChksum & 0xFF);
+
+	// ==== UDP head ====
+	pck << fromPort << toPort
+		<< (uint16_t)(UDP_HEAD_LEN + data.size()) << (uint16_t) 0x00
+		<< data;
+
+	packetId += 7;
+
+	return pck;
 }
 
 } //END NAMESPACE
