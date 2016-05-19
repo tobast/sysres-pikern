@@ -25,9 +25,9 @@ extern "C" void act_blink(void*) {
 	while(1) {
 		asm volatile ("svc #43");
 		gpio::set(gpio::ACT_PIN);
-		sleep(100000);
+		sleep(100*1000);
 		gpio::unset(gpio::ACT_PIN);
-		sleep(100000);
+		sleep(100*1000);
 	}
 }
 
