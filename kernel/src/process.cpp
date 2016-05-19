@@ -266,6 +266,8 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			u32 wait_time = (u32)current_context->r0;
 			u64 trigger_time = elapsed_us() + (u64)wait_time;
 			processes[active_process].state_info = trigger_time;
+			go_next_process(current_context);
+			reset_timer();
 			return;
 		}
 		case SVC_MALLOC: {
