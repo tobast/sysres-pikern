@@ -6,12 +6,17 @@
 #include "mailbox.h"
 #include "writeBuffer.h"
 #include "Bytes.h"
+#include "arp.h"
+#include "udp.h"
+#include "queue.h"
 #include <uspi.h>
 
 namespace nw {
-	const uint16_t ETHERTYPE = 0x0800;
+	const uint16_t ETHERTYPE_IPV4 = 0x0800;
+	const uint16_t ETHERTYPE_ARP = 0x0806;
 
-	Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac);
+	Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac,
+			uint16_t etherType = ETHERTYPE_IPV4);
 	/** Fills the ethernet layer header with the given [destMac] in [buffer].
 	 * Returns a reference to [buffer] to allow chaining.
 	 */
@@ -21,6 +26,17 @@ namespace nw {
 
 	HwAddr getHwAddr();
 	/** Returns the hardware (MAC) address of the ethernet interface. */	
+
+	void writeMessage(const Bytes& payload, Ipv4Addr to,
+			uint16_t fromPort, uint16_t toPort);
+	/** Wrapper: sends [payload] as an UDP packet to [to]:[toPort]
+	 * from [getEthAddr()]:[fromPort]. Async.
+	 **/
+
+	void sendPacket(Bytes packet, Ipv4Addr to);
+	/** Queues a layer 3-formatted packet (ie. WITHOUT Ethernet decoration)
+	 * for sending. Async.
+	 */
 
 	int sendFrame(const Bytes& frame);
 	/** Sends a frame over Ethernet. Returns 0 on failure. */

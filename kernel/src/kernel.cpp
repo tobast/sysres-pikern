@@ -7,7 +7,7 @@
 #include "process.h"
 #include "sleep.h"
 #include "svc.h"
-#include "udp.h"
+#include "networkCore.h"
 
 #include <uspi.h>
 
@@ -60,11 +60,6 @@ uint32_t invEndianness(uint32_t v) {
 	return out;
 }
 
-int fillHelloWorldUdp(uint8_t* buff) {
-	return udp::formatPacket(buff, "Hello, world!", 14,
-			0x0a0000ff, 22, 0x0a000001, 3141);
-}
-
 void kernel_run(void*) {
 
 	sleep_us(2 * 1000 * 1000);
@@ -75,13 +70,17 @@ void kernel_run(void*) {
 	gpio::blink(gpio::LED_PIN);
 	gpio::blink(gpio::LED_PIN);
 
-//	gpio::blinkValue((uint32_t)USPiEthernetAvailable());
+	assert(USPiEthernetAvailable() != 0, 0x01);
 
-	uint8_t* udpPack = (uint8_t*)malloc(0x50);
-	udpPack = udpPack + ((32 - ((uint32_t)udpPack % 32)) % 32);
-	unsigned udpPackLen = fillHelloWorldUdp(udpPack);
+	Bytes udpPacket, payload;
+	payload << "Hello, world!";
+	nw::fillEthernetHeader(udpPacket, (HwAddr)0x6c3be58c2917);
+	udp::formatPacket(udpPacket, payload, 21, 0x0a000001, 3141);
+	void* buffer = malloc(udpPacket.size());
+	udpPacket.writeToBuffer(buffer);
 	while(true) {
-		gpio::dispByte(USPiSendFrame(udpPack, udpPackLen));
+//		nw::sendPacket(udpPacket, 0x0a00000f);
+		USPiSendFrame(buffer, udpPacket.size());
 		sleep_us(1000*1000);
 	}
 
@@ -124,6 +123,7 @@ void kernel_main(void) {
 	enable_irq();
 	async_start(&act_blink, NULL);
 	async_start(&kernel_run, NULL, 0x5f); // System mode, enable IRQ, disable FIQ
+	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 
 	async_go();
 }

@@ -5,6 +5,8 @@
 #include "sleep.h"
 #include "mailbox.h"
 #include "gpio.h"
+#include "networkCore.h"
+#include "malloc.h"
 
 void usDelay(unsigned nMicroSeconds) {
 	sleep_us(nMicroSeconds);
@@ -44,7 +46,16 @@ int GetMACAddress(u8 Buffer[6]) {
 	return 1; // success
 }
 
-void LogWrite(const char* /*pSource*/,
+const char* stringOfLogLevel(unsigned severity) {
+	switch(severity) {
+		case LOG_ERROR:	return "ERROR";
+		case LOG_WARNING: return "WARNING";
+		case LOG_NOTICE: return "INFO";
+		case LOG_DEBUG: return "DEBUG";
+	}
+}
+
+void LogWrite(const char* pSource,
 		unsigned Severity,
 		const char* pMessage,
 		...)
@@ -61,6 +72,22 @@ void LogWrite(const char* /*pSource*/,
 		gpio::blink(gpio::LED_PIN);
 	}
 	*/
+	
+/*
+	static bool ignoreLog = false;
+	static void* buffer = NULL;
+	
+	if(buffer == NULL)
+		buffer = malloc(USPI_FRAME_BUFFER_SIZE);
+
+	if(ignoreLog)
+		return;
+
+	Bytes payload;
+	payload << "[" << stringOfLogLevel(Severity) << "] "
+			<< pSource << ": " << pMessage;
+	nw::writeMessage(payload, 0x0a000001, 1, 3141);
+*/
 }
 
 void uspi_assertion_failed (const char *pExpr, const char *pFile,
@@ -68,7 +95,7 @@ void uspi_assertion_failed (const char *pExpr, const char *pFile,
 	gpio::blink(gpio::CRASH_PIN);
 	gpio::blink(gpio::CRASH_PIN);
 	gpio::blinkValue(nLine);
-	assert(false, 19);
+	assert(false, 0x22);
 }
 
 // display hex dump (pSource can be 0)
