@@ -7,7 +7,7 @@
 #include "sleep.h"
 #include "svc.h"
 #include "uspi_interface.h"
-
+#include "malloc.h"
 #include "gpio.h" // FIXME DEBUG
 
 struct context {
@@ -38,7 +38,8 @@ struct context {
 enum pstate {
 	PROCESS_ACTIVE,
 	PROCESS_WAIT_READ,
-	PROCESS_WAIT_WRITE
+	PROCESS_WAIT_WRITE,
+	PROCESS_SLEEPING
 };
 
 struct process {
@@ -46,7 +47,7 @@ struct process {
 	int next_process;
 	int previous_process;
 	pstate process_state;
-	int state_info;
+	u64 state_info;
 };
 
 const int NUMBER_INTERRUPTS = 64;
@@ -261,9 +262,22 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			return;
 		}
 		case SVC_SLEEP: {
-			// TODO
+			processes[active_process].process_state = PROCESS_SLEEPING;
+			u32 wait_time = (u32)current_context->r0;
+			u64 trigger_time = elapsed_us() + (u64)wait_time;
+			processes[active_process].state_info = trigger_time;
+			go_next_process(current_context);
+			reset_timer();
 			return;
 		}
+		case SVC_MALLOC: {
+			current_context->r0 = (u32)malloc_nocheck(current_context->r0);
+			return;
+	    }
+		case SVC_FREE: {
+			free_nocheck((void*)current_context->r0);
+			return;
+	    }
 		default:
 			// Invalid svc
 			// Kill process?
@@ -371,6 +385,13 @@ bool ready(int i) {
 			} else {
 				return false;
 			}
+		}
+		case PROCESS_SLEEPING: {
+			if (processes[i].state_info < elapsed_us()) {
+				processes[i].process_state = PROCESS_ACTIVE;
+				return true;
+			}
+			return false;
 		}
 		default: return false;
 

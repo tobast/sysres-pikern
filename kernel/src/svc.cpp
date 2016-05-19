@@ -19,3 +19,13 @@ __attribute__((naked))
 void sleep(int) {
 	asm volatile ("svc #4\n\tbx lr");
 }
+
+__attribute__((naked))
+void* malloc_svc(uint32_t) {
+	asm volatile ("svc #5\n\tbx lr");
+}
+
+__attribute__((naked))
+void free_svc(void*) {
+	asm volatile ("svc #6\n\tbx lr");
+}

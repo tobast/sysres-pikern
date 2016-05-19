@@ -7,12 +7,13 @@
 #include "gpio.h"
 #include "networkCore.h"
 #include "malloc.h"
+#include "svc.h"
 
 void usDelay(unsigned nMicroSeconds) {
-	sleep_us(nMicroSeconds);
+	sleep(nMicroSeconds);
 }
 void MsDelay(unsigned nMilliSeconds) {
-	sleep_us(1000*nMilliSeconds);
+	sleep(1000*nMilliSeconds);
 }
 
 /// Powers on the given device, and wait until completed.

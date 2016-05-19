@@ -36,10 +36,10 @@ OBJS = \
 		$(BUILD)kernel.o \
 		$(BUILD)uspi_interface.o \
 		$(BUILD)mailbox.o \
-		$(BUILD)malloc.o \
 		$(BUILD)interrupts.o \
 		$(BUILD)assert.o \
 		$(BUILD)process.o \
+		$(BUILD)malloc.o \
 		$(BUILD)gpio.o \
 		$(BUILD)sleep.o \
 		$(BUILD)Bytes.o \

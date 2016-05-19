@@ -4,7 +4,6 @@
 #include "malloc.h"
 #include "sleep.h"
 #include "mailbox.h"
-#include "writeBuffer.h"
 #include "Bytes.h"
 #include "arp.h"
 #include "udp.h"
@@ -26,12 +25,6 @@ namespace nw {
 
 	HwAddr getHwAddr();
 	/** Returns the hardware (MAC) address of the ethernet interface. */	
-
-	void writeMessage(const Bytes& payload, Ipv4Addr to,
-			uint16_t fromPort, uint16_t toPort);
-	/** Wrapper: sends [payload] as an UDP packet to [to]:[toPort]
-	 * from [getEthAddr()]:[fromPort]. Async.
-	 **/
 
 	void sendPacket(Bytes packet, Ipv4Addr to);
 	/** Queues a layer 3-formatted packet (ie. WITHOUT Ethernet decoration)

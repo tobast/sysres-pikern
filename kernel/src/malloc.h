@@ -8,6 +8,9 @@
 void mallocInit();
 
 void* malloc(unsigned size);
+void* malloc_nocheck(uint32_t size);
+void free_nocheck(void* ptr);
+
 /// Allocates a block of [size] bytes in memory, returns a pointer to the first
 /// byte of the allocated block.
 /// Crashes the system whenever the memory limit is reached.

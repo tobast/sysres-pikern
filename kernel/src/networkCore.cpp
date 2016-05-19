@@ -1,7 +1,5 @@
 #include "networkCore.h"
 
-#include "gpio.h"
-
 namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
@@ -112,14 +110,12 @@ int pollFrame(Bytes& frame) {
 	return out;
 }
 
-unsigned _min(unsigned a, unsigned b) {
-	return (a<b) ? a : b;
-}
-
 void packetHandlerStart() {
 	Bytes frame;
 	/*
 //	logs = (char*)malloc(0x1000);
+void packetHandlerStart() {
+	Bytes frame;
 
 	while(true) {
 		if(pollFrame(frame) > 0)
@@ -149,7 +145,8 @@ void packetHandlerStart() {
 		}
 	}
 	*/
-	while(true);
+		sleep_us(100);
+	}
 }
 
 } // END NAMESPACE
