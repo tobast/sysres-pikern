@@ -17,7 +17,7 @@ void* malloc_nocheck(uint32_t size) {
 	
 	void* out = (void*)brk;
 	brk += size;
-	brk += (-brk) & 3; // Aligns to 4-bytes.
+	brk += (-brk) & 0xf; // Aligns to 16-bytes.
 	return out;
 }
 
