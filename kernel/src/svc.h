@@ -8,7 +8,8 @@ enum svcs {
 	SVC_WRITE = 3,
 	SVC_SLEEP = 4,
 	SVC_MALLOC = 5,
-	SVC_FREE = 6
+	SVC_FREE = 6,
+	SVC_ATOMIC_CAS = 7
 };
 
 extern "C" {
@@ -19,5 +20,6 @@ int write(int fd, void* data, int num_bytes);
 void sleep(int num_us);
 void* malloc_svc(uint32_t size);
 void free_svc(void* ptr);
+int atomic_cas_svc(int* p, int old_value, int new_value);
 
 }

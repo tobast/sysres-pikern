@@ -28,16 +28,14 @@ void free_nocheck(void*) {
 }
 
 void* malloc(unsigned size) {
-	u32 cpsr = get_cpsr();
-	if ((cpsr & 0x1f) == 0x12) {
+	if (is_interrupt()) {
 		return malloc_nocheck(size);
 	}
 	return malloc_svc(size);
 }
 
 void free(void* ptr) {
-	u32 cpsr = get_cpsr();
-	if ((cpsr & 0x1f) == 0x12) {
+	if (is_interrupt()) {
 		return free_nocheck(ptr);
 	}
 	return free_svc(ptr);

@@ -15,6 +15,12 @@ inline void enable_irq() {
 
 s32 get_cpsr();
 
+inline bool is_interrupt() {
+	u32 cpsr = get_cpsr();
+	u32 u = cpsr & 0x1f;
+	return (u == 0x12 || u == 0x13);
+}
+
 inline void disable_irq() {
 	asm(
 		"mrs r0,cpsr\n\t"

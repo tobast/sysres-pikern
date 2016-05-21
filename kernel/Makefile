@@ -48,6 +48,7 @@ OBJS = \
 		$(BUILD)logger.o \
 		$(BUILD)format.o \
 		$(BUILD)networkCore.o \
+		$(BUILD)atomic.o \
 		$(BUILD)svc.o
 
 LIBUSPI=uspi/lib/libuspi.a

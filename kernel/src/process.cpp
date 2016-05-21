@@ -278,6 +278,17 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			free_nocheck((void*)current_context->r0);
 			return;
 	    }
+		case SVC_ATOMIC_CAS: {
+			s32* r = (s32*)current_context->r0;
+			s32 y = current_context->r1;
+			s32 z = current_context->r2;
+			s32 old_val = *r;
+			if (old_val == y) {
+				*r = z;
+			}
+			current_context->r0 = old_val;
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?
