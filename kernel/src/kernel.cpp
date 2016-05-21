@@ -63,8 +63,8 @@ uint32_t invEndianness(uint32_t v) {
 
 void kernel_run(void*) {
 	nw::init();
+	logger::init();
 
-	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
 	
 	appendLog(
@@ -81,6 +81,14 @@ void kernel_run(void*) {
 	assert(USPiEthernetAvailable() != 0, 0x01);
 
 	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
+	async_start(((void(*)(void*))&logger::mainLoop), NULL);
+
+	logger::addListener(nw::DEST_IP);
+
+	while(true) {
+		appendLog(LogDebug, "club inutile", "Hello world!");
+		sleep(1000*1000);
+	}
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

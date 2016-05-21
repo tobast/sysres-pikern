@@ -3,6 +3,28 @@
 #include "format.h"
 #include "interrupts.h"
 #include "networkCore.h"
+#include "queue.h"
+#include "atomic.h"
+
+Queue<Bytes>* logQueue=NULL;
+ExpArray<Ipv4Addr> logDest;
+mutex_t* logQueueMutex;
+mutex_t* logDestMutex;
+
+namespace logger {
+	void init() {
+		logQueue = (Queue<Bytes>*)malloc(sizeof(Queue<Bytes>));
+		*logQueue = Queue<Bytes>();
+
+		logDest.init();
+
+		logDestMutex = (mutex_t*) malloc(sizeof(mutex_t));
+		mutex_init(logDestMutex);
+
+		logQueueMutex = (mutex_t*) malloc(sizeof(mutex_t));
+		mutex_init(logQueueMutex);
+	}
+}
 
 const char* stringOfLogLevel(LogLevels severity) {
 	switch(severity) {
@@ -23,6 +45,15 @@ LogLevels logLevelFromUSPi(unsigned logLevel) {
 		case LOG_DEBUG: return LogDebug;
 	}
 	return LogOther;
+}
+
+void enqueueLog(const Bytes& log) {
+	assert(logQueue != NULL, 0xba);
+	if(is_interrupt())
+		return;
+	mutex_lock(logQueueMutex);
+	logQueue->push(log);
+	mutex_unlock(logQueueMutex);
 }
 
 void appendLog(const char* fmt, ...) {
@@ -61,12 +92,48 @@ void appendLog(LogLevels severity, const char* source, const char* fmt,
 }
 
 void appendLog(const Bytes& payload) {
-	if(is_interrupt()) // endangers mutexes.
-		return;
+	enqueueLog(payload);
+}
 
-	Bytes udpPacket;
-	udp::formatPacket(udpPacket, payload, 1, nw::DEST_IP, 3141);
+void sendLog(const Bytes& log) {
+	for(unsigned dest = 0; dest < logDest.size(); dest++) {
+		Ipv4Addr destAddr = logDest[dest];
 
-	nw::sendPacket(udpPacket, nw::DEST_IP);
+		Bytes udpPacket;
+		udp::formatPacket(udpPacket, log, 1, destAddr, 3141);
+		nw::sendPacket(udpPacket, destAddr);
+	}
+}
+
+namespace logger {
+	void mainLoop() {
+		assert(logQueue != NULL, 0xba);
+
+		while(true) {
+			mutex_lock(logDestMutex);
+			if(logDest.size() > 0) {
+				mutex_lock(logQueueMutex);
+				while(logQueue->size() > 0) {
+					const Bytes& log = logQueue->pop();
+					mutex_unlock(logQueueMutex);
+					sendLog(log);
+					mutex_lock(logQueueMutex);
+				}
+				mutex_unlock(logQueueMutex);
+			}
+			mutex_unlock(logDestMutex);
+			sleep(100);
+		}
+	}
+
+	void addListener(Ipv4Addr addr) {
+		mutex_lock(logDestMutex);
+		for(unsigned cDest=0; cDest < logDest.size(); cDest++) {
+			if(logDest[cDest] == addr)
+				return;
+		}
+		logDest.push_back(addr);
+		mutex_unlock(logDestMutex);
+	}
 }
 

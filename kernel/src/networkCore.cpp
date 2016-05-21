@@ -37,9 +37,14 @@ void processPacket(Bytes frame) {
 		case ETHERTYPE_ARP:
 			arp::readArp(frame);
 			break;
-		case ETHERTYPE_IPV4:
+		case ETHERTYPE_IPV4: {
 			//TODO
+			/*
+			uint32_t fromAddr;
+			frame >> fromAddr >> fromAddr >> fromAddr >> fromAddr;
+			logger::addListener(fromAddr); */
 			break;
+		}
 	}
 }
 
