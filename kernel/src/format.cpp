@@ -56,6 +56,22 @@ void toHexa(Bytes& dest, unsigned num, int padLen, char padder) {
 	toBase(dest, num, padLen, padder, 16);
 }
 
+void toMacAddr(Bytes& dest, HwAddr mac) {
+	for(int byte=5; byte >= 0; byte--) {
+		toHexa(dest, (mac >> 8*byte) & 0xff, 2, '0');
+		if(byte > 0)
+			dest << ':';
+	}
+}
+
+void toIpv4Addr(Bytes& dest, Ipv4Addr addr) {
+	for(int byte=3; byte >= 0; byte--) {
+		toDecimal(dest, (addr >> 8*byte) & 0xff, 0, ' ');
+		if(byte > 0)
+			dest << '.';
+	}
+}
+
 void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
 	unsigned pos=0;
 	while(fmt[pos] != '\0') {
@@ -87,6 +103,12 @@ void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
 						break;
 					case 's':
 						dest << va_arg(args, const char*);
+						break;
+					case 'M': // MAC address
+						toMacAddr(dest, va_arg(args, HwAddr));
+						break;
+					case 'I': // IPv4 address
+						toIpv4Addr(dest, va_arg(args, Ipv4Addr));
 						break;
 					default:
 						dest << "[UNKNOWN FMT: " << fmt[pos] << "]";
