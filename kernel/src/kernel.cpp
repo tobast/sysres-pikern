@@ -66,6 +66,10 @@ void kernel_run(void*) {
 	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
 	
+	nw::logAppend(
+#include "start_message.h"
+			);
+
 	assert(USPiInitialize() != 0, 0xFF);
 	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
@@ -75,15 +79,7 @@ void kernel_run(void*) {
 
 	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 
-	for(int i=0; i < 42; i++) {
-		//nw::sendPacket(udpPacket, 0x0a00000f);
-		//USPiSendFrame(buffer, udpPacket.size());
-		nw::logAppend("Hello, world!\n");
-		sleep(1000*1000);
-	}
-
-
-	sleep(10*1000*1000);
+	nw::logAppend("Hello, world!\n");
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

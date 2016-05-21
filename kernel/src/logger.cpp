@@ -1,6 +1,7 @@
 #include "logger.h"
 #include "uspi_interface.h"
 #include "format.h"
+#include "interrupts.h"
 
 const char* stringOfLogLevel(unsigned severity) {
 	switch(severity) {
@@ -15,6 +16,8 @@ const char* stringOfLogLevel(unsigned severity) {
 void appendLog(const char* source, unsigned severity, const char* fmt,
 		va_list args)
 {
+	if(is_interrupt()) // Endangers mutexes.
+		return;
 	Bytes payload;
 	payload << '[' << stringOfLogLevel(severity) << "] "
 		<< source << ": ";
