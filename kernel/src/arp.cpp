@@ -11,6 +11,8 @@ const uint16_t HTYPE=1,
 const uint8_t HLEN=6,
 	  PLEN=4;
 
+const uint32_t ARP_TIMEOUT = 60*1000*1000; // 1 minute.
+
 enum ArpStatus {
 	ARP_SENT, ARP_KNOWN
 };
@@ -30,14 +32,14 @@ struct ArpData {
 HashTable<Ipv4Addr, ArpData> arpCache;
 
 HwAddr cachedHwAddr(const Ipv4Addr& addr) {
-//	return 0x17298ce53b6c;
 	try {
 		ArpData data = arpCache.find(addr);
 		switch(data.status) {
 			case ARP_KNOWN:
 				return data.addr;
 			case ARP_SENT:
-				//FIXME resend
+				if(elapsed_us() - data.sentTime > ARP_TIMEOUT)
+					queryArp(addr);
 				return 0;
 			default:
 				return 0;
@@ -54,10 +56,6 @@ void queryArp(const Ipv4Addr& addr) {
 	Bytes pck;
 	formatQuery(pck, addr);
 	nw::sendFrame(pck, true);
-	Bytes log;
-	log << "Formatted ARP query:\n";
-	pck.hexdump(log);
-	appendLog(log);
 }
 
 Bytes& formatHeaderBeg(Bytes& buffer) {
@@ -80,12 +78,6 @@ void readArp(Bytes arp) {
 	arp.extractHw(hwTo);
 	arp >> ipTo;
 
-	/*
-	appendLog(LogDebug, "ARP", "Valid ARP: %d %d %d %d %d from %I (%M)"
-		   "to %I (%M).",
-			htype, ptype, hlen, plen, oper,
-			ipFrom, hwFrom, ipTo, hwTo);
-	*/
 	arpCache.insert(ipFrom, ArpData(hwFrom));
 	if(oper == OPER_REQ && ipTo == nw::getEthAddr()) {
 		Bytes repl;

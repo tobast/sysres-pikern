@@ -51,8 +51,7 @@ Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac, uint16_t etherType) {
 }
 
 Ipv4Addr getEthAddr() {
-//	return 0x0a00000f; //TODO
-	return 0x81c79dae;
+	return 0x81c79dae; // FIXME
 }
 
 HwAddr getHwAddr() {
@@ -94,9 +93,6 @@ void sendPacket(Bytes packet, Ipv4Addr to) {
 
 	// Get MAC address
 	arp::cachedHwAddr(to); // send ARP request
-/*	if(mac == 0) {
-		arp::queryArp(to);
-	} */
 	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
 	*nPacket = QueuedPacket(packet, to);
 	mutex_lock(queue_mutex);
