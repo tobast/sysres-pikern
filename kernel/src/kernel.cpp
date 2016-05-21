@@ -84,6 +84,7 @@ void kernel_run(void*) {
 	async_start(((void(*)(void*))&logger::mainLoop), NULL);
 
 	logger::addListener(nw::DEST_IP);
+//	logger::addListener(0x81c79dac);
 
 	while(true) {
 		appendLog(LogDebug, "club inutile", "Hello world!");

@@ -96,6 +96,7 @@ void appendLog(const Bytes& payload) {
 }
 
 void sendLog(const Bytes& log) {
+	mutex_lock(logDestMutex);
 	for(unsigned dest = 0; dest < logDest.size(); dest++) {
 		Ipv4Addr destAddr = logDest[dest];
 
@@ -103,6 +104,7 @@ void sendLog(const Bytes& log) {
 		udp::formatPacket(udpPacket, log, 1, destAddr, 3141);
 		nw::sendPacket(udpPacket, destAddr);
 	}
+	mutex_unlock(logDestMutex);
 }
 
 namespace logger {
@@ -110,7 +112,6 @@ namespace logger {
 		assert(logQueue != NULL, 0xba);
 
 		while(true) {
-			mutex_lock(logDestMutex);
 			if(logDest.size() > 0) {
 				mutex_lock(logQueueMutex);
 				while(logQueue->size() > 0) {
@@ -121,7 +122,6 @@ namespace logger {
 				}
 				mutex_unlock(logQueueMutex);
 			}
-			mutex_unlock(logDestMutex);
 			sleep(100);
 		}
 	}
@@ -129,8 +129,10 @@ namespace logger {
 	void addListener(Ipv4Addr addr) {
 		mutex_lock(logDestMutex);
 		for(unsigned cDest=0; cDest < logDest.size(); cDest++) {
-			if(logDest[cDest] == addr)
+			if(logDest[cDest] == addr) {
+				mutex_unlock(logDestMutex);
 				return;
+			}
 		}
 		logDest.push_back(addr);
 		mutex_unlock(logDestMutex);

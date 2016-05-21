@@ -39,10 +39,11 @@ void processPacket(Bytes frame) {
 			break;
 		case ETHERTYPE_IPV4: {
 			//TODO
-			/*
+			if(toMac != getHwAddr())
+				break;
 			uint32_t fromAddr;
 			frame >> fromAddr >> fromAddr >> fromAddr >> fromAddr;
-			logger::addListener(fromAddr); */
+			logger::addListener(fromAddr);
 			break;
 		}
 	}
