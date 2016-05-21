@@ -14,6 +14,8 @@ namespace nw {
 	const uint16_t ETHERTYPE_IPV4 = 0x0800;
 	const uint16_t ETHERTYPE_ARP = 0x0806;
 
+	const unsigned DEST_IP = 0x81c79d16; // FIXME
+
 	Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac,
 			uint16_t etherType = ETHERTYPE_IPV4);
 	/** Fills the ethernet layer header with the given [destMac] in [buffer].
@@ -25,9 +27,6 @@ namespace nw {
 
 	HwAddr getHwAddr();
 	/** Returns the hardware (MAC) address of the ethernet interface. */	
-
-	void logAppend(const char* l);
-	void logAppend(const Bytes& b);
 
 	void sendPacket(Bytes packet, Ipv4Addr to);
 	/** Queues a layer 3-formatted packet (ie. WITHOUT Ethernet decoration)

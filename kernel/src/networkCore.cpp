@@ -1,13 +1,12 @@
 #include "networkCore.h"
 #include "atomic.h"
+#include "logger.h"
 
 #include "gpio.h" // FIXME
 
 namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
-
-const unsigned DEST_IP = 0x81c79d16;
 
 void processPacket(Bytes frame) {
 	HwAddr toMac, fromMac;
@@ -21,6 +20,7 @@ void processPacket(Bytes frame) {
 
 	switch(etherType) {
 		case ETHERTYPE_ARP:
+			appendLog("I haz ARP!");
 			arp::readArp(frame);
 			break;
 		case ETHERTYPE_IPV4:
@@ -45,38 +45,7 @@ HwAddr getHwAddr() {
 	return mailbox::getMac(); // Caches the MAC address.
 }
 
-/*
-char* logs = NULL;
-bool ignoreLogs = false;
-unsigned logPos=0, logSentEnd=0;
-void logAppend(const char* l) {
-	if(ignoreLogs)
-		return;
-
-	unsigned len = str_len(l);
-	for(unsigned pos=0; pos < len; pos++) {
-		logs[logPos] = l[pos];
-		logPos = (logPos+1)%0x1000;
-	}
-}
-*/
-
 bool ignoreLogs=false;
-void logAppend(const char* l) {
-	if(ignoreLogs)
-		return;
-	Bytes pck, payload;
-	payload << l;
-	udp::formatPacket(pck, payload, 1, DEST_IP, 3141);
-	sendPacket(pck, DEST_IP);
-}
-void logAppend(const Bytes& b) {
-	if(ignoreLogs)
-		return;
-	Bytes pck;
-	udp::formatPacket(pck, b, 1, DEST_IP, 3141);
-	sendPacket(pck, DEST_IP);
-}
 
 struct QueuedPacket {
 	QueuedPacket(const Bytes& pck, const Ipv4Addr& to) :
@@ -160,7 +129,7 @@ bool sendQueuedPacket(QueuedPacket* pck) {
 int pollFrame(Bytes& frame) {
 	static void* buff = NULL;
 	if(buff == NULL)
-		malloc(USPI_FRAME_BUFFER_SIZE+100);
+		buff = malloc(USPI_FRAME_BUFFER_SIZE+100);
 	unsigned resultLen = 0;
 	int out = USPiReceiveFrame(buff, &resultLen);
 	if(out != 0)
@@ -175,43 +144,35 @@ void init() {
 	mutex_init(queue_mutex);
 }
 
+void logUsedIp() {
+	Ipv4Addr addr = getEthAddr();
+	appendLog(LogInfo, "network", "Using IPv4 with address %u.%u.%u.%u",
+			addr >> 24, (addr >> 16) & 0xff, (addr >> 8) & 0xff, addr & 0xff);
+}
+
 void packetHandlerStart() {
 	assert(sendingQueue != NULL, 0xca);
+	Bytes frame;
 
-//	assert(logs != NULL, 0xa0);
-//	Bytes frame;
+	logUsedIp();
 
 	while(true) {
-		/*
-		if(pollFrame(frame) > 0)
+		while(pollFrame(frame) != 0)
 			processPacket(frame);
-		*/
+
 		mutex_lock(queue_mutex);
-		if(sendingQueue->size() > 0) {
+		while(sendingQueue->size() > 0) {
 			QueuedPacket* front = sendingQueue->front();
 			if(sendQueuedPacket(front))
 				free(sendingQueue->pop());
 			else if(front->triedSend > PACKET_TRIES_TIMEOUT)
 				free(sendingQueue->pop());
+			else
+				break;
 		}
 		mutex_unlock(queue_mutex);
 		sleep(100);
 	}
-/*
-	while(true) {
-		sleep(1000);
-	
-		ignoreLogs = true;
-		Bytes pck;
-		fillEthernetHeader(pck, 0x6c3be58c2917);
-		Bytes payload(logs, 200);
-		udp::formatPacket(pck, payload, 1, 0x0a000001, 3141);
-		void* buff = malloc(pck.size());
-		pck.writeToBuffer(buff);
-		USPiSendFrame(buff, pck.size());
-		ignoreLogs = false;
-	}
-*/
 }
 
 } // END NAMESPACE

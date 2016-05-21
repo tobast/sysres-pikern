@@ -8,6 +8,7 @@
 #include "sleep.h"
 #include "svc.h"
 #include "networkCore.h"
+#include "logger.h"
 
 #include <uspi.h>
 
@@ -66,7 +67,7 @@ void kernel_run(void*) {
 	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
 	
-	nw::logAppend(
+	appendLog(
 #include "start_message.h"
 			);
 
@@ -79,7 +80,7 @@ void kernel_run(void*) {
 
 	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 
-	nw::logAppend("Hello, world!\n");
+	appendLog("Hello, world!");
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

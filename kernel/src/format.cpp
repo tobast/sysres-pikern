@@ -21,7 +21,10 @@ void toBase(Bytes& dest, unsigned num, int padLen, char padder, unsigned base)
 {
 	char buff[12];
 	int pos=0;
-	padLen = max(1,padLen);
+	if(num == 0) {
+		buff[pos] = '0';
+		pos++;
+	}
 	while(num != 0) {
 		buff[pos] = charOfNum(num % base);
 		num /= base;
@@ -40,6 +43,14 @@ void toBase(Bytes& dest, unsigned num, int padLen, char padder, unsigned base)
 
 void toDecimal(Bytes& dest, unsigned num, int padLen, char padder) {
 	toBase(dest, num, padLen, padder, 10);
+}
+void toSignedDecimal(Bytes& dest, int num, int padLen, char padder) {
+	if(num < 0) {
+		dest << '-';
+		toBase(dest, -num, padLen, padder, 10);
+	}
+	else
+		toBase(dest, num, padLen, padder, 10);
 }
 void toHexa(Bytes& dest, unsigned num, int padLen, char padder) {
 	toBase(dest, num, padLen, padder, 16);
@@ -64,6 +75,10 @@ void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
 				switch(fmt[pos]) {
 					case 'u':
 						toDecimal(dest, va_arg(args,unsigned),
+								padLen, padder);
+						break;
+					case 'd':
+						toSignedDecimal(dest, va_arg(args,int),
 								padLen, padder);
 						break;
 					case 'X':
