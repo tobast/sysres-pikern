@@ -69,6 +69,7 @@ void uspi_assertion_failed (const char *pExpr, const char *pFile,
 	gpio::blink(gpio::CRASH_PIN);
 	gpio::blink(gpio::CRASH_PIN);
 	gpio::blinkValue(nLine);
+	LogWrite("USPi",LOG_ERROR,"%s:%u assert failure %s", pFile, nLine, pExpr);
 	assert(false, 0x22);
 }
 
