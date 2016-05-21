@@ -63,32 +63,27 @@ uint32_t invEndianness(uint32_t v) {
 void kernel_run(void*) {
 	nw::init();
 
-	sleep_us(2 * 1000 * 1000);
+	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
 	
 	assert(USPiInitialize() != 0, 0xFF);
-	sleep_us(2 * 1000 * 1000);
+	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
 	gpio::blink(gpio::LED_PIN);
 
 	assert(USPiEthernetAvailable() != 0, 0x01);
 
-
-	Bytes udpPacket, payload;
-	payload << "Hello, world!\n";
-	nw::fillEthernetHeader(udpPacket, (HwAddr)0x6c3be58c2917);
-	udp::formatPacket(udpPacket, payload, 21, 0x0a000001, 3141);
-	void* buffer = malloc(udpPacket.size());
-	udpPacket.writeToBuffer(buffer);
-	for(int i=0; i < 2; i++) {
-		//nw::sendPacket(udpPacket, 0x0a00000f);
-		USPiSendFrame(buffer, udpPacket.size());
-		sleep_us(1000*1000);
-	}
-
 	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 
-	sleep_us(10*1000*1000);
+	for(int i=0; i < 42; i++) {
+		//nw::sendPacket(udpPacket, 0x0a00000f);
+		//USPiSendFrame(buffer, udpPacket.size());
+		nw::logAppend("Hello, world!\n");
+		sleep(1000*1000);
+	}
+
+
+	sleep(10*1000*1000);
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

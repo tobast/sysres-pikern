@@ -36,7 +36,7 @@ int SetPowerStateOn(unsigned nDeviceId) {
 	if(!(nState & 0x01)) { // Not powered up
 		return 0;
 	}
-	sleep_us(3*stabTime);
+	sleep(3*stabTime);
 	return 1;
 }
 
@@ -74,7 +74,6 @@ void uspi_assertion_failed (const char *pExpr, const char *pFile,
 }
 
 // display hex dump (pSource can be 0)
-void DebugHexdump (const void *pBuffer, unsigned nBufLen,
-		const char *pSource /* = 0 */) {
-	// TODO
+void DebugHexdump (const void* /*pBuffer*/, unsigned /*nBufLen*/,
+		const char* /*pSource*/ /* = 0 */) {
 }

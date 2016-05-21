@@ -7,6 +7,8 @@ namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
 
+const unsigned DEST_IP = 0x81c79d16;
+
 void processPacket(Bytes frame) {
 	HwAddr toMac, fromMac;
 	uint16_t etherType;
@@ -35,7 +37,8 @@ Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac, uint16_t etherType) {
 }
 
 Ipv4Addr getEthAddr() {
-	return 0x0a00000f; //TODO
+//	return 0x0a00000f; //TODO
+	return 0x81c79dae;
 }
 
 HwAddr getHwAddr() {
@@ -64,15 +67,15 @@ void logAppend(const char* l) {
 		return;
 	Bytes pck, payload;
 	payload << l;
-	udp::formatPacket(pck, payload, 1, 0x0a000001, 3141);
-	sendPacket(pck, 0x0a000001);
+	udp::formatPacket(pck, payload, 1, DEST_IP, 3141);
+	sendPacket(pck, DEST_IP);
 }
 void logAppend(const Bytes& b) {
 	if(ignoreLogs)
 		return;
 	Bytes pck;
-	udp::formatPacket(pck, b, 1, 0x0a000001, 3141);
-	sendPacket(pck, 0x0a000001);
+	udp::formatPacket(pck, b, 1, DEST_IP, 3141);
+	sendPacket(pck, DEST_IP);
 }
 
 struct QueuedPacket {
@@ -196,7 +199,7 @@ void packetHandlerStart() {
 	}
 /*
 	while(true) {
-		sleep_us(1000);
+		sleep(1000);
 	
 		ignoreLogs = true;
 		Bytes pck;

@@ -17,11 +17,11 @@ namespace gpio {
 
 	void blink(int pin) {
 		unset(pin);
-		sleep_us(100*1000);
+		sleep(100*1000);
 		set(pin);
-		sleep_us(200*1000);
+		sleep(200*1000);
 		unset(pin);
-		sleep_us(100*1000);
+		sleep(100*1000);
 	}
 
 	void dispByte(uint8_t val) {
@@ -33,9 +33,9 @@ namespace gpio {
 		for(int i=0; i < 4; i++) {
 			set(LED_PIN);
 			dispByte((val >> (8*i)) & 0xFF);
-			sleep_us(200*1000);
+			sleep(200*1000);
 			unset(LED_PIN);
-			sleep_us(1800*1000);
+			sleep(1800*1000);
 		}
 	}
 

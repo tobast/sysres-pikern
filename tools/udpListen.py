@@ -4,7 +4,7 @@ import socket
 import datetime
 import sys
 
-addr,port = "10.0.0.1",3141
+addr,port = "0.0.0.0",3141
 if len(sys.argv) > 1:
     if len(sys.argv) > 2:
         port = int(argv[2])
