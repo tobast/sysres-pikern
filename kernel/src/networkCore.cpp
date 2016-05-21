@@ -1,4 +1,5 @@
 #include "networkCore.h"
+#include "atomic.h"
 
 #include "gpio.h" // FIXME
 
@@ -93,6 +94,7 @@ struct QueuedPacket {
 	}
 };
 Queue<QueuedPacket*> *sendingQueue = NULL;
+mutex_t *queue_mutex = NULL;
 
 int doSendFrame(void* buffer, unsigned len) {
 	ignoreLogs = true;
@@ -111,17 +113,21 @@ void sendPacket(Bytes packet, Ipv4Addr to) {
 	}
 	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
 	*nPacket = QueuedPacket(packet, to);
+	mutex_lock(queue_mutex);
 	sendingQueue->push(nPacket);
+	mutex_unlock(queue_mutex);
 }
 
 void sendFrame(const Bytes& frame, bool isPrio) {
 	assert(sendingQueue != NULL, 0xca);
 	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
 	*nPacket = QueuedPacket(frame, 0x00, true);
+	mutex_lock(queue_mutex);
 	if(isPrio)
 		sendingQueue->push_front(nPacket);
 	else
 		sendingQueue->push(nPacket);
+	mutex_unlock(queue_mutex);
 }
 
 int sendFrameNow(const Bytes& frame) {
@@ -162,6 +168,8 @@ int pollFrame(Bytes& frame) {
 void init() {
 	sendingQueue = (Queue<QueuedPacket*>*)malloc(sizeof(Queue<QueuedPacket*>));
 	*sendingQueue = Queue<QueuedPacket*>();
+	queue_mutex = (mutex_t*)(malloc(sizeof(mutex_t)));
+	mutex_init(queue_mutex);
 }
 
 void packetHandlerStart() {
@@ -175,6 +183,7 @@ void packetHandlerStart() {
 		if(pollFrame(frame) > 0)
 			processPacket(frame);
 		*/
+		mutex_lock(queue_mutex);
 		if(sendingQueue->size() > 0) {
 			QueuedPacket* front = sendingQueue->front();
 			if(sendQueuedPacket(front))
@@ -182,6 +191,7 @@ void packetHandlerStart() {
 			else if(front->triedSend > PACKET_TRIES_TIMEOUT)
 				free(sendingQueue->pop());
 		}
+		mutex_unlock(queue_mutex);
 		sleep(100);
 	}
 /*
