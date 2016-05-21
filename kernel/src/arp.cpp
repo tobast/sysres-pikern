@@ -21,10 +21,10 @@ HwAddr cachedHwAddr(const Ipv4Addr& addr) {
 	}
 }
 
-int queryArp(const Ipv4Addr& addr) {
+void queryArp(const Ipv4Addr& addr) {
 	Bytes pck;
 	formatQuery(pck, addr);
-	return nw::sendFrame(pck);
+	nw::sendFrame(pck, true);
 }
 
 Bytes& formatHeaderBeg(Bytes& buffer) {

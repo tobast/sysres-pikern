@@ -76,15 +76,19 @@ void logAppend(const Bytes& b) {
 
 struct QueuedPacket {
 	QueuedPacket(const Bytes& pck, const Ipv4Addr& to) :
-		pck(pck),to(to),triedSend(0) {}
+		pck(pck),to(to),triedSend(0),frameReady(false) {}
+	QueuedPacket(const Bytes& pck, const Ipv4Addr& to, bool frameReady) :
+		pck(pck),to(to),triedSend(0),frameReady(frameReady) {}
 	Bytes pck;
 	Ipv4Addr to;
 	unsigned triedSend;
+	bool frameReady;
 
 	QueuedPacket& operator=(const QueuedPacket& oth) {
 		pck = oth.pck;
 		to = oth.to;
 		triedSend = oth.triedSend;
+		frameReady = oth.frameReady;
 		return *this;
 	}
 };
@@ -103,16 +107,24 @@ void sendPacket(Bytes packet, Ipv4Addr to) {
 	// Get MAC address
 	HwAddr mac = arp::cachedHwAddr(to);
 	if(mac == 0) /* Not cached */ {
-		assert(false, 0xac);
-		if(arp::queryArp(to) == 0) // ARP send failed
-			assert(false, 0x55);
+		arp::queryArp(to);
 	}
 	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
 	*nPacket = QueuedPacket(packet, to);
 	sendingQueue->push(nPacket);
 }
 
-int sendFrame(const Bytes& frame) {
+void sendFrame(const Bytes& frame, bool isPrio) {
+	assert(sendingQueue != NULL, 0xca);
+	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
+	*nPacket = QueuedPacket(frame, 0x00, true);
+	if(isPrio)
+		sendingQueue->push_front(nPacket);
+	else
+		sendingQueue->push(nPacket);
+}
+
+int sendFrameNow(const Bytes& frame) {
 	void* buff = malloc(frame.size()+2);
 	frame.writeToBuffer(buff);
 	int out = doSendFrame(buff, frame.size());
@@ -121,6 +133,10 @@ int sendFrame(const Bytes& frame) {
 }
 
 bool sendQueuedPacket(QueuedPacket* pck) {
+	if(pck->frameReady) // The frame is already formatted.
+		return (sendFrameNow(pck->pck) != 0);
+
+
 	HwAddr mac = arp::cachedHwAddr(pck->to);
 	if(mac == 0) {
 		pck->triedSend++;
@@ -129,7 +145,7 @@ bool sendQueuedPacket(QueuedPacket* pck) {
 	Bytes frame;
 	fillEthernetHeader(frame, mac);
 	frame << pck->pck;
-	return (sendFrame(frame) != 0);
+	return (sendFrameNow(frame) != 0);
 }
 
 int pollFrame(Bytes& frame) {

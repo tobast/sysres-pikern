@@ -21,6 +21,14 @@ public:
 		nbElem++;
 		end = (end+1)%phySize;
 	}
+	
+	void push_front(const T& v) {
+		if(nbElem >= phySize)
+			realloc(2*phySize);
+		beg = (beg-1+phySize)%phySize;
+		data[beg] = v;
+		nbElem++;
+	}
 
 	const T& pop() {
 		if(nbElem == 0)

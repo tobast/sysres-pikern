@@ -12,7 +12,7 @@ namespace arp {
 	 * or 0.
 	 */
 
-	int queryArp(const Ipv4Addr& addr);
+	void queryArp(const Ipv4Addr& addr);
 	/** Sends an ARP query for [addr]. */
 
 	void readArp(Bytes arp);

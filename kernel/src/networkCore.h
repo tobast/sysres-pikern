@@ -34,8 +34,10 @@ namespace nw {
 	 * for sending. Async.
 	 */
 
-	int sendFrame(const Bytes& frame);
-	/** Sends a frame over Ethernet. Returns 0 on failure. */
+	void sendFrame(const Bytes& frame, bool isPrio=false);
+	/** Sends a frame over Ethernet. If isPrio=true, the frame is pushed
+	 * to the *front* of the sending queue. Async.
+	 **/
 
 	int pollFrame(Bytes& frame);
 	/** Receives a frame over Ethernet, filling [frame].

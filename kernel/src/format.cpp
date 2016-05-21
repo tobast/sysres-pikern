@@ -46,7 +46,6 @@ void toHexa(Bytes& dest, unsigned num, int padLen, char padder) {
 }
 
 void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
-	gpio::blink(gpio::LED_PIN);
 	unsigned pos=0;
 	while(fmt[pos] != '\0') {
 		if(fmt[pos] == '%') {
@@ -85,6 +84,5 @@ void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
 
 		pos++;
 	}
-	gpio::blink(gpio::LED_PIN);
 }
 
