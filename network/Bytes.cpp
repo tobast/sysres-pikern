@@ -61,12 +61,6 @@ Bytes& Bytes::appendHw(HwAddr v) {
 	return *this;
 }
 
-Bytes& Bytes::appendHw(HwAddr v) {
-	insertData<uint32_t>(v >> 16);
-	insertData<uint16_t>(v & 0xFFFF);
-	return *this;
-}
-
 Bytes& Bytes::operator>>(uint8_t& v) {
 	extractData<uint8_t>(v);
 	return *this;

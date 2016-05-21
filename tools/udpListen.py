@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import socket
 import datetime
 import sys
@@ -16,5 +18,9 @@ print("Listening on {}:{}...".format(addr,port))
 while True:
     data,addr = sock.recvfrom(4096)
     time=datetime.datetime.now().strftime('%H:%M:%S')
-    print("[{}:{}, {}] {}".format(addr[0],addr[1],time,data.decode('utf-8')))
+#    spl = data.split(b'\n')
+#    for (i,l) in enumerate(spl):
+#        print("[{}:{}, {}] {}".format(addr[0],addr[1],time,l.decode('utf-8')),
+#                end='\n' if i<len(spl)-1 else '')
+    print(data.decode('utf-8'), end='')
 
