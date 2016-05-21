@@ -1,6 +1,7 @@
 #include "atomic.h"
 #include "assert.h"
 #include "svc.h"
+#include "interrupts.h"
 
 int atomic_cas(int* p, int old_value, int new_value) {
 	if (is_interrupt()) {
@@ -19,9 +20,9 @@ void mutex_init(mutex_t *mutex) {
 
 // TODO: make mutexes have their own SVC to avoid busy wait
 void mutex_lock(mutex_t *mutex) {
-	while (atomic_cas(&mutex->value, 0, 1) != 0);
+	while (atomic_cas(&mutex->locked, 0, 1) != 0);
 }
 
 void mutex_unlock(mutex_t *mutex) {
-	assert(atomic_cas(&mutex->value, 1, 0) == 1, 0xb0);
+	assert(atomic_cas(&mutex->locked, 1, 0) == 1, 0xb0);
 }
