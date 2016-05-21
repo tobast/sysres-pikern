@@ -11,16 +11,30 @@ const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
 void processPacket(Bytes frame) {
 	HwAddr toMac, fromMac;
 	uint16_t etherType;
-	frame.extractHw(fromMac);
 	frame.extractHw(toMac);
+	frame.extractHw(fromMac);
 	frame >> etherType;
-	
+
+/*
+	// LOGGING INBOUND FRAMES
+	Bytes logMsg;
+	logMsg << "Received ethernet frame:\n";
+	frame.hexdump(logMsg);
+
+	logMsg << "to mac ";
+	logMsg.appendHex((unsigned)(toMac >> 32));
+	logMsg.appendHex((unsigned)(toMac));
+	logMsg << "; ethertype ";
+   	logMsg.appendHex((unsigned)etherType);
+   	logMsg << '\n';
+	appendLog(logMsg);
+*/
+
 	if(toMac != getHwAddr() && toMac != 0 && toMac != 0xFFFFFFFFFFFF)
 		return; // None of my business
 
 	switch(etherType) {
 		case ETHERTYPE_ARP:
-			appendLog("I haz ARP!");
 			arp::readArp(frame);
 			break;
 		case ETHERTYPE_IPV4:
@@ -111,8 +125,9 @@ int sendFrameNow(const Bytes& frame) {
 }
 
 bool sendQueuedPacket(QueuedPacket* pck) {
-	if(pck->frameReady) // The frame is already formatted.
+	if(pck->frameReady) { // The frame is already formatted.
 		return (sendFrameNow(pck->pck) != 0);
+	}
 
 
 	HwAddr mac = arp::cachedHwAddr(pck->to);
@@ -140,14 +155,15 @@ int pollFrame(Bytes& frame) {
 void init() {
 	sendingQueue = (Queue<QueuedPacket*>*)malloc(sizeof(Queue<QueuedPacket*>));
 	*sendingQueue = Queue<QueuedPacket*>();
+
+	arp::init();
+
 	queue_mutex = (mutex_t*)(malloc(sizeof(mutex_t)));
 	mutex_init(queue_mutex);
 }
 
 void logUsedIp() {
-	Ipv4Addr addr = getEthAddr();
-	appendLog(LogInfo, "network", "Using IPv4 with address %u.%u.%u.%u",
-			addr >> 24, (addr >> 16) & 0xff, (addr >> 8) & 0xff, addr & 0xff);
+	appendLog(LogInfo, "network", "Using IPv4 with address %I", getEthAddr());
 }
 
 void packetHandlerStart() {
@@ -155,6 +171,7 @@ void packetHandlerStart() {
 	Bytes frame;
 
 	logUsedIp();
+	appendLog(LogInfo, "network", "Using MAC address %M", getHwAddr());
 
 	while(true) {
 		while(pollFrame(frame) != 0)

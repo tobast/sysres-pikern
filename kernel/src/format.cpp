@@ -57,9 +57,9 @@ void toHexa(Bytes& dest, unsigned num, int padLen, char padder) {
 }
 
 void toMacAddr(Bytes& dest, HwAddr mac) {
-	for(int byte=5; byte >= 0; byte--) {
+	for(int byte=0; byte < 6; byte++) {
 		toHexa(dest, (mac >> 8*byte) & 0xff, 2, '0');
-		if(byte > 0)
+		if(byte < 5)
 			dest << ':';
 	}
 }
