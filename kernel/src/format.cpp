@@ -66,7 +66,7 @@ void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
 			}
 			else {
 				char padder=' ';
-				if(fmt[pos] == 0) {
+				if(fmt[pos] == '0') {
 					pos++;
 					padder='0';
 				}
