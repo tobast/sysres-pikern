@@ -13,7 +13,8 @@ const uint8_t HLEN=6,
 HashTable<Ipv4Addr, HwAddr> arpCache;
 
 HwAddr cachedHwAddr(const Ipv4Addr& addr) {
-	return 0x6c3be58c2917; // FIXME
+	//return 0x6c3be58c2917; // FIXME
+	return 0x17298ce53b6c;
 	try {
 		return arpCache.find(addr);
 	} catch(HashTable<Ipv4Addr,HwAddr>::NotFound) {
@@ -24,7 +25,11 @@ HwAddr cachedHwAddr(const Ipv4Addr& addr) {
 void queryArp(const Ipv4Addr& addr) {
 	Bytes pck;
 	formatQuery(pck, addr);
-	nw::sendFrame(pck, true);
+//	nw::sendFrame(pck, true);
+	Bytes log;
+	log << "Formatted ARP query:\n";
+	pck.hexdump(log);
+	appendLog(log);
 }
 
 Bytes& formatHeaderBeg(Bytes& buffer) {
@@ -47,6 +52,12 @@ void readArp(Bytes arp) {
 	arp.extractHw(hwTo);
 	arp >> ipTo;
 
+	/*
+	appendLog(LogDebug, "ARP", "Valid ARP: %d %d %d %d %d from %I (%M)"
+		   "to %I (%M).",
+			htype, ptype, hlen, plen, oper,
+			ipFrom, hwFrom, ipTo, hwTo);
+	*/
 	arpCache.insert(ipFrom,hwFrom);
 	if(oper == OPER_REQ && ipTo == nw::getEthAddr()) {
 		Bytes repl;
@@ -61,7 +72,7 @@ Bytes& formatQuery(Bytes& buffer, Ipv4Addr addr) {
 	buffer << OPER_REQ;
 	buffer.appendHw(nw::getHwAddr());
 	buffer << nw::getEthAddr();
-	buffer.appendHw((HwAddr)0xFFFFFFFFFFFF);
+	buffer.appendHw((HwAddr)0x00);
 	buffer << addr;
 	return buffer;
 }
@@ -75,6 +86,10 @@ Bytes& formatReply(Bytes& buffer, HwAddr macTo, Ipv4Addr ipTo) {
 	buffer.appendHw(macTo);
 	buffer << ipTo;
 	return buffer;
+}
+
+void init() {
+	arpCache.init();
 }
 
 } // END NAMESPACE

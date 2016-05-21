@@ -6,6 +6,8 @@
 #include "networkCore.h"
 #include "Bytes.h"
 
+#include "logger.h" // FIXME
+
 namespace arp {
 	HwAddr cachedHwAddr(const Ipv4Addr& addr);
 	/** Returns the cached hardware address of [addr] if previously cached,
@@ -29,4 +31,6 @@ namespace arp {
 	/** Fills [buffer] with an ARP reply for the IP [ipTo], MAC [macTo].
 	 * Returns [buffer] itself.
 	 */
+
+	void init();
 }

@@ -17,6 +17,12 @@ public:
 		free(data);
 	}
 
+	void init() {
+		nPos=0;
+		phySize=2;
+		data = (T*)malloc(2*sizeof(T));
+	}
+
 	T& operator[](unsigned pos) {
 		if(inBounds(pos))
 			return data[pos];

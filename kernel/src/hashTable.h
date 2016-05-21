@@ -20,11 +20,11 @@ class HashTable {
 public:
 	class NotFound {};
 
-	HashTable() : nbBuckets(7) {
+	HashTable() {
 		init();
 	}
-	HashTable(unsigned nbBuckets) : nbBuckets(nbBuckets) {
-		init();
+	HashTable(unsigned nbBuckets) {
+		init(nbBuckets);
 	}
 	~HashTable() {
 		for(unsigned buck=0; buck < nbBuckets; buck++)
@@ -47,7 +47,8 @@ public:
 		Assoc assoc = Pair<Key,Value>(k,v);
 		buckets[bucket].push_back(assoc);
 		nbAssoc++;
-		if(nbAssoc > nbBuckets*.8)
+		return;
+		if(nbAssoc > nbBuckets*4/5)
 			rehash(nbBuckets * 2);
 	}
 
@@ -60,18 +61,23 @@ public:
 		throw NotFound();
 	};
 
-
-private: //meth
-	void init() {
+	void init(unsigned nbBuck=7) {
+		nbBuckets = nbBuck;
 		nbAssoc=0;
 		buckets = (Bucket*) malloc(nbBuckets*sizeof(Bucket));
+		for(unsigned buck=0; buck < nbBuckets; buck++)
+			buckets[buck].init();
 	}
+
+private: //meth
 	unsigned hash(const Key& k) const {
 		return (ToInt()(k)) % nbBuckets;
 	}
 
 	void rehash(unsigned nNbBuckets) {
 		Bucket* nBuckets = (Bucket*) malloc(nNbBuckets * sizeof(Bucket));
+		for(unsigned buck=0; buck < nNbBuckets; buck++)
+			nBuckets[buck].init();
 		unsigned prevBuckets = nbBuckets;
 		nbBuckets = nNbBuckets;
 
