@@ -110,6 +110,33 @@ void Bytes::writeToBuffer(void* buff) const {
 		((uint8_t*)buff)[pos] = at(pos);
 }
 
+char charOfDigit(uint8_t dig) {
+	if(dig < 10)
+		return dig+'0';
+	return dig+'A'-10;
+}
+void hexdumpByte(Bytes& dest, uint8_t b) {
+	dest << charOfDigit(b/16) << charOfDigit(b & 0xf);
+}
+
+Bytes& Bytes::appendHex(const uint32_t& v) {
+	for(int b=3; b >= 0; b--)
+		hexdumpByte(*this, (v >> b*8) & 0xff);
+	return *this;
+}
+
+void Bytes::hexdump(Bytes& dest) const {
+	for(unsigned pos=0; pos < size(); pos++) {
+		hexdumpByte(dest, at(pos));
+		if(pos % 32 == 31)
+			dest << '\n';
+		else if(pos % 4 == 3)
+			dest << ' ';
+	}
+	if(size() % 32 != 0)
+		dest << '\n';
+}
+
 template<typename T> void Bytes::extractData(T& v) {
 	if(size() < sizeof(v))
 		throw (new OutOfRange);

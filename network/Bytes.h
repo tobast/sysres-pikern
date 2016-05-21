@@ -39,6 +39,9 @@ class Bytes {
 		Bytes& appendHw(HwAddr v);
 		/// Appends a hardware address to the vector.
 		
+		Bytes& appendHex(const uint32_t& v);
+		/// Appends [v] in hexadecimal form.
+		
 		Bytes& operator>>(uint8_t& v);
 		Bytes& operator>>(uint16_t& v);
 		Bytes& operator>>(uint32_t& v);
@@ -59,12 +62,15 @@ class Bytes {
 		/// Writes the contents of this array in the buffer [buff].
 		/// The user must provide a buffer of at least [size()] bytes.
 	
-		ExpArray<uint8_t> data;
+		void hexdump(Bytes& dest) const;
+		/// Dumps the packet to [dest] in hexadecimal form.
+
 	private: //meth
 		template<typename T> void insertData(T v);
 		template<typename T> void extractData(T& v);
 
 	private:
+		ExpArray<uint8_t> data;
 		size_t firstIndex;
 };
 
