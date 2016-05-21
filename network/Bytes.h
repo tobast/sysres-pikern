@@ -27,6 +27,7 @@ class Bytes {
 		size_t size() const;
 		/// Returns the number of chars in the object.
 		
+		Bytes& operator<<(char v);
 		Bytes& operator<<(uint8_t v);
 		Bytes& operator<<(uint16_t v);
 		Bytes& operator<<(uint32_t v);

@@ -46,6 +46,7 @@ OBJS = \
 		$(BUILD)udp.o \
 		$(BUILD)arp.o \
 		$(BUILD)logger.o \
+		$(BUILD)format.o \
 		$(BUILD)networkCore.o \
 		$(BUILD)svc.o
 

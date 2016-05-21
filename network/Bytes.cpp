@@ -1,9 +1,6 @@
 #include "Bytes.h"
 
-Bytes::Bytes()/* : data(), firstIndex(0)*/ {
-	data.init();
-	firstIndex=0;
-}
+Bytes::Bytes() : data(), firstIndex(0) {}
 
 Bytes::Bytes(const void* buff, size_t len) : data(), firstIndex(0) {
 	data.reserve(len);
@@ -32,6 +29,10 @@ size_t Bytes::size() const {
 	return data.size() - firstIndex;
 }
 
+Bytes& Bytes::operator<<(char v) {
+	insertData<char>(v);
+	return *this;
+}
 Bytes& Bytes::operator<<(uint8_t v) {
 	insertData<uint8_t>(v);
 	return *this;
