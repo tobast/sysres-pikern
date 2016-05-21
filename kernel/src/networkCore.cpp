@@ -93,10 +93,10 @@ void sendPacket(Bytes packet, Ipv4Addr to) {
 	assert(sendingQueue != NULL, 0xca);
 
 	// Get MAC address
-	HwAddr mac = arp::cachedHwAddr(to);
-	if(mac == 0) /* Not cached */ {
+	arp::cachedHwAddr(to); // send ARP request
+/*	if(mac == 0) {
 		arp::queryArp(to);
-	}
+	} */
 	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
 	*nPacket = QueuedPacket(packet, to);
 	mutex_lock(queue_mutex);

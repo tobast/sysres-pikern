@@ -72,6 +72,8 @@ void kernel_run(void*) {
 			);
 
 	assert(USPiInitialize() != 0, 0xFF);
+	appendLog(LogInfo, "USPi", "Initialization took %u μs",
+			(uint32_t)elapsed_us());
 	sleep(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
 	gpio::blink(gpio::LED_PIN);
@@ -79,8 +81,6 @@ void kernel_run(void*) {
 	assert(USPiEthernetAvailable() != 0, 0x01);
 
 	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
-
-	appendLog("Hello, world!");
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

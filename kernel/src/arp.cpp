@@ -1,5 +1,7 @@
+#include "malloc.h"
 #include "arp.h"
 #include "hashTable.h"
+#include "sleep.h"
 
 namespace arp {
 
@@ -9,23 +11,49 @@ const uint16_t HTYPE=1,
 const uint8_t HLEN=6,
 	  PLEN=4;
 
+enum ArpStatus {
+	ARP_SENT, ARP_KNOWN
+};
+struct ArpData {
+	ArpData(HwAddr addr) : status(ARP_KNOWN), addr(addr) {}
+	ArpData() : status(ARP_SENT) {
+		sentTime = elapsed_us();
+	}
+	ArpStatus status;
+	union {
+		uint64_t sentTime ;
+		HwAddr addr;
+	};
+};
+
 // ARP cache: keeps record of every previously-seen MAC-IPv4 match.
-HashTable<Ipv4Addr, HwAddr> arpCache;
+HashTable<Ipv4Addr, ArpData> arpCache;
 
 HwAddr cachedHwAddr(const Ipv4Addr& addr) {
-	//return 0x6c3be58c2917; // FIXME
-	return 0x17298ce53b6c;
+//	return 0x17298ce53b6c;
 	try {
-		return arpCache.find(addr);
-	} catch(HashTable<Ipv4Addr,HwAddr>::NotFound) {
+		ArpData data = arpCache.find(addr);
+		switch(data.status) {
+			case ARP_KNOWN:
+				return data.addr;
+			case ARP_SENT:
+				//FIXME resend
+				return 0;
+			default:
+				return 0;
+		}
+	} catch(HashTable<Ipv4Addr,ArpData>::NotFound) {
+		queryArp(addr);
 		return 0;
 	}
 }
 
 void queryArp(const Ipv4Addr& addr) {
+	arpCache.insert(addr, ArpData());
+
 	Bytes pck;
 	formatQuery(pck, addr);
-//	nw::sendFrame(pck, true);
+	nw::sendFrame(pck, true);
 	Bytes log;
 	log << "Formatted ARP query:\n";
 	pck.hexdump(log);
@@ -58,7 +86,7 @@ void readArp(Bytes arp) {
 			htype, ptype, hlen, plen, oper,
 			ipFrom, hwFrom, ipTo, hwTo);
 	*/
-	arpCache.insert(ipFrom,hwFrom);
+	arpCache.insert(ipFrom, ArpData(hwFrom));
 	if(oper == OPER_REQ && ipTo == nw::getEthAddr()) {
 		Bytes repl;
 		formatReply(repl, hwFrom, ipFrom);
@@ -67,7 +95,8 @@ void readArp(Bytes arp) {
 }
 
 Bytes& formatQuery(Bytes& buffer, Ipv4Addr addr) {
-	nw::fillEthernetHeader(buffer, (HwAddr)0xFFFFFFFFFFFF, nw::ETHERTYPE_ARP);
+	nw::fillEthernetHeader(buffer, (HwAddr)0xFFFFFFFFFFFF,
+			nw::ETHERTYPE_ARP);
 	formatHeaderBeg(buffer);
 	buffer << OPER_REQ;
 	buffer.appendHw(nw::getHwAddr());
