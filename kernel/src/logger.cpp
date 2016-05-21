@@ -108,8 +108,18 @@ void sendLog(const Bytes& log) {
 }
 
 namespace logger {
+	void sendOpeningPacket() {
+		Bytes pck, payload;
+		payload << "=PIKERN Hey, listen!=";
+		udp::formatPacket(pck, payload, 2, 0xffffffff, 3141);
+		nw::sendPacket(pck, 0xffffffff);
+	}
+
 	void mainLoop() {
 		assert(logQueue != NULL, 0xba);
+
+		sendOpeningPacket();
+		sleep(500*1000);
 
 		while(true) {
 			if(logDest.size() > 0) {

@@ -111,6 +111,7 @@ Bytes& formatReply(Bytes& buffer, HwAddr macTo, Ipv4Addr ipTo) {
 
 void init() {
 	arpCache.init();
+	arpCache.insert(0xffffffff, ArpData(0xffffffffffff));
 }
 
 } // END NAMESPACE
