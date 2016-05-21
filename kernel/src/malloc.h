@@ -7,6 +7,7 @@
 
 void mallocInit();
 
+extern "C" {
 void* malloc(unsigned size);
 void* malloc_nocheck(uint32_t size);
 void free_nocheck(void* ptr);
@@ -17,5 +18,6 @@ void free_nocheck(void* ptr);
 
 void free(void* ptr);
 /// Frees previously allocated memory.
+} // END EXTERN C
 
 #endif//DEF_KER_MALLOC

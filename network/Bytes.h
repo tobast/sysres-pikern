@@ -58,12 +58,12 @@ class Bytes {
 		/// Writes the contents of this array in the buffer [buff].
 		/// The user must provide a buffer of at least [size()] bytes.
 	
+		ExpArray<uint8_t> data;
 	private: //meth
 		template<typename T> void insertData(T v);
 		template<typename T> void extractData(T& v);
 
 	private:
-		ExpArray<uint8_t> data;
 		size_t firstIndex;
 };
 

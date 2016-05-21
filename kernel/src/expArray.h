@@ -17,6 +17,12 @@ public:
 		free(data);
 	}
 
+	void init() {
+		nPos=0;
+		phySize=2;
+		data = (T*)malloc(2*sizeof(T));
+	}
+
 	T& operator[](unsigned pos) {
 		if(inBounds(pos))
 			return data[pos];
@@ -71,6 +77,7 @@ public:
 		return nPos == 0;
 	}
 
+	T* data;
 private: //meth
 	void realloc(unsigned nSize) {
 		if(nSize <= 0)
@@ -90,7 +97,6 @@ private: //meth
 	}
 
 private:
-	T* data;
 	unsigned nPos;
 	unsigned phySize;
 };

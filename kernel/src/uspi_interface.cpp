@@ -8,7 +8,7 @@
 #include "networkCore.h"
 #include "malloc.h"
 #include "svc.h"
-#include "format.h"
+#include "logger.h"
 
 #include <cstdio>
 #include <cstdarg>
@@ -51,46 +51,17 @@ int GetMACAddress(u8 Buffer[6]) {
 	return 1; // success
 }
 
-const char* stringOfLogLevel(unsigned severity) {
-	switch(severity) {
-		case LOG_ERROR:	return "ERROR";
-		case LOG_WARNING: return "WARNING";
-		case LOG_NOTICE: return "INFO";
-		case LOG_DEBUG: return "DEBUG";
-	}
-	return "DAFUQ";
-}
-
 void LogWrite(const char* pSource,
 		unsigned Severity,
 		const char* pMessage,
 		...)
 {
-/*
 	va_list args;
 	va_start(args, pMessage);
 
-*/
-//	Bytes payload;
-//	payload << "[" << stringOfLogLevel(Severity) << "] "
-//		<< pSource << ": " << pMessage << "\n";
-	//formatToBytes(payload, pMessage, args);
+	appendLog(pSource, Severity, pMessage, args);
 
-/*
-	nw::logAppend(pSource);
-	nw::logAppend(" [");
-	nw::logAppend(stringOfLogLevel(Severity));
-	nw::logAppend("] ");
-	nw::logAppend(pMessage);
-	nw::logAppend(buff);
-	nw::logAppend("\n");
-*/
-//	nw::logAppend(payload);
-//	gpio::blink(gpio::LED_PIN);
-
-	Bytes* b = (Bytes*) malloc(sizeof(Bytes));
-	*b=Bytes();
-	nw::logAppend("OHai!\n");
+	va_end(args);
 }
 
 void uspi_assertion_failed (const char *pExpr, const char *pFile,

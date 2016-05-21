@@ -11,9 +11,13 @@ enum svcs {
 	SVC_FREE = 6
 };
 
+extern "C" {
+
 int get_pid();
 int read(int fd, void* data, int num_bytes);
 int write(int fd, void* data, int num_bytes);
 void sleep(int num_us);
 void* malloc_svc(uint32_t size);
 void free_svc(void* ptr);
+
+}

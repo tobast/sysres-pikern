@@ -1,8 +1,11 @@
 #include "Bytes.h"
 
-Bytes::Bytes() : data(), firstIndex(0) {}
+Bytes::Bytes()/* : data(), firstIndex(0)*/ {
+	data.init();
+	firstIndex=0;
+}
 
-Bytes::Bytes(const void* buff, size_t len) : firstIndex(0) {
+Bytes::Bytes(const void* buff, size_t len) : data(), firstIndex(0) {
 	data.reserve(len);
 	for(size_t pos=0; pos < len; pos++)
 		data.push_back(((uint8_t*)buff)[pos]);
