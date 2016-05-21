@@ -83,10 +83,11 @@ void kernel_run(void*) {
 	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 	async_start(((void(*)(void*))&logger::mainLoop), NULL);
 
+	/*
 	while(true) {
-		appendLog(LogDebug, "club inutile", "Hello world!");
+		appendLog(LogDebug, "dbg", "Hello, world!");
 		sleep(1000*1000);
-	}
+	}*/
 
 	async_start(&led_blink, NULL);
 	async_start(&act_blink, NULL);

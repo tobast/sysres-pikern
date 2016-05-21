@@ -24,8 +24,9 @@ class LogDump(threading.Thread):
         while True:
             data,addr = sock.recvfrom(4096)
             if(data == b'=PIKERN Hey, listen!='):
-                sock.sendto(b"Coucou", addr)
-                print("Invited to "+addr[0])
+                sock.sendto(b"RPi", addr)
+                time=datetime.datetime.now().strftime('%H:%M:%S')
+                print("[{}] Invited to {}".format(time,addr[0]))
                 continue
 
             print(data.decode('utf-8'), end='')

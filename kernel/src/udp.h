@@ -1,3 +1,5 @@
+#pragma once
+
 #include "networkCore.h"
 #include "Bytes.h"
 
@@ -16,5 +18,21 @@ namespace udp {
 			Ipv4Addr toAddr, uint16_t toPort);
 	/** Writes [data] to [pck], decorated with IPv4 and UDP headers,
 	 * sending to [toAddr]:[toPort] from [fromPort].
+	 **/
+
+	class WrongProtocol {};
+	class BadChecksum {};
+
+	struct PckInfos {
+		unsigned dataSize;
+		Ipv4Addr fromAddr, toAddr;
+		uint16_t fromPort, toPort;
+	};
+
+	PckInfos extractHeader(Bytes& pck);
+	/** Reads the IPv4 + UDP headers, extracts them from [pck] and returns
+	 * the extracted informations in a PckInfos structure.
+	 * Throws [WrongProtocol] if [pck] is not UDP,
+	 * [BadChecksum] if the IPv4 header checksum is incorrect.
 	 **/
 }

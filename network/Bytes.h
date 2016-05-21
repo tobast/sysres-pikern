@@ -45,6 +45,7 @@ class Bytes {
 		Bytes& operator>>(uint8_t& v);
 		Bytes& operator>>(uint16_t& v);
 		Bytes& operator>>(uint32_t& v);
+		Bytes& operator>>(char& c);
 		/// Extracts the given data type from the vector. Returns *this to
 		/// allow chaining.
 		

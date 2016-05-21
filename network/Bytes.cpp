@@ -77,6 +77,10 @@ Bytes& Bytes::operator>>(uint32_t& v) {
 	extractData<uint32_t>(v);
 	return *this;
 }
+Bytes& Bytes::operator>>(char& v) {
+	extractData<char>(v);
+	return *this;
+}
 
 Bytes& Bytes::extractHw(HwAddr& v) {
 	v=0;

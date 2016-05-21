@@ -15,21 +15,6 @@ void processPacket(Bytes frame) {
 	frame.extractHw(fromMac);
 	frame >> etherType;
 
-/*
-	// LOGGING INBOUND FRAMES
-	Bytes logMsg;
-	logMsg << "Received ethernet frame:\n";
-	frame.hexdump(logMsg);
-
-	logMsg << "to mac ";
-	logMsg.appendHex((unsigned)(toMac >> 32));
-	logMsg.appendHex((unsigned)(toMac));
-	logMsg << "; ethertype ";
-   	logMsg.appendHex((unsigned)etherType);
-   	logMsg << '\n';
-	appendLog(logMsg);
-*/
-
 	if(toMac != getHwAddr() && toMac != 0 && toMac != 0xFFFFFFFFFFFF)
 		return; // None of my business
 
@@ -41,9 +26,21 @@ void processPacket(Bytes frame) {
 			//TODO
 			if(toMac != getHwAddr())
 				break;
-			uint32_t fromAddr;
-			frame >> fromAddr >> fromAddr >> fromAddr >> fromAddr;
-			logger::addListener(fromAddr);
+			try {
+				udp::PckInfos infos = udp::extractHeader(frame);
+				if(infos.dataSize != 3 || infos.toPort != 2)
+					break;
+				char c1,c2,c3;
+				frame >> c1 >> c2 >> c3;
+				if(c1 == 'R' && c2 == 'P' && c3 == 'i')
+					logger::addListener(infos.fromAddr);
+			} catch(udp::BadChecksum&) {
+				appendLog(LogWarning, "udp", "Bad checksum from %M", fromMac);
+			} catch(udp::WrongProtocol&) {
+				appendLog(LogWarning, "udp", "Bad protocol");
+			} catch(...) {
+				appendLog(LogWarning, "udp", "Unexpected unknown exception.");
+			}
 			break;
 		}
 	}
