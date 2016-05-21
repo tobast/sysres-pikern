@@ -5,7 +5,7 @@ extern int __bss_end__;
 // Defined in kernel.cpp
 extern void kernel_main(void);
 
-void* __dso_handle = 0x00;
+void* __dso_handle;
 
 extern "C" {
 void _c_init()

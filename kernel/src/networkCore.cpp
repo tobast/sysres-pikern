@@ -1,5 +1,7 @@
 #include "networkCore.h"
 
+#include "gpio.h" // FIXME
+
 namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
@@ -39,6 +41,7 @@ HwAddr getHwAddr() {
 	return mailbox::getMac(); // Caches the MAC address.
 }
 
+/*
 char* logs = NULL;
 bool ignoreLogs = false;
 unsigned logPos=0, logSentEnd=0;
@@ -51,6 +54,24 @@ void logAppend(const char* l) {
 		logs[logPos] = l[pos];
 		logPos = (logPos+1)%0x1000;
 	}
+}
+*/
+
+bool ignoreLogs=false;
+void logAppend(const char* l) {
+	if(ignoreLogs)
+		return;
+	Bytes pck, payload;
+	payload << l;
+	udp::formatPacket(pck, payload, 1, 0x0a000001, 3141);
+	sendPacket(pck, 0x0a000001);
+}
+void logAppend(const Bytes& b) {
+	if(ignoreLogs)
+		return;
+	Bytes pck;
+	udp::formatPacket(pck, b, 1, 0x0a000001, 3141);
+	sendPacket(pck, 0x0a000001);
 }
 
 struct QueuedPacket {
@@ -67,35 +88,47 @@ struct QueuedPacket {
 		return *this;
 	}
 };
-Queue<QueuedPacket> sendingQueue;
+Queue<QueuedPacket*> *sendingQueue = NULL;
+
+int doSendFrame(void* buffer, unsigned len) {
+	ignoreLogs = true;
+	int out = USPiSendFrame(buffer, len);
+	ignoreLogs = false;
+	return out;
+}
 
 void sendPacket(Bytes packet, Ipv4Addr to) {
+	assert(sendingQueue != NULL, 0xca);
+
 	// Get MAC address
 	HwAddr mac = arp::cachedHwAddr(to);
 	if(mac == 0) /* Not cached */ {
+		assert(false, 0xac);
 		if(arp::queryArp(to) == 0) // ARP send failed
 			assert(false, 0x55);
 	}
-	sendingQueue.push(QueuedPacket(packet,to));
+	QueuedPacket* nPacket = (QueuedPacket*)malloc(sizeof(QueuedPacket));
+	*nPacket = QueuedPacket(packet, to);
+	sendingQueue->push(nPacket);
 }
 
 int sendFrame(const Bytes& frame) {
 	void* buff = malloc(frame.size()+2);
 	frame.writeToBuffer(buff);
-	int out = USPiSendFrame(buff, frame.size());
+	int out = doSendFrame(buff, frame.size());
 	free(buff);
 	return out;
 }
 
-bool sendQueuedPacket(QueuedPacket& pck) {
-	HwAddr mac = arp::cachedHwAddr(pck.to);
+bool sendQueuedPacket(QueuedPacket* pck) {
+	HwAddr mac = arp::cachedHwAddr(pck->to);
 	if(mac == 0) {
-		pck.triedSend++;
+		pck->triedSend++;
 		return false;
 	}
 	Bytes frame;
 	fillEthernetHeader(frame, mac);
-	frame << pck.pck;
+	frame << pck->pck;
 	return (sendFrame(frame) != 0);
 }
 
@@ -110,43 +143,46 @@ int pollFrame(Bytes& frame) {
 	return out;
 }
 
+void init() {
+	sendingQueue = (Queue<QueuedPacket*>*)malloc(sizeof(Queue<QueuedPacket*>));
+	*sendingQueue = Queue<QueuedPacket*>();
+}
+
 void packetHandlerStart() {
-	Bytes frame;
-	/*
-//	logs = (char*)malloc(0x1000);
-void packetHandlerStart() {
-	Bytes frame;
+	assert(sendingQueue != NULL, 0xca);
+
+//	assert(logs != NULL, 0xa0);
+//	Bytes frame;
 
 	while(true) {
+		/*
 		if(pollFrame(frame) > 0)
 			processPacket(frame);
-		
-		if(sendingQueue.size() > 0) {
-			QueuedPacket& front = sendingQueue.front();
-			if(sendQueuedPacket(front))
-				sendingQueue.pop();
-			else if(front.triedSend > PACKET_TRIES_TIMEOUT)
-				sendingQueue.pop();
-		}
 		*/
-		sleep_us(1000);
-		/*
-		if(logSentEnd != logPos) {
-			ignoreLogs = true;
-			Bytes pck;
-			fillEthernetHeader(pck, 0x6c3be58c2917);
-			Bytes payload(logs+logPos, _min(logPos-logSentEnd, 200));
-			udp::formatPacket(pck, payload, 1, 0x0a000001, 3141);
-			logSentEnd += _min(logPos-logSentEnd, 200);
-			void* buff = malloc(pck.size());
-			pck.writeToBuffer(buff);
-//			USPiSendFrame(buff, pck.size());
-			ignoreLogs = false;
+		if(sendingQueue->size() > 0) {
+			QueuedPacket* front = sendingQueue->front();
+			if(sendQueuedPacket(front))
+				free(sendingQueue->pop());
+			else if(front->triedSend > PACKET_TRIES_TIMEOUT)
+				free(sendingQueue->pop());
 		}
+		sleep(100);
 	}
-	*/
-		sleep_us(100);
+/*
+	while(true) {
+		sleep_us(1000);
+	
+		ignoreLogs = true;
+		Bytes pck;
+		fillEthernetHeader(pck, 0x6c3be58c2917);
+		Bytes payload(logs, 200);
+		udp::formatPacket(pck, payload, 1, 0x0a000001, 3141);
+		void* buff = malloc(pck.size());
+		pck.writeToBuffer(buff);
+		USPiSendFrame(buff, pck.size());
+		ignoreLogs = false;
 	}
+*/
 }
 
 } // END NAMESPACE

@@ -14,8 +14,9 @@ public:
 	}
 
 	void push(const T& v) {
-		if(nbElem >= phySize)
+		if(nbElem >= phySize) {
 			realloc(2*phySize);
+		}
 		data[end] = v;
 		nbElem++;
 		end = (end+1)%phySize;

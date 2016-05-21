@@ -24,10 +24,11 @@ public:
 	}
 
 	void operator=(const ExpArray<T>& oth) {
-		clear();
-		reserve(oth.size());
+		nPos=0;
+		realloc(oth.size());
+		nPos=oth.size();
 		for(unsigned pos=0; pos < oth.size(); pos++)
-			(*this)[pos] = oth[pos];
+			data[pos] = oth[pos];
 	}
 
 	const T& operator[](unsigned pos) const {
@@ -37,7 +38,7 @@ public:
 	}
 	void push_back(const T& val) {
 		if(nPos >= phySize)
-			realloc(2*phySize);
+			realloc(2*phySize+1);
 		data[nPos] = val;
 		nPos++;
 	}
@@ -49,8 +50,12 @@ public:
 			realloc(phySize/2);
 	}
 	void reserve(unsigned size) {
-		if(phySize < size)
-			realloc(size);
+		if(phySize < size) {
+			unsigned nSize = 1;
+			while(nSize < size)
+				nSize <<= 1;
+			realloc(nSize);
+		}
 	}
 	unsigned size() const {
 		return nPos;
@@ -68,6 +73,11 @@ public:
 
 private: //meth
 	void realloc(unsigned nSize) {
+		if(nSize <= 0)
+			nSize=1;
+		assert(nSize >= nPos, 0xf7);
+
+
 		T* nData = (T*)malloc(nSize * sizeof(T));
 		for(unsigned pos=0; pos < nPos; pos++)
 			nData[pos] = data[pos];
@@ -76,7 +86,7 @@ private: //meth
 		phySize = nSize;
 	}
 	bool inBounds(unsigned pos) const {
-		return pos >= 0 && pos < size();
+		return pos < size();
 	}
 
 private:

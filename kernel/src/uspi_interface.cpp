@@ -8,6 +8,10 @@
 #include "networkCore.h"
 #include "malloc.h"
 #include "svc.h"
+#include "format.h"
+
+#include <cstdio>
+#include <cstdarg>
 
 void usDelay(unsigned nMicroSeconds) {
 	sleep(nMicroSeconds);
@@ -54,6 +58,7 @@ const char* stringOfLogLevel(unsigned severity) {
 		case LOG_NOTICE: return "INFO";
 		case LOG_DEBUG: return "DEBUG";
 	}
+	return "DAFUQ";
 }
 
 void LogWrite(const char* pSource,
@@ -61,34 +66,31 @@ void LogWrite(const char* pSource,
 		const char* pMessage,
 		...)
 {
-	// TODO when we'll be able to dump it somewhere.
-	/*
-	if(Severity >= LOG_ERROR) {
-		gpio::blink(gpio::CRASH_PIN);
-		gpio::dispByte(pMessage[0]);
-		sleep_us(1000*1000);
-		gpio::dispByte(pMessage[7]);
-		sleep_us(1000*1000);
-		gpio::blink(gpio::CRASH_PIN);
-		gpio::blink(gpio::LED_PIN);
-	}
-	*/
-	
 /*
-	static bool ignoreLog = false;
-	static void* buffer = NULL;
-	
-	if(buffer == NULL)
-		buffer = malloc(USPI_FRAME_BUFFER_SIZE);
+	va_list args;
+	va_start(args, pMessage);
 
-	if(ignoreLog)
-		return;
-
-	Bytes payload;
-	payload << "[" << stringOfLogLevel(Severity) << "] "
-			<< pSource << ": " << pMessage;
-	nw::writeMessage(payload, 0x0a000001, 1, 3141);
 */
+//	Bytes payload;
+//	payload << "[" << stringOfLogLevel(Severity) << "] "
+//		<< pSource << ": " << pMessage << "\n";
+	//formatToBytes(payload, pMessage, args);
+
+/*
+	nw::logAppend(pSource);
+	nw::logAppend(" [");
+	nw::logAppend(stringOfLogLevel(Severity));
+	nw::logAppend("] ");
+	nw::logAppend(pMessage);
+	nw::logAppend(buff);
+	nw::logAppend("\n");
+*/
+//	nw::logAppend(payload);
+//	gpio::blink(gpio::LED_PIN);
+
+	Bytes* b = (Bytes*) malloc(sizeof(Bytes));
+	*b=Bytes();
+	nw::logAppend("OHai!\n");
 }
 
 void uspi_assertion_failed (const char *pExpr, const char *pFile,

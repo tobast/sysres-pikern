@@ -26,6 +26,9 @@ namespace nw {
 	HwAddr getHwAddr();
 	/** Returns the hardware (MAC) address of the ethernet interface. */	
 
+	void logAppend(const char* l);
+	void logAppend(const Bytes& b);
+
 	void sendPacket(Bytes packet, Ipv4Addr to);
 	/** Queues a layer 3-formatted packet (ie. WITHOUT Ethernet decoration)
 	 * for sending. Async.
@@ -37,6 +40,8 @@ namespace nw {
 	int pollFrame(Bytes& frame);
 	/** Receives a frame over Ethernet, filling [frame].
 	 * Returns 0 if no frame was available, or on failure. */
+
+	void init();
 
 	void packetHandlerStart();
 	/** Infinite loop: polls packets, replies to ARP requests,

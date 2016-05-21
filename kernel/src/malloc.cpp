@@ -13,11 +13,12 @@ void mallocInit() {
 
 void* malloc_nocheck(uint32_t size) {
 	// For now, this is just a SBRK function.
-	assert(brk + size <= MEMORY_END);
+	assert(brk + size <= MEMORY_END, 0xaa);
 	
+	brk += (-brk) & 0xf; // Aligns to 16-bytes.
 	void* out = (void*)brk;
 	brk += size;
-	brk += (-brk) & 0xf; // Aligns to 16-bytes.
+
 	return out;
 }
 

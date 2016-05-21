@@ -61,6 +61,7 @@ uint32_t invEndianness(uint32_t v) {
 }
 
 void kernel_run(void*) {
+	nw::init();
 
 	sleep_us(2 * 1000 * 1000);
 	gpio::blink(gpio::LED_PIN);
@@ -72,18 +73,20 @@ void kernel_run(void*) {
 
 	assert(USPiEthernetAvailable() != 0, 0x01);
 
+
 	Bytes udpPacket, payload;
-	payload << "Hello, world!";
+	payload << "Hello, world!\n";
 	nw::fillEthernetHeader(udpPacket, (HwAddr)0x6c3be58c2917);
 	udp::formatPacket(udpPacket, payload, 21, 0x0a000001, 3141);
 	void* buffer = malloc(udpPacket.size());
 	udpPacket.writeToBuffer(buffer);
-	while(true) {
-//		nw::sendPacket(udpPacket, 0x0a00000f);
+	for(int i=0; i < 2; i++) {
+		//nw::sendPacket(udpPacket, 0x0a00000f);
 		USPiSendFrame(buffer, udpPacket.size());
 		sleep_us(1000*1000);
 	}
 
+	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 
 	sleep_us(10*1000*1000);
 
@@ -123,7 +126,6 @@ void kernel_main(void) {
 	enable_irq();
 	async_start(&act_blink, NULL);
 	async_start(&kernel_run, NULL, 0x5f); // System mode, enable IRQ, disable FIQ
-	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
 
 	async_go();
 }

@@ -13,6 +13,7 @@ const uint8_t HLEN=6,
 HashTable<Ipv4Addr, HwAddr> arpCache;
 
 HwAddr cachedHwAddr(const Ipv4Addr& addr) {
+	return 0x6c3be58c2917; // FIXME
 	try {
 		return arpCache.find(addr);
 	} catch(HashTable<Ipv4Addr,HwAddr>::NotFound) {
