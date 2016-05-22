@@ -23,17 +23,30 @@ void processPacket(Bytes frame) {
 			arp::readArp(frame);
 			break;
 		case ETHERTYPE_IPV4: {
-			//TODO
-			if(toMac != getHwAddr())
-				break;
+			if(toMac != getHwAddr() && toMac != 0 && toMac != 0xFFFFFFFFFFFF)
+				break; // None of my business: drop.
 			try {
-				udp::PckInfos infos = udp::extractHeader(frame);
-				if(infos.dataSize != 3 || infos.toPort != 2)
+				ipv4::PckInfos ipv4Info = ipv4::extractHeader(frame);
+				if(ipv4Info.toAddr != getEthAddr())
+					break; // None of my business: drop.
+
+				switch(ipv4Info.protocol) {
+				case 0x01: // ICMP
 					break;
-				char c1,c2,c3;
-				frame >> c1 >> c2 >> c3;
-				if(c1 == 'R' && c2 == 'P' && c3 == 'i')
-					logger::addListener(infos.fromAddr);
+				case 0x11: { // UDP
+					udp::PckInfos infos = udp::extractUdpHeader(frame,
+							ipv4Info);
+					if(infos.dataSize != 3 || infos.toPort != 2)
+						break;
+					char c1,c2,c3;
+					frame >> c1 >> c2 >> c3;
+					if(c1 == 'R' && c2 == 'P' && c3 == 'i')
+						logger::addListener(infos.fromAddr);
+					break;
+					}
+				default: // not supported
+					break; // drop.
+				}
 			} catch(ipv4::BadChecksum&) {
 				appendLog(LogWarning, "udp", "Bad checksum from %M", fromMac);
 			} catch(udp::WrongProtocol&) {
