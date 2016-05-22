@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "expArray.h"
 
 void init_process_table();
 
@@ -22,6 +23,11 @@ void next_process();
 typedef void (*async_func)(void*);
 
 // Default mode : user mode, enable IRQ, disable FIQ)
-void async_start(async_func f, void* arg, s32 mode = 0x50);
+int async_start(async_func f, void* arg, s32 mode = 0x50, char* name = NULL);
+
+ExpArray<int> alive_processes();
+
+const char* process_name(int pid);
+char process_state(int pid);
 
 void async_go();

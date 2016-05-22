@@ -39,7 +39,8 @@ enum pstate {
 	PROCESS_ACTIVE,
 	PROCESS_WAIT_READ,
 	PROCESS_WAIT_WRITE,
-	PROCESS_SLEEPING
+	PROCESS_SLEEPING,
+	PROCESS_INEXISTANT
 };
 
 struct process {
@@ -48,6 +49,7 @@ struct process {
 	int previous_process;
 	pstate process_state;
 	u64 state_info;
+	char process_name[32];
 };
 
 const int NUMBER_INTERRUPTS = 64;
@@ -316,6 +318,7 @@ void init_process_table() {
 	free_process = 1;
 	for (int i = 1; i < MAX_PROCESS; i++) {
 		processes[i].next_process = i + 1;
+		processes[i].process_state = PROCESS_INEXISTANT;
 	}
 	
 	//free_socket = 0;
@@ -358,6 +361,7 @@ void delete_process(int i) {
 	processes[u].next_process = v;
 	processes[v].next_process = u;
 	processes[i].next_process = free_process;
+	processes[i].process_state = PROCESS_INEXISTANT;
 	free_process = i;
 	// TODO
 	if (active_process == i) {
@@ -432,7 +436,7 @@ void next_process() {
 	}
 }
 
-void async_start(async_func f, void* arg, s32 mode) {
+int async_start(async_func f, void* arg, s32 mode, char* name) {
 	int i = create_process();
 	processes[i].cont = context();
 	processes[i].cont.lr = ((s32)f) + 4;
@@ -440,6 +444,45 @@ void async_start(async_func f, void* arg, s32 mode) {
 	// Find a suitable stack pointer; TODO: make that better
 	processes[i].cont.r13 = 0x1000000 + 0x100000 * (i + 1);
 	processes[i].cont.spsr = mode;
+	if (name != NULL) {
+		for (unsigned r = 0; r < sizeof(processes[i].process_name); r++) {
+			char c = name[r];
+			processes[i].process_name[r] = c;
+			if (c == 0) break;
+		}
+		processes[i].process_name[(sizeof(processes[i].process_name)) - 1] = '\0';
+	} else {
+		processes[i].process_name[0] = '\0';
+	}
+	return i;
+}
+
+ExpArray<int> alive_processes() {
+	ExpArray<int> r;
+	for (int i = 0; i < MAX_PROCESS; i++) {
+		if (processes[i].process_state != PROCESS_INEXISTANT) {
+			r.push_back(i);
+		}
+	}
+	return r;
+}
+
+const char* process_name(int pid) {
+	return processes[pid].process_name;
+}
+
+char process_state(int pid) {
+	switch (processes[pid].process_state) {
+		case PROCESS_ACTIVE:
+			return 'R';
+		case PROCESS_SLEEPING:
+			return 'S';
+		case PROCESS_WAIT_READ:
+		case PROCESS_WAIT_WRITE:
+			return 'D';
+		default:
+			return ' ';
+	}
 }
 
 __attribute__((naked))
