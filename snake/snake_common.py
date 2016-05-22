@@ -26,6 +26,11 @@ class Packet:
     def add_uint8(self, n):
         self.data += bytes((n,))
 
+    def add_color(self, c):
+        self.add_uint16(c[0])
+        self.add_uint16(c[1])
+        self.add_uint16(c[2])
+
     def add_position_list(self, l):
         self.add_uint16(len(l))
         for p in l:
@@ -55,7 +60,16 @@ class Packet:
             l.append(self.read_position())
         return l
 
+    def read_color(self):
+        r = self.read_uint16()
+        g = self.read_uint16()
+        b = self.read_uint16()
+        return (r, g, b)
+
 TOSERVER_INIT = 0
-SET_SNAKE = 1
-SET_APPLES = 2
-SET_DIRECTION = 3
+TOCLIENT_INIT = 1
+SET_SNAKE = 2
+SET_APPLES = 3
+SET_DIRECTION = 4
+SET_SNAKE_COLOR = 5
+TOCLIENT_ACCESS_DENIED = 6
