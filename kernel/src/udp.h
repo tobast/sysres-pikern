@@ -5,6 +5,7 @@
 #include "ipv4.h"
 
 namespace udp {
+	const uint8_t PROTOCOL_ID = 0x11;
 	Bytes& formatPacket(Bytes& pck, const Bytes& data,
 			uint16_t fromPort,
 			Ipv4Addr toAddr, uint16_t toPort);

@@ -2,8 +2,6 @@
 #include "atomic.h"
 #include "logger.h"
 
-#include "gpio.h" // FIXME
-
 namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
@@ -31,8 +29,10 @@ void processPacket(Bytes frame) {
 					break; // None of my business: drop.
 
 				switch(ipv4Info.protocol) {
-				case 0x01: // ICMP
+				case 0x01: { // ICMP
+					icmp::respondToPing(frame, ipv4Info);
 					break;
+					}
 				case 0x11: { // UDP
 					udp::PckInfos infos = udp::extractUdpHeader(frame,
 							ipv4Info);
@@ -61,6 +61,16 @@ void processPacket(Bytes frame) {
 	}
 }
 
+uint16_t networkChksum(const Bytes& b, unsigned headBeg, unsigned headEnd,
+		uint16_t firstShort)
+{
+	uint32_t chksum = firstShort;
+	for(unsigned cpos=headBeg; cpos < headEnd; cpos+=2) {
+		chksum += (((uint16_t)b.at(cpos)<<8)+(b.at(cpos+1)));
+		chksum = (chksum & 0xffff) + (chksum >> 16);
+	}
+	return ~chksum;
+}
 
 Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac, uint16_t etherType) {
 	buffer.appendHw(destMac).appendHw(getHwAddr());

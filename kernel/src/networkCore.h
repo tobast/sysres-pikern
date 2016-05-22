@@ -7,6 +7,7 @@
 #include "Bytes.h"
 #include "arp.h"
 #include "udp.h"
+#include "icmp.h"
 #include "ipv4.h"
 #include "queue.h"
 #include <uspi.h>
@@ -16,6 +17,13 @@ namespace nw {
 	const uint16_t ETHERTYPE_ARP = 0x0806;
 
 	class InconsistentHeaders {};
+
+	uint16_t networkChksum(const Bytes& b, unsigned headBeg, unsigned headEnd,
+			uint16_t firstShort=0);
+	/** Computes the Network Checksum of the given [b], starting at its
+	 * [headBeg]th byte, ending to its [headEnd-1]th byte, and adding
+	 * [firstShort] to the sum, if provided.
+	 **/
 
 	Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac,
 			uint16_t etherType = ETHERTYPE_IPV4);

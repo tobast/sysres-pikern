@@ -3,7 +3,8 @@
 #include "Bytes.h"
 
 namespace ipv4 {
-	Bytes& formatPacket(Bytes& pck, const Bytes& payload, Ipv4Addr toAddr);
+	Bytes& formatPacket(Bytes& pck, const Bytes& payload, Ipv4Addr toAddr,
+			uint8_t protocol);
 	/**
 	 * Writes [payload] to [pck], decorated with IPv4 headers, to be sent
 	 * to [toAddr].

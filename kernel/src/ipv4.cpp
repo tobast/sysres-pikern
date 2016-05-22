@@ -8,18 +8,9 @@ namespace ipv4 {
 
 const uint16_t IPV4_HEAD_LEN = 20;
 
-uint16_t ipv4Chksum(const Bytes& b, unsigned headBeg, unsigned headEnd,
-		uint16_t firstShort = 0) {
-	uint32_t chksum = firstShort;
-	for(unsigned cpos=headBeg; cpos < headEnd; cpos+=2) {
-		chksum += (((uint16_t)b.at(cpos)<<8)+(b.at(cpos+1)));
-		chksum = (chksum & 0xffff) + (chksum >> 16);
-	}
-	return ~chksum;
-}
-
-
-Bytes& formatPacket(Bytes& pck, const Bytes& payload, Ipv4Addr toAddr) {
+Bytes& formatPacket(Bytes& pck, const Bytes& payload, Ipv4Addr toAddr,
+		uint8_t protocol)
+{
 	static uint16_t packetId = 42;
 
 	unsigned ipv4BegPos = pck.size();
@@ -28,9 +19,9 @@ Bytes& formatPacket(Bytes& pck, const Bytes& payload, Ipv4Addr toAddr) {
 	pck << (uint8_t) 0x45 << (uint8_t) 0x00
 		<< (uint16_t) (payload.size() + IPV4_HEAD_LEN)
 		<< packetId << (uint16_t) 0x00 << (uint8_t) 0xff
-		<< (uint8_t) 0x11 << (uint16_t) 0x00 << nw::getEthAddr() << toAddr;
+		<< protocol << (uint16_t) 0x00 << nw::getEthAddr() << toAddr;
 	// IPv4 checksum
-	uint16_t chksum = ipv4Chksum(pck, ipv4BegPos, pck.size());
+	uint16_t chksum = nw::networkChksum(pck, ipv4BegPos, pck.size());
 	pck[ipv4BegPos + 10] = (chksum >> 8);
 	pck[ipv4BegPos + 11] = (chksum & 0xFF);
 
@@ -60,8 +51,8 @@ PckInfos extractHeader(Bytes& pck) {
 
 	// Check checksum
 	uint16_t chksumFirstShort = (((uint16_t)firstByte)<<8) + ignoreU8;
-	if(ipv4Chksum(pck, 0, IPV4_HEAD_LEN+4*afterLength-2, chksumFirstShort)
-			!= 0x00)
+	if(nw::networkChksum(pck, 0, IPV4_HEAD_LEN+4*afterLength-2,
+				chksumFirstShort) != 0x00)
 		throw BadChecksum();
 
 	// Packet size

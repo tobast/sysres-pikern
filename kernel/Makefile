@@ -45,6 +45,7 @@ OBJS = \
 		$(BUILD)Bytes.o \
 		$(BUILD)ipv4.o \
 		$(BUILD)udp.o \
+		$(BUILD)icmp.o \
 		$(BUILD)arp.o \
 		$(BUILD)logger.o \
 		$(BUILD)format.o \

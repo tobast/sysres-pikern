@@ -92,7 +92,6 @@ void kernel_run(void*) {
 	}*/
 
 	async_start(&led_blink, NULL);
-	async_start(&act_blink, NULL);
 
 	int socket = create_socket();
 	async_start(&byte_blink_writer, (void*)socket);

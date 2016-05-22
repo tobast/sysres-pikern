@@ -22,7 +22,7 @@ Bytes& formatPacket(Bytes& pck, const Bytes& data,
 	Bytes udpFormatted;
 	formatUdpHeader(udpFormatted, data, fromPort, toPort);
 
-	ipv4::formatPacket(pck, udpFormatted, toAddr);
+	ipv4::formatPacket(pck, udpFormatted, toAddr, PROTOCOL_ID);
 	return pck;
 }
 
