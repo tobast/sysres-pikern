@@ -1,3 +1,4 @@
+#pragma once
 #include "assert.h"
 
 template<int N, typename T, T data[N]>
