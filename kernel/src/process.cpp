@@ -289,6 +289,18 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			current_context->r0 = old_val;
 			return;
 		}
+		case SVC_KILL: {
+			int i = current_context->r0;
+			if (i == active_process) {
+				active_process = processes[active_process].previous_process;
+				delete_process(i);
+				go_next_process(current_context);
+				reset_timer();
+				return;
+			}
+			delete_process(i);
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?

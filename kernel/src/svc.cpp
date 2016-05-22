@@ -34,3 +34,8 @@ __attribute__((naked))
 int atomic_cas_svc(int*, int, int) {
 	asm volatile ("svc #7\n\tbx lr");
 }
+
+__attribute__((naked))
+void kill(int) {
+	asm volatile ("svc #8\n\tbx lr");
+}
