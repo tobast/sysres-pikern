@@ -1,0 +1,11 @@
+"That should work that way... Oh, wait."
+=====================
+
+* Wrong alignment overwriting vector table
+* Malloc linkage was both C and C++. In different headers.
+* ".text.startup should be the first text section, it will be all right.
+	Oh, wait, there's .text.unlikely before. Why the hell 0x8000 is
+	constructing a udp::PckInfos structure?!"
+* async_start thinking that the process table will do a wonderful stack for
+	the SVC calls.
+

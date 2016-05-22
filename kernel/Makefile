@@ -28,7 +28,7 @@ CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-I $(SOURCE) -I $(USPI_INCLUDE_DIR)
 CLIBS = -L$(LIBUSPI_DIR) -luspi
 HARDWARE= -DHW_PI_1B
-BIN_CFLAGS= --entry=main --specs=nosys.specs
+BIN_CFLAGS= --specs=nosys.specs
 
 OBJS = \
 		$(BUILD)cinit.o \
@@ -43,6 +43,7 @@ OBJS = \
 		$(BUILD)gpio.o \
 		$(BUILD)sleep.o \
 		$(BUILD)Bytes.o \
+		$(BUILD)ipv4.o \
 		$(BUILD)udp.o \
 		$(BUILD)arp.o \
 		$(BUILD)logger.o \

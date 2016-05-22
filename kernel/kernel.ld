@@ -11,12 +11,12 @@ ENTRY(_start)
 SEARCH_DIR("=/usr/arm-none-eabi/lib"); SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");
 SECTIONS
 {
-  /* ld seems to expect [main] to point to the beginning of the code segment.*/
-  main = 0x8000 ;
-
-
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x8000)); . = SEGMENT_START("text-segment", 0x8000);
+  .init           :
+  {
+    KEEP (*(SORT_NONE(.init)))
+  }
   .interp         : { *(.interp) }
   .note.gnu.build-id : { *(.note.gnu.build-id) }
   .hash           : { *(.hash) }
@@ -69,10 +69,6 @@ SECTIONS
     {
       *(.rela.plt)
     }
-  .init           :
-  {
-    KEEP (*(SORT_NONE(.init)))
-  }
   .plt            : { *(.plt) }
   .iplt           : { *(.iplt) }
   .text           :

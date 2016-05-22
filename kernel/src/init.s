@@ -1,4 +1,5 @@
-.section ".text.startup"
+//.section ".text.startup" // BORDAYL.
+.section ".init"
 
 .global _start
 .global _get_stack_pointer
@@ -8,6 +9,8 @@ _start:
 	ldr sp, =0x8000
 
 	// Then run the startup function
+//	ldr r0, =_c_init
+//	bx r0
 	b _c_init
 
 _exitloop: // If anything bad occurs, we want to loop here.

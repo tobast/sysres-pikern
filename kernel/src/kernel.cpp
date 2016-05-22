@@ -65,6 +65,8 @@ void kernel_run(void*) {
 	nw::init();
 	logger::init();
 
+//	logger::addListener(0x81c79d16); // tobast-laptop
+
 	gpio::blink(gpio::LED_PIN);
 	
 	appendLog(
