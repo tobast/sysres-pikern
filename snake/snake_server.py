@@ -34,35 +34,34 @@ class ClientConnection(threading.Thread):
                 self.min_client_id += 1
                 self.addr_to_clients[addr] = u
                 self.clients_to_addr[u] = addr
-                self.new_client(u)
-                self.action(u, data)
+                if self.new_client(u):
+                    self.action(u, data)
             
 
 class Server():
     def __init__(self):
         self.connection = ClientConnection(SERVER_PORT, self.got_packet, self.new_client)
         self.connection.start()
-        initial_length = 5
-        self.snake = [(WIDTH // 2 - initial_length // 2 + i, HEIGHT // 2) for i in range(initial_length)]
-        self.direction = (1, 0)
+        self.snakes = {}
+        self.directions = {}
+        self.snake_colors = {}
         self.apples = []
         self.stopped = False
-        self.started = False
-        self.extend_size = 0
+        self.extend_sizes = {}
         for _ in range(NB_APPLES):
             self.add_apple()
         self.loop()
-
-    def new_client(self, client):
-        self.started = True
         
     def set_dir_event(self, d):
         return lambda e: self.set_direction(d)
 
+    def snake_exists(self, p):
+        return any(p in snake for snake in self.snakes.values())
+
     def add_apple(self):
         while True:
             x, y = randrange(WIDTH), randrange(HEIGHT)
-            if (x, y) in self.snake or (x, y) in self.apples:
+            if self.snake_exists((x, y)) or (x, y) in self.apples:
                 continue
             self.apples.append((x, y))
             return
@@ -70,28 +69,26 @@ class Server():
     def is_valid(self, p):
         return 0 <= p[0] < WIDTH and 0 <= p[1] < HEIGHT
 
-    def set_direction(self, newdir):
-        self.direction = newdir
-
     def move(self):
-        p = self.snake[-1]
-        np = p2add(p, self.direction)
-        if np in self.snake or not self.is_valid(np):
-            self.stopped = True
-        self.snake.append(np)
-        if np in self.apples:
-            self.apples.remove(np)
-            self.extend_size += 2
-            self.add_apple()
-        if self.extend_size > 0:
-            self.extend_size -= 1
-        else:
-            del self.snake[0]
+        for i in self.snakes:
+            snake = self.snakes[i]
+            p = snake[-1]
+            np = p2add(p, self.directions[i])
+            if self.snake_exists(np) or not self.is_valid(np):
+                self.stopped = True
+                continue
+            snake.append(np)
+            if np in self.apples:
+                self.apples.remove(np)
+                self.extend_sizes[i] += 2
+                self.add_apple()
+            if self.extend_sizes[i] > 0:
+                self.extend_sizes[i] -= 1
+            else:
+                del snake[0]
 
     def loop(self):
         while True:
-            if not self.started:
-                continue
             if self.stopped:
                 break
             self.move()
@@ -99,10 +96,12 @@ class Server():
             time.sleep(PERIOD / 1000.)
 
     def send_data(self):
-        pck = Packet()
-        pck.add_uint8(SET_SNAKE)
-        pck.add_position_list(self.snake)
-        self.connection.send_all(pck.data)
+        for i in self.snakes:
+            pck = Packet()
+            pck.add_uint8(SET_SNAKE)
+            pck.add_uint16(i)
+            pck.add_position_list(self.snakes[i])
+            self.connection.send_all(pck.data)
 
         pck = Packet()
         pck.add_uint8(SET_APPLES)
@@ -110,11 +109,54 @@ class Server():
         self.connection.send_all(pck.data)
 
     def got_packet(self, client_id, packet):
-        assert (client_id == 0)
         pck = Packet(packet)
         command = pck.read_uint8()
         if command == SET_DIRECTION:
-            self.direction = DIRS[pck.read_uint8()]
+            self.directions[client_id] = DIRS[pck.read_uint8()]
+        elif command == TOSERVER_INIT:
+            rpck = Packet()
+            rpck.add_uint8(TOCLIENT_INIT)
+            rpck.add_uint16(client_id)
+            self.connection.send(rpck.data, client_id)
+                
+            r, g, b = randrange(1 << 16), randrange(1 << 16), randrange(1 << 16)
+            rpck = Packet()
+            rpck.add_uint8(SET_SNAKE_COLOR)
+            rpck.add_uint16(client_id)
+            rpck.add_color((r, g, b))
+            self.connection.send_all(rpck.data)
+
+            for i in self.snake_colors:
+                rpck = Packet()
+                rpck.add_uint8(SET_SNAKE_COLOR)
+                rpck.add_uint16(i)
+                rpck.add_color(self.snake_colors[i])
+                self.connection.send(rpck.data, client_id)
+
+            self.snake_colors[client_id] = (r, g, b)
+
+    def new_client(self, client_id):
+        initial_length = 5
+        ahead_length = 3
+        w = initial_length + ahead_length
+        tries = 100
+        for _ in range(tries):
+            x = randrange(WIDTH - w)
+            y = randrange(HEIGHT - w)
+            if any(self.snake_exists((x + i, y)) or (x + i, y) in self.apples \
+                   for i in range(w)):
+                continue
+            self.snakes[client_id] = [(x + i, y) for i in range(initial_length)]
+            break
+        else:
+            pck = Packet()
+            pck.add_uint8(TOCLIENT_ACCESS_DENIED)
+            self.connection.send(pck.data, client_id)
+            return False
+        self.directions[client_id] = (1, 0)
+        self.extend_sizes[client_id] = 0
+        return True
+        
 
     def mainloop(self):
         while True:

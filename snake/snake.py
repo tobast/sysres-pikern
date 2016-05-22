@@ -28,30 +28,38 @@ class App:
         self.tk = Tk()
         self.connection = ServerConnection("127.0.0.1", SERVER_PORT, 0, self.got_server_message)
         self.connection.start()
-        pck = Packet()
-        pck.add_uint8(TOSERVER_INIT)
-        self.connection.send(pck.data)
         self.can = Canvas(self.tk, width = PSIZE * WIDTH, height = PSIZE * HEIGHT, bg = "white")
         self.can.pack()
         self.tk.after(0, self.loop)
-        initial_length = 5
-        self.snake = [(WIDTH // 2 - initial_length // 2 + i, HEIGHT // 2) for i in range(initial_length)]
-        self.direction = (1, 0)
+        self.snakes = {}
+        self.snake_colors = {}
         self.apples = []
         self.stopped = False
-        self.extend_size = 0
+        self.client_id = None
         self.tk.bind("<Up>", self.set_dir_event(3))
         self.tk.bind("<Down>", self.set_dir_event(0))
         self.tk.bind("<Left>", self.set_dir_event(2))
         self.tk.bind("<Right>", self.set_dir_event(1))
+        pck = Packet()
+        pck.add_uint8(TOSERVER_INIT)
+        self.connection.send(pck.data)
 
     def got_server_message(self, message):
         packet = Packet(message)
         message_type = packet.read_uint8()
         if message_type == SET_SNAKE:
-            self.snake = packet.read_position_list()
+            snake_id = packet.read_uint16()
+            self.snakes[snake_id] = packet.read_position_list()
         elif message_type == SET_APPLES:
             self.apples = packet.read_position_list()
+        elif message_type == TOCLIENT_INIT:
+            self.client_id = packet.read_uint16()
+        elif message_type == SET_SNAKE_COLOR:
+            snake_id = packet.read_uint16()
+            r, g, b = packet.read_color()
+            self.snake_colors[snake_id] = "#%04X%04X%04X" % (r, g, b)
+        elif message_type == TOCLIENT_ACCESS_DENIED:
+            self.stopped = True
         
     def set_dir_event(self, d):
         return lambda e: self.set_direction(d)
@@ -68,8 +76,12 @@ class App:
         return 0 <= p[0] < WIDTH and 0 <= p[1] < HEIGHT
 
     def set_direction(self, newdir):
-        if len(self.snake) > 0 and p2add(self.snake[-1], DIRS[newdir]) == self.snake[-2]:
-            return
+        if self.client_id != None and self.client_id in self.snakes and \
+                len(self.snakes[self.client_id]) > 1:
+            snake = self.snakes[self.client_id]
+            if p2add(snake[-1], DIRS[newdir]) == snake[-2]:
+                return
+
         pck = Packet()
         pck.add_uint8(SET_DIRECTION)
         pck.add_uint8(newdir)
@@ -82,8 +94,9 @@ class App:
 
     def draw(self):
         self.can.delete(ALL)
-        for x, y in self.snake:
-            self.can.create_rectangle(PSIZE * x, PSIZE * y, PSIZE * (x + 1), PSIZE * (y + 1), width = 0, fill = "green")
+        for i in self.snakes:
+            for x, y in self.snakes[i]:
+                self.can.create_rectangle(PSIZE * x, PSIZE * y, PSIZE * (x + 1), PSIZE * (y + 1), width = 0, fill = self.snake_colors.get(i, "green"))
         for x, y in self.apples:
             self.can.create_rectangle(PSIZE * x, PSIZE * y, PSIZE * (x + 1), PSIZE * (y + 1), width = 0, fill = "red")
 
