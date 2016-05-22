@@ -7,12 +7,15 @@
 #include "Bytes.h"
 #include "arp.h"
 #include "udp.h"
+#include "ipv4.h"
 #include "queue.h"
 #include <uspi.h>
 
 namespace nw {
 	const uint16_t ETHERTYPE_IPV4 = 0x0800;
 	const uint16_t ETHERTYPE_ARP = 0x0806;
+
+	class InconsistentHeaders {};
 
 	Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac,
 			uint16_t etherType = ETHERTYPE_IPV4);

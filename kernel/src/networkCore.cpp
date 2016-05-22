@@ -34,10 +34,12 @@ void processPacket(Bytes frame) {
 				frame >> c1 >> c2 >> c3;
 				if(c1 == 'R' && c2 == 'P' && c3 == 'i')
 					logger::addListener(infos.fromAddr);
-			} catch(udp::BadChecksum&) {
+			} catch(ipv4::BadChecksum&) {
 				appendLog(LogWarning, "udp", "Bad checksum from %M", fromMac);
 			} catch(udp::WrongProtocol&) {
 				appendLog(LogWarning, "udp", "Bad protocol");
+			} catch(ipv4::WrongProtocol&) {
+				appendLog(LogWarning, "IPv4", "Bad protocol");
 			} catch(...) {
 				appendLog(LogWarning, "udp", "Unexpected unknown exception.");
 			}
