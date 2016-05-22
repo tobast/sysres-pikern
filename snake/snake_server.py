@@ -87,10 +87,34 @@ class Server():
             else:
                 del snake[0]
 
+    def reset(self):
+        self.stopped = False
+        self.snakes = {}
+        self.apples = []
+        initial_length = 5
+        ahead_length = 3
+        w = initial_length + ahead_length
+        for cid in self.directions:
+            tries = 100
+            for _ in range(tries):
+                x = randrange(WIDTH - w)
+                y = randrange(HEIGHT - w)
+                if any(self.snake_exists((x + i, y)) or (x + i, y) in self.apples \
+                       for i in range(w)):
+                    continue
+                self.snakes[cid] = [(x + i, y) for i in range(initial_length)]
+                break
+            self.directions[cid] = (1, 0)
+            self.extend_sizes[cid] = 0
+        for _ in range(NB_APPLES):
+            self.add_apple()
+            
+
     def loop(self):
         while True:
             if self.stopped:
-                break
+                time.sleep(2.)
+                self.reset()
             self.move()
             self.send_data()
             time.sleep(PERIOD / 1000.)
@@ -155,6 +179,7 @@ class Server():
             return False
         self.directions[client_id] = (1, 0)
         self.extend_sizes[client_id] = 0
+        print("Hello %d" % client_id)
         return True
         
 
