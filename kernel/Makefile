@@ -51,6 +51,8 @@ OBJS = \
 		$(BUILD)format.o \
 		$(BUILD)networkCore.o \
 		$(BUILD)atomic.o \
+		$(BUILD)filesystem.o \
+		$(BUILD)fs_populator.o \
 		$(BUILD)svc.o
 
 LIBUSPI=uspi/lib/libuspi.a
