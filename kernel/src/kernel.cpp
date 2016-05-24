@@ -95,9 +95,9 @@ void kernel_run(void*) {
 
 	async_start(&led_blink, NULL);
 
-	int socket = create_socket();
-	async_start(&byte_blink_writer, (void*)socket);
-	async_start(&byte_blink_listener, (void*)socket);
+//	int socket = create_socket();
+//	async_start(&byte_blink_writer, (void*)socket);
+//	async_start(&byte_blink_listener, (void*)socket);
 
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
