@@ -32,3 +32,5 @@
 
 kernel/_build/*
 kernel/kernel.img
+kernel/initial_fs/bin/*
+**/_build
