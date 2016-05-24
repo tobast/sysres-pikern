@@ -10,7 +10,8 @@ enum svcs {
 	SVC_MALLOC = 5,
 	SVC_FREE = 6,
 	SVC_ATOMIC_CAS = 7,
-	SVC_KILL = 8
+	SVC_KILL = 8,
+	SVC_WAIT = 9
 };
 
 extern "C" {
@@ -22,9 +23,10 @@ void sleep(int num_us);
 void* malloc_svc(uint32_t size);
 void free_svc(void* ptr);
 int atomic_cas_svc(int* p, int old_value, int new_value);
-void kill(int pid);
-inline void exit() {
-	kill(get_pid());
+void kill(int pid, int exit_code = 0);
+inline void exit(int exit_code = 0) {
+	kill(get_pid(), exit_code);
 }
+int wait(int pid);
 
 }

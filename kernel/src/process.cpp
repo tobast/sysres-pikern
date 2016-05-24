@@ -41,7 +41,9 @@ enum pstate {
 	PROCESS_WAIT_READ,
 	PROCESS_WAIT_WRITE,
 	PROCESS_SLEEPING,
-	PROCESS_INEXISTANT
+	PROCESS_INEXISTANT,
+	PROCESS_ZOMBIE,
+	PROCESS_WAITING
 };
 
 struct process {
@@ -303,15 +305,28 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 		}
 		case SVC_KILL: {
 			int i = current_context->r0;
+			processes[i].process_state = PROCESS_ZOMBIE;
+			processes[i].state_info = current_context->r1;
 			if (i == active_process) {
-				active_process = processes[active_process].previous_process;
-				delete_process(i);
 				go_next_process(current_context);
 				reset_timer();
+			}
+			return;
+		}
+		case SVC_WAIT: {
+			int i = current_context->r0;
+			if (i == active_process) {
+				current_context->r0 = 0;
 				return;
 			}
-			delete_process(i);
-			return;
+			if (processes[i].process_state == PROCESS_ZOMBIE) {
+				current_context->r0 = (s32)processes[i].state_info;
+				delete_process(i);
+				return;
+			}
+			processes[active_process].process_state = PROCESS_WAITING;
+			go_next_process(current_context);
+			reset_timer();
 		}
 		default:
 			// Invalid svc
@@ -439,6 +454,19 @@ bool ready(int i) {
 			}
 			return false;
 		}
+		case PROCESS_ZOMBIE: {
+			return false;
+		}
+		case PROCESS_WAITING: {
+			int pid = processes[i].cont.r0;
+			if (processes[pid].process_state == PROCESS_ZOMBIE) {
+				processes[i].cont.r0 = (s32)processes[pid].state_info;
+				delete_process(pid);
+				processes[i].process_state = PROCESS_ACTIVE;
+				return true;
+			}
+			return false;
+		}
 		default: return false;
 
 	}
@@ -499,6 +527,10 @@ char process_state(int pid) {
 		case PROCESS_WAIT_READ:
 		case PROCESS_WAIT_WRITE:
 			return 'D';
+		case PROCESS_ZOMBIE:
+			return 'Z';
+		case PROCESS_WAITING:
+			return 'W';
 		default:
 			return ' ';
 	}
@@ -516,7 +548,7 @@ void _async_go(context*) {
 		"subs pc, lr, #4"
 	);
 }
-void wait() {
+void _wait() {
 	while (1) {
 		asm volatile ("wfi");
 	}
@@ -524,7 +556,7 @@ void wait() {
 void async_go() {
 	// Init the waiting process
 	processes[0].cont = context();
-	processes[0].cont.lr = ((s32)&wait) + 4;
+	processes[0].cont.lr = ((s32)&_wait) + 4;
 	// Find a suitable stack pointer; TODO: make that better
 	processes[0].cont.r13 = 0x1100000;
 	processes[0].process_state = PROCESS_ACTIVE;
