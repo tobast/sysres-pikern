@@ -41,7 +41,7 @@ OBJS=$(BUILD)$(PROGRAM).o
 all: $(TARGET)
 
 $(TARGET): $(BUILD)$(PROGRAM).elf $(BUILD)
-	$(APPLINK) $< > $@
+	$(APPLINK) $< $@
 
 $(BUILD)$(PROGRAM).elf: $(OBJS) $(BUILD)
 	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(CLIBS) $(OBJS) -T $(LINKER) -o $@
