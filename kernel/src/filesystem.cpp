@@ -25,3 +25,31 @@ node* find_child(const folder *f, const char* name) {
 	}
 	return NULL;
 }
+
+node* follow_path(const char* path) {
+	char current_name[32];
+	u32 index = 0;
+	u32 i = 0;
+	folder *current_folder = &fsroot;
+	while (true) {
+		char c = path[index++];
+		if (c == '\0') {
+			break;
+		} else if (c == '/') {
+			current_name[i++] = '\0';
+			node *n = find_child(current_folder, current_name);
+			if (n == NULL) return NULL;
+			if (n->type != NODE_FOLDER) {
+				return NULL;
+			}
+			current_folder = n->node_folder;
+			i = 0;
+		} else if (i >= 31) {
+			return NULL;
+		} else {
+			current_name[i++] = c;
+		}
+	}
+	current_name[i++] = '\0';
+	return find_child(current_folder, current_name);
+}

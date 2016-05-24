@@ -29,3 +29,4 @@ struct node {
 
 void init_filesystem();
 node* find_child(const folder *f, const char* name);
+node* follow_path(const char* path);
