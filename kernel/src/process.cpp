@@ -328,6 +328,14 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			go_next_process(current_context);
 			reset_timer();
 		}
+		case SVC_READY_READ: {
+			current_context->r0 = (sockets[current_context->r0].length > 0);
+			return;
+		}
+		case SVC_READY_WRITE: {
+			current_context->r0 = (sockets[current_context->r0].length < SOCKET_BUFFER_SIZE);
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?

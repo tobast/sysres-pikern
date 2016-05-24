@@ -44,3 +44,13 @@ __attribute__((naked))
 int wait(int) {
 	asm volatile ("svc #9\n\tbx lr");
 }
+
+__attribute__((naked))
+int is_ready_read(int) {
+	asm volatile ("svc #10\n\tbx lr");
+}
+
+__attribute__((naked))
+int is_ready_write(int) {
+	asm volatile ("svc #11\n\tbx lr");
+}
