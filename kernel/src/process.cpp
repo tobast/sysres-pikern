@@ -433,7 +433,7 @@ bool ready(int i) {
 				// TODO: quand y'aura le MMU, danger...
 				int num_read = sread(sock, (void*)processes[i].cont.r1,
 				                                  processes[i].cont.r2);
-			    assert(num_read > 0);
+			    assert(num_read > 0, 0);
 				processes[i].cont.r0 = num_read;
 				processes[i].process_state = PROCESS_ACTIVE;
 				return true;
@@ -447,7 +447,7 @@ bool ready(int i) {
 				// TODO: quand y'aura le MMU, danger...
 				int num_written = swrite(sock, (void*)processes[i].cont.r1,
 				                                      processes[i].cont.r2);
-			    assert(num_written > 0);
+			    assert(num_written > 0, 0);
 				processes[i].cont.r0 = num_written;
 				processes[i].process_state = PROCESS_ACTIVE;
 				return true;
