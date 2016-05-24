@@ -15,7 +15,7 @@ AS = $(ARM_PREFIX)-as
 AR = $(ARM_PREFIX)-ar
 OD = $(ARM_PREFIX)-objdump
 OC = $(ARM_PREFIX)-objcopy
-APPLINK = $(PROJROOT)app_link.sh
+APPLINK = ../app_link.sh
 PYTHON = python3
 
 PROGRAM=$(shell basename `pwd`)
