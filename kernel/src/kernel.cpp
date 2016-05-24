@@ -108,13 +108,17 @@ void kernel_run(void*) {
 	ec->argc = 0;
 	ec->argv = NULL;
 	node *file = follow_path("bin/hello");
+	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
+	assert(u != -1, 0x9a);
+	// TODO: recognize EOF
 	while (true) {
 		char buffer[257];
 		int n = read(stdout_socket, (void*)buffer, 256);
 		buffer[n] = '\0';
 		appendLog(LogDebug, "main", buffer);
 	}
+	wait(u);
 
 	// Fixme: replace that with a clean exit call
 	while (1) {
