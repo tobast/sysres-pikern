@@ -1,3 +1,4 @@
+#include "exec_context.h"
 
 extern "C" {
 
@@ -18,5 +19,8 @@ inline void exit(int exit_code = 0) {
 	kill(get_pid(), exit_code);
 }
 int wait(int pid);
+int is_ready_read(int fd);
+int is_ready_write(int fd);
+int is_process_alive(int pid);
 
 }

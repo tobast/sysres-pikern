@@ -13,7 +13,8 @@ enum svcs {
 	SVC_KILL = 8,
 	SVC_WAIT = 9,
 	SVC_READY_READ = 10,
-	SVC_READY_WRITE = 11
+	SVC_READY_WRITE = 11,
+	SVC_PROCESS_ALIVE = 12
 };
 
 extern "C" {
@@ -33,5 +34,6 @@ inline void exit(int exit_code = 0) {
 int wait(int pid);
 int is_ready_read(int fd);
 int is_ready_write(int fd);
+int is_process_alive(int pid);
 
 }

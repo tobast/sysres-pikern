@@ -1,56 +1,18 @@
 #include "svc.h"
 
-__attribute__((naked))
-int get_pid() {
-	asm volatile ("svc #1\n\tbx lr");
+#define SVC(decl, x) __attribute__((naked)) decl { \
+	asm volatile ("svc #" #x "\n\tbx lr"); \
 }
 
-__attribute__((naked))
-int read(int, void*, int) {
-	asm volatile ("svc #2\n\tbx lr");
-}
-
-__attribute__((naked))
-int write(int, void*, int) {
-	asm volatile ("svc #3\n\tbx lr");
-}
-
-__attribute__((naked))
-void sleep(int) {
-	asm volatile ("svc #4\n\tbx lr");
-}
-
-__attribute__((naked))
-void* malloc_svc(uint32_t) {
-	asm volatile ("svc #5\n\tbx lr");
-}
-
-__attribute__((naked))
-void free_svc(void*) {
-	asm volatile ("svc #6\n\tbx lr");
-}
-
-__attribute__((naked))
-int atomic_cas_svc(int*, int, int) {
-	asm volatile ("svc #7\n\tbx lr");
-}
-
-__attribute__((naked))
-void kill(int, int) {
-	asm volatile ("svc #8\n\tbx lr");
-}
-
-__attribute__((naked))
-int wait(int) {
-	asm volatile ("svc #9\n\tbx lr");
-}
-
-__attribute__((naked))
-int is_ready_read(int) {
-	asm volatile ("svc #10\n\tbx lr");
-}
-
-__attribute__((naked))
-int is_ready_write(int) {
-	asm volatile ("svc #11\n\tbx lr");
-}
+SVC(int get_pid(), 1)
+SVC(int read(int, void*, int), 2)
+SVC(int write(int, void*, int), 3)
+SVC(void sleep(int), 4)
+SVC(void* malloc_svc(uint32_t), 5)
+SVC(void free_svc(void*), 6)
+SVC(int atomic_cas_svc(int*, int, int), 7)
+SVC(void kill(int, int), 8)
+SVC(int wait(int), 9)
+SVC(int is_ready_read(int), 10)
+SVC(int is_ready_write(int), 11)
+SVC(int is_process_alive(int), 12)

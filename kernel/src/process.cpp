@@ -336,6 +336,13 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			current_context->r0 = (sockets[current_context->r0].length < SOCKET_BUFFER_SIZE);
 			return;
 		}
+		case SVC_PROCESS_ALIVE: {
+			int pid = current_context->r0;
+			pstate state = processes[pid].process_state;
+			current_context->r0 = (state != PROCESS_INEXISTANT) &&
+			                      (state != PROCESS_ZOMBIE);
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?
