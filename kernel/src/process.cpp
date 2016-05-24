@@ -488,8 +488,10 @@ int async_start(async_func f, void* arg, s32 mode, char* name) {
 	processes[i].cont = context();
 	processes[i].cont.lr = ((s32)f) + 4;
 	processes[i].cont.r0 = (s32)arg;
-	// Find a suitable stack pointer; TODO: make that better
-	processes[i].cont.r13 = 0x1000000 + 0x100000 * (i + 1);
+	// Find a suitable stack pointer; TODO: make it possible to free it
+    // Make it 16-byte aligned.
+	processes[i].cont.r13 = ((s32)(malloc(0x100000)) + 0x100000 - 1)
+																& ~0xf;
 	processes[i].cont.spsr = mode;
 	if (name != NULL) {
 		for (unsigned r = 0; r < sizeof(processes[i].process_name); r++) {
@@ -557,8 +559,7 @@ void async_go() {
 	// Init the waiting process
 	processes[0].cont = context();
 	processes[0].cont.lr = ((s32)&_wait) + 4;
-	// Find a suitable stack pointer; TODO: make that better
-	processes[0].cont.r13 = 0x1100000;
+	processes[0].cont.r13 = (s32)(malloc(0x100));
 	processes[0].process_state = PROCESS_ACTIVE;
 	s32 cpsr = get_cpsr();
 	cpsr &= ~0xdf;
