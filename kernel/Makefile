@@ -2,7 +2,7 @@
 # Makefile
 #  By Théophile Bastian and Nathanaël Courant
 #
-# Generates kernel.img
+# Generates kernel.img, libkern.a
 #########################################################
 
 ARM_PREFIX = arm-none-eabi
