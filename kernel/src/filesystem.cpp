@@ -42,6 +42,9 @@ node* follow_path(const char* path) {
 			if (n->type != NODE_FOLDER) {
 				return NULL;
 			}
+			if (path[index] == '\0') {
+				return n;
+			}
 			current_folder = n->node_folder;
 			i = 0;
 		} else if (i >= 31) {
