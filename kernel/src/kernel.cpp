@@ -9,6 +9,8 @@
 #include "svc.h"
 #include "networkCore.h"
 #include "logger.h"
+#include "filesystem.h"
+#include "exec_context.h"
 
 #include <uspi.h>
 
@@ -97,6 +99,23 @@ void kernel_run(void*) {
 	async_start(&byte_blink_writer, (void*)socket);
 	async_start(&byte_blink_listener, (void*)socket);
 
+	execution_context *ec = (execution_context*)
+		(malloc(sizeof(execution_context)));
+	int stdin_socket = create_socket();
+	int stdout_socket = create_socket();
+	ec->stdin = stdin_socket;
+	ec->stdout = stdout_socket;
+	ec->argc = 0;
+	ec->argv = NULL;
+	node *file = follow_path("bin/hello");
+	int u = run_process(file, ec);
+	while (true) {
+		char buffer[257];
+		int n = read(stdout_socket, (void*)buffer, 256);
+		buffer[n] = '\0';
+		appendLog(LogDebug, "main", buffer);
+	}
+
 	// Fixme: replace that with a clean exit call
 	while (1) {
 		asm volatile ("wfi");
@@ -112,12 +131,13 @@ void kernel_main(void) {
 	//	 "msr cpsr_c,r0\n\t"
 	//	 "mov sp,#0x6000\n\t" // Init stack pointer
 	//	 : : : "r0");
-	
+
+	mallocInit();
+
 	init_vector_table();
 	init_stacks();
 	init_process_table();
-
-	mallocInit();
+	init_filesystem();
 
 	gpio::init();
 	gpio::setWay(gpio::LED_PIN, gpio::WAY_OUTPUT);

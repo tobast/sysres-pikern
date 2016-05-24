@@ -6,4 +6,3 @@ struct execution_context {
 	int argc;
 	char** argv;
 };
-

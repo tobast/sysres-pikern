@@ -1,5 +1,6 @@
 #include "filesystem.h"
 #include "fs_populator.h"
+#include "process.h"
 
 bool streq(const char* name1, const char* name2) {
 	for (int i = 0; i < 32; i++) {
@@ -55,4 +56,23 @@ node* follow_path(const char* path) {
 	}
 	current_name[i++] = '\0';
 	return find_child(current_folder, current_name);
+}
+
+int run_process(node *file, execution_context *ec) {
+	if (file->type != NODE_FILE) return -1;
+	char* d = &file->node_file->data[0];
+	if (d[0] != '\x7f' || d[1] != 'E' || d[2] != 'L' || d[3] != 'F') {
+		return -1;
+	}
+	uint32_t size = (((uint32_t)d[4]) << 24) | (((uint32_t)d[5]) << 16)
+	              | (((uint32_t)d[6]) << 8) | ((uint32_t)d[7]);
+	char* prog = (char*)malloc(size);
+	unsigned sz = file->node_file->data.size();
+	for (unsigned i = 8; i < sz; i++) {
+		prog[i - 8] = d[i];
+	}
+	for (unsigned i = sz - 8; i < size; i++) {
+		prog[i] = 0;
+	}
+	return async_start((async_func)(prog), (void*)ec, 0x50, file->name);
 }

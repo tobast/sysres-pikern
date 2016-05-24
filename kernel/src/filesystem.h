@@ -3,6 +3,7 @@
 #include "malloc.h"
 #include "expArray.h"
 #include "common.h"
+#include "exec_context.h"
 
 struct file {
 	ExpArray<char> data;
@@ -30,3 +31,4 @@ struct node {
 void init_filesystem();
 node* find_child(const folder *f, const char* name);
 node* follow_path(const char* path);
+int run_process(node *file, execution_context *ec);
