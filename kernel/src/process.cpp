@@ -8,6 +8,7 @@
 #include "svc.h"
 #include "uspi_interface.h"
 #include "malloc.h"
+#include "expArray.h"
 #include "gpio.h" // FIXME DEBUG
 
 struct context {
@@ -128,30 +129,39 @@ void CancelKernelTimer (unsigned timer) {
 }
 
 
-const int MAX_PROCESS = 10;
-// TODO: dynamic allocation?
-process processes[MAX_PROCESS];
+// const int MAX_PROCESS = 128;
+ExpArray<process> processes;
 int active_process = 0;
 int free_process = 1;
 
-const int SOCKET_BUFFER_SIZE = 1024;
-const int MAX_SOCKETS = 10;
+const int SOCKET_BUFFER_SIZE = 2048;
+//const int MAX_SOCKETS = 128;
 // TODO: file/socket descriptor table
 struct socket {
 	int start;
 	int length;
 	char buffer[SOCKET_BUFFER_SIZE];
 };
-socket sockets[MAX_SOCKETS];
-pool_allocator<MAX_SOCKETS, socket, sockets> sockets_allocator;
+ExpArray<socket> sockets;
+int free_socket = 0;
+//socket sockets[MAX_SOCKETS];
+//pool_allocator<MAX_SOCKETS, socket, sockets> sockets_allocator;
 //int free_socket = 0;
 //socket sockets[MAX_SOCKETS];
 
 int create_socket() {
-	int i = sockets_allocator.alloc();
-	//int i = free_socket;
+	//int i = sockets_allocator.alloc();
+	int i = free_socket;
+	if (i >= (int)sockets.size()) {
+		socket sock;
+		sock.start = 0;
+		sock.length = 0;
+		sockets.push_back(sock);
+		free_socket = i + 1;
+		return i;
+	}
 	//assert (i < MAX_SOCKETS);
-	//free_socket = sockets[i].start;
+	free_socket = sockets[i].start;
 	sockets[i].start = 0;
 	sockets[i].length = 0;
 	return i;
@@ -160,9 +170,9 @@ int create_socket() {
 void close_socket(int i) {
 	// TODO: processes that use that socket
 	// --> file descriptors table?
-	sockets_allocator.dealloc(i);
-	//sockets[i].start = free_socket;
-	//free_socket = i;
+	// sockets_allocator.dealloc(i);
+	sockets[i].start = free_socket;
+	free_socket = i;
 }
 
 int sread(int i, void* addr, int num) {
@@ -311,21 +321,25 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 }
 
 void init_process_table() {
+	processes.init();
+	process proc;
+	processes.push_back(proc);
 	processes[0].next_process = 0;
 	processes[0].previous_process = 0;
 	processes[0].process_state = PROCESS_ACTIVE;
 	active_process = 0;
 	free_process = 1;
-	for (int i = 1; i < MAX_PROCESS; i++) {
-		processes[i].next_process = i + 1;
-		processes[i].process_state = PROCESS_INEXISTANT;
-	}
+	//for (int i = 1; i < MAX_PROCESS; i++) {
+	//	processes[i].next_process = i + 1;
+	//	processes[i].process_state = PROCESS_INEXISTANT;
+	//}
 	
-	//free_socket = 0;
+	free_socket = 0;
+	sockets.init();
 	//for (int i = 0; i < MAX_SOCKETS; i++) {
 	//	sockets[i].start = i + 1;
 	//}
-	sockets_allocator.init();
+	//sockets_allocator.init();
 
 	set_irq_handler(&on_irq);
 	set_svc_handler(&on_svc);
@@ -374,8 +388,13 @@ void delete_process(int i) {
 
 int create_process() {
 	int i = free_process;
-	assert(i < MAX_PROCESS);
-	free_process = processes[i].next_process;
+	if (i >= (int)processes.size()) {
+		process proc;
+		processes.push_back(proc);
+		free_process = i + 1;
+	} else {
+		free_process = processes[i].next_process;
+	}
 	add_process(i);
 	return i;
 }
@@ -459,7 +478,7 @@ int async_start(async_func f, void* arg, s32 mode, char* name) {
 
 ExpArray<int> alive_processes() {
 	ExpArray<int> r;
-	for (int i = 0; i < MAX_PROCESS; i++) {
+	for (int i = 0; i < (int)processes.size(); i++) {
 		if (processes[i].process_state != PROCESS_INEXISTANT) {
 			r.push_back(i);
 		}
