@@ -66,13 +66,24 @@ int run_process(node *file, execution_context *ec) {
 	}
 	uint32_t size = (((uint32_t)d[4]) << 24) | (((uint32_t)d[5]) << 16)
 	              | (((uint32_t)d[6]) << 8) | ((uint32_t)d[7]);
+	uint32_t gota = (((uint32_t)d[8]) << 24) | (((uint32_t)d[9]) << 16)
+	              | (((uint32_t)d[10]) << 8) | ((uint32_t)d[11]);
+	uint32_t gots = (((uint32_t)d[12]) << 24) | (((uint32_t)d[13]) << 16)
+	              | (((uint32_t)d[14]) << 8) | ((uint32_t)d[15]);
+	const unsigned header_size = 16;
+	const unsigned expected_start = 0x8000;
 	char* prog = (char*)malloc(size);
+	unsigned goffset = (unsigned)prog - expected_start;
 	unsigned sz = file->node_file->data.size();
-	for (unsigned i = 8; i < sz; i++) {
-		prog[i - 8] = d[i];
+	for (unsigned i = header_size; i < sz; i++) {
+		prog[i - header_size] = d[i];
 	}
-	for (unsigned i = sz - 8; i < size; i++) {
+	for (unsigned i = sz - header_size; i < size; i++) {
 		prog[i] = 0;
+	}
+	unsigned* got = (unsigned*)(prog + (gota - expected_start));
+	for (unsigned i = 0; i < gots; i++) {
+		got[i] += goffset;
 	}
 	return async_start((async_func)(prog), (void*)ec, 0x50, file->name);
 }

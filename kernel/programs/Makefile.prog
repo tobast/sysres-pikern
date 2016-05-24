@@ -29,7 +29,7 @@ LIBKERN_DIR=$(PROJROOT)
 TARGET=$(PROGRAM).bin
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
-	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -static -fPIC \
+	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -fPIC -mpic-data-is-text-relative \
 	-I $(SRC) -I $(KERNEL_SRC)
 CLIBS = -L$(LIBKERN_DIR) -lkern
 BIN_CFLAGS= --specs=nosys.specs

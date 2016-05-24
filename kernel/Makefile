@@ -102,7 +102,7 @@ $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
 
 $(BUILD)startup.o: $(SOURCE)startup.cpp $(BUILD)
-	$(CC) $(CFLAGS) -Wno-pedantic $(HARDWARE) -c $< -o $@
+	$(CC) $(CFLAGS) -fPIC -Wno-pedantic $(HARDWARE) -c $< -o $@
 
 $(BUILD):
 	mkdir $@
