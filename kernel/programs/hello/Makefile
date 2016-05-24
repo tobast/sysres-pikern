@@ -1,1 +1,2 @@
-../__template/Makefile
+include ../Makefile.prog
+OBJS += 
