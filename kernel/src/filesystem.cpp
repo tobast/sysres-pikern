@@ -75,9 +75,11 @@ int run_process(node *file, execution_context *ec) {
 	char* prog = (char*)malloc(size);
 	unsigned goffset = (unsigned)prog - expected_start;
 	unsigned sz = file->node_file->data.size();
+
 	for (unsigned i = header_size; i < sz; i++) {
 		prog[i - header_size] = d[i];
 	}
+	assert(size >= sz-header_size, 0x23);
 	for (unsigned i = sz - header_size; i < size; i++) {
 		prog[i] = 0;
 	}
