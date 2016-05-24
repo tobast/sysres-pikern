@@ -28,6 +28,7 @@ int atomic_cas_svc(int* p, int old_value, int new_value);
 void kill(int pid, int exit_code = 0);
 inline void exit(int exit_code = 0) {
 	kill(get_pid(), exit_code);
+	while(true);
 }
 int wait(int pid);
 int is_ready_read(int fd);

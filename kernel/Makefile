@@ -9,6 +9,7 @@ ARM_PREFIX = arm-none-eabi
 CC = $(ARM_PREFIX)-g++
 LD = $(ARM_PREFIX)-ld
 AS = $(ARM_PREFIX)-as
+AR = $(ARM_PREFIX)-ar
 OD = $(ARM_PREFIX)-objdump
 OC = $(ARM_PREFIX)-objcopy
 PYTHON = python3
@@ -23,6 +24,11 @@ MAP = $(BUILD)kernel.map
 LINKER = kernel.ld
 
 ELF = $(BUILD)output.elf
+
+LIBKERN = libkern.a
+LIBKERN_OBJS = \
+		$(BUILD)svc.o \
+		$(BUILD)startup.o
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -static \
@@ -65,13 +71,16 @@ LIBUSPI_CFG=uspi/Config.mk
 LIBUSPI_DIR=uspi/lib/
 USPI_INCLUDE_DIR=uspi/include
 
-all: $(TARGET) $(LIST)
+all: $(TARGET) $(LIBKERN) $(LIST)
 
 $(LIST): $(ELF)
 	$(OD) -d $< > $@
 
 $(TARGET): $(ELF)
 	$(OC) $< -O binary $@
+
+$(LIBKERN): $(LIBKERN_OBJS)
+	$(AR) rs $@ $^
 
 $(ELF): $(LIBUSPI) $(OBJS) $(LINKER)
 	$(CC) $(CFLAGS) $(HARDWARE) $(BIN_CFLAGS) \
@@ -91,6 +100,9 @@ $(BUILD)%.o: $(BUILD)%.cpp $(BUILD)
 
 $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
+
+$(BUILD)startup.o: $(SOURCE)startup.cpp $(BUILD)
+	$(CC) $(CFLAGS) -Wno-pedantic $(HARDWARE) -c $< -o $@
 
 $(BUILD):
 	mkdir $@
@@ -128,6 +140,6 @@ checkinstall:
 
 clean:
 	rm -rf $(BUILD)
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(LIBKERN)
 	make -C $(LIBUSPI_DIR) clean
 	rm -f $(LIBUSPI_CFG)

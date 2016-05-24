@@ -1,10 +1,15 @@
 #include "exec_context.h"
+#include "svc.h"
+
+int main(int, char**);
 
 extern "C" {
 
 int _stdin_socket;
 int _stdout_socket;
-void* _start(void* args) {
+
+__attribute__((section(".init")))
+void _start(void* args) {
 	execution_context *ec = (execution_context*)args;
 	_stdin_socket = ec->stdin;
 	_stdout_socket = ec->stdout;
