@@ -6,6 +6,7 @@
 #########################################################
 
 PROJROOT=../../
+RAMFS=$(PROJROOT)initial_fs/
 
 ARM_PREFIX = arm-none-eabi
 CC = $(ARM_PREFIX)-g++
@@ -17,13 +18,15 @@ OC = $(ARM_PREFIX)-objcopy
 APPLINK = $(PROJROOT)app_link.sh
 PYTHON = python3
 
-PROGRAM=$(basename `pwd`)
+PROGRAM=$(shell basename `pwd`)
+
+LINKER=../program.ld
 
 BUILD=_build/
 SRC=./
 KERNEL_SRC=$(PROJROOT)src/
 LIBKERN_DIR=$(PROJROOT)
-TARGET=$(PROGRAM)
+TARGET=$(PROGRAM).bin
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -static \
@@ -52,4 +55,8 @@ $(BUILD):
 clean:
 	rm -rf $(BUILD)
 	rm -f $(TARGET)
+
+install: $(TARGET) $(RAMFS)
+	mkdir -p $(RAMFS)bin/
+	cp $(TARGET) $(RAMFS)bin/$(PROGRAM)
 
