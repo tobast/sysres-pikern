@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 input_folder = "./initial_fs"
-output_file = "./src/fs_populator.cpp"
+output_file = "./_build/fs_populator.cpp"
 
 import os
 

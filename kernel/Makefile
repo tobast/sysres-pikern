@@ -11,6 +11,7 @@ LD = $(ARM_PREFIX)-ld
 AS = $(ARM_PREFIX)-as
 OD = $(ARM_PREFIX)-objdump
 OC = $(ARM_PREFIX)-objcopy
+PYTHON = python3
 
 SDCARD_DEVICE = /dev/mmcblk0p1
 
@@ -55,6 +56,10 @@ OBJS = \
 		$(BUILD)fs_populator.o \
 		$(BUILD)svc.o
 
+FS_POPULATOR_GEN = fs_populator.py
+FS_POPULATOR = fs_populator.cpp
+FS_INIT = initial_fs
+
 LIBUSPI=uspi/lib/libuspi.a
 LIBUSPI_CFG=uspi/Config.mk
 LIBUSPI_DIR=uspi/lib/
@@ -75,7 +80,13 @@ $(ELF): $(LIBUSPI) $(OBJS) $(LINKER)
 		-T $(LINKER) \
 		-o $@
 
+$(BUILD)$(FS_POPULATOR): $(FS_POPULATOR_GEN) $(FS_INIT) $(BUILD)
+	$(PYTHON) $(FS_POPULATOR_GEN)
+
 $(BUILD)init.o: $(SOURCE)init.s $(BUILD)
+	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
+
+$(BUILD)%.o: $(BUILD)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
 
 $(BUILD)%.o: $(SOURCE)%.cpp $(BUILD)
