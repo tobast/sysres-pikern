@@ -36,10 +36,12 @@ def file_to_string(name):
 	return len(d), dump_bytes(d)
 
 def dump_string(d):
-	return '"' + ''.join(c if 32 <= ord(c) <= 126 and c != '"' and c != '\\' else "\\x%02x"%ord(c) for c in d) + '"'
+	#return '"' + ''.join(c if 32 <= ord(c) <= 126 and c != '"' and c != '\\' else "\\x%02x"%ord(c) for c in d) + '"'
+	return '"' + ''.join("\\x%02x"%ord(c) for c in d) + '"'
 
 def dump_bytes(d):
-	return '"' + ''.join(chr(c) if 32 <= c <= 126 and c != ord('"') and c != ord('\\') else "\\x%02x"%c for c in d) + '"'
+	#return '"' + ''.join(chr(c) if 32 <= c <= 126 and c != ord('"') and c != ord('\\') else "\\x%02x"%c for c in d) + '"'
+	return '"' + ''.join("\\x%02x"%c for c in d) + '"'
 
 
 out = prelude
