@@ -30,10 +30,10 @@ public:
 		nbElem++;
 	}
 
-	const T& pop() {
+	T pop() {
 		if(nbElem == 0)
 			throw Empty();
-		const T& val = data[beg];
+		T val = data[beg];
 		beg = (beg+1)%phySize;
 		nbElem--;
 		if(phySize/3 > nbElem)
@@ -50,6 +50,9 @@ public:
 
 	unsigned size() const {
 		return nbElem;
+	}
+	bool empty() const {
+		return size() == 0;
 	}
 	unsigned capacity() const {
 		return phySize;
