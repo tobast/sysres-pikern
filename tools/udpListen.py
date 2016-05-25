@@ -6,6 +6,7 @@ import sys
 import threading
 
 addr,port = "",3141
+SEND_PORT = 3141
 if len(sys.argv) > 1:
     if len(sys.argv) > 2:
         port = int(argv[2])
@@ -26,6 +27,18 @@ def nextColorBar():
             COLOR_RESET)
     nextBgColor = (nextBgColor+1)%len(BG_COLORS)
 
+class Sender(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.sock = None
+        self.addr = None
+    def run(self):
+        while True:
+            data = input()
+            if self.sock == None or self.addr == None:
+                continue
+            self.sock.sendto(data.encode('utf-8'), self.addr)
+
 class LogDump(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -33,10 +46,14 @@ class LogDump(threading.Thread):
         global addr,port
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind((addr,port))
+        sender = Sender()
+        sender.sock = sock
+        sender.start()
         print("Listening on {}:{}...".format(addr,port))
         while True:
             data,addr = sock.recvfrom(4096)
             if(data == b'=PIKERN Hey, listen!='):
+                sender.addr = (addr[0], SEND_PORT)
                 sock.sendto(b"RPi", addr)
                 time=datetime.datetime.now().strftime('%H:%M:%S')
                 nextColorBar()
