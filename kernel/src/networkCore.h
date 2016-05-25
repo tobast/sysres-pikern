@@ -10,6 +10,7 @@
 #include "icmp.h"
 #include "ipv4.h"
 #include "queue.h"
+#include "genericSocket.h"
 #include <uspi.h>
 
 namespace nw {
@@ -24,6 +25,13 @@ namespace nw {
 	 * [headBeg]th byte, ending to its [headEnd-1]th byte, and adding
 	 * [firstShort] to the sum, if provided.
 	 **/
+
+	GenericSocket* bindUdpPort(uint16_t port);
+	/** Binds the given UDP port to a socket, returned by the function.
+	 * The returned socket is NULL if the port is already bound.
+	 **/
+
+	// TODO closeUdpPort
 
 	Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac,
 			uint16_t etherType = ETHERTYPE_IPV4);

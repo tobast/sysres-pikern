@@ -6,6 +6,8 @@ namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
 
+GenericSocket* portLinks[1<<16];
+
 void processPacket(Bytes frame) {
 	HwAddr toMac, fromMac;
 	uint16_t etherType;
@@ -36,13 +38,27 @@ void processPacket(Bytes frame) {
 				case 0x11: { // UDP
 					udp::PckInfos infos = udp::extractUdpHeader(frame,
 							ipv4Info);
-					if(infos.dataSize != 3 || infos.toPort != 2)
+
+					if(infos.toPort == 2) { // Logger
+						if(infos.dataSize != 3)
+							break;
+						char c1,c2,c3;
+						frame >> c1 >> c2 >> c3;
+						if(c1 == 'R' && c2 == 'P' && c3 == 'i')
+							logger::addListener(infos.fromAddr);
 						break;
-					char c1,c2,c3;
-					frame >> c1 >> c2 >> c3;
-					if(c1 == 'R' && c2 == 'P' && c3 == 'i')
-						logger::addListener(infos.fromAddr);
-					break;
+					}
+
+					else {
+						if(portLinks[infos.toPort] == NULL)
+							return; // No bound socket, dropping.
+						static void* buffer = NULL;
+						if(buffer == NULL)
+							buffer = malloc(USPI_FRAME_BUFFER_SIZE);
+						frame.writeToBuffer(buffer);
+						portLinks[infos.toPort]->write(buffer, frame.size(),
+								true);
+					}
 					}
 				default: // not supported
 					break; // drop.
@@ -59,6 +75,15 @@ void processPacket(Bytes frame) {
 			break;
 		}
 	}
+}
+
+GenericSocket* bindUdpPort(uint16_t port) {
+	if(portLinks[port] != NULL || port < 16)
+		return NULL;
+	GenericSocket* out = (GenericSocket*) malloc(sizeof(GenericSocket));
+	*out = GenericSocket(true);
+	portLinks[port] = out;
+	return out;
 }
 
 uint16_t networkChksum(const Bytes& b, unsigned headBeg, unsigned headEnd,
