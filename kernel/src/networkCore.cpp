@@ -81,7 +81,7 @@ GenericSocket* bindUdpPort(uint16_t port) {
 	if(portLinks[port] != NULL || port < 16)
 		return NULL;
 	GenericSocket* out = (GenericSocket*) malloc(sizeof(GenericSocket));
-	*out = GenericSocket(true);
+	*out = GenericSocket(false);
 	portLinks[port] = out;
 	return out;
 }

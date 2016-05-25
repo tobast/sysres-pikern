@@ -9,6 +9,7 @@
 #include "uspi_interface.h"
 #include "malloc.h"
 #include "expArray.h"
+#include "genericSocket.h"
 #include "gpio.h" // FIXME DEBUG
 
 struct context {
@@ -139,44 +140,60 @@ int free_process = 1;
 const int SOCKET_BUFFER_SIZE = 2048;
 //const int MAX_SOCKETS = 128;
 // TODO: file/socket descriptor table
-struct socket {
-	int start;
-	int length;
-	char buffer[SOCKET_BUFFER_SIZE];
-};
-ExpArray<socket> sockets;
-int free_socket = 0;
+//struct socket {
+//	int start;
+//	int length;
+//	char buffer[SOCKET_BUFFER_SIZE];
+//x};
+ExpArray<GenericSocket*> sockets;
+//int free_socket = 0;
 //socket sockets[MAX_SOCKETS];
 //pool_allocator<MAX_SOCKETS, socket, sockets> sockets_allocator;
 //int free_socket = 0;
 //socket sockets[MAX_SOCKETS];
 
-int create_socket() {
+int create_socket(GenericSocket *s) {
 	//int i = sockets_allocator.alloc();
-	int i = free_socket;
-	if (i >= (int)sockets.size()) {
-		socket sock;
-		sock.start = 0;
-		sock.length = 0;
-		sockets.push_back(sock);
-		free_socket = i + 1;
-		return i;
-	}
+	//int i = free_socket;
+	//if (i >= (int)sockets.size()) {
+	//	socket sock;
+	//	sock.start = 0;
+	//	sock.length = 0;
+	//	sockets.push_back(sock);
+	//	free_socket = i + 1;
+	//	return i;
+	//}
 	//assert (i < MAX_SOCKETS);
-	free_socket = sockets[i].start;
-	sockets[i].start = 0;
-	sockets[i].length = 0;
+	if (s == NULL) {
+		GenericSocket *s = (GenericSocket*)malloc(sizeof(GenericSocket));
+		*s = GenericSocket(true);
+	}
+	for (unsigned i = 0; i < sockets.size(); i++) {
+		if (sockets[i] == NULL) {
+			sockets[i] = s;
+			return i;
+		}
+	}
+	unsigned i = sockets.size();
+	sockets.push_back(s);
 	return i;
+//	free_socket = sockets[i].start;
+//	sockets[i].start = 0;
+//	sockets[i].length = 0;
+//	return i;
 }
 
 void close_socket(int i) {
 	// TODO: processes that use that socket
 	// --> file descriptors table?
 	// sockets_allocator.dealloc(i);
-	sockets[i].start = free_socket;
-	free_socket = i;
+	//sockets[i].start = free_socket;
+	//free_socket = i;
+	// TODO: free memory... but sockets have no free method
+	sockets[i] = NULL;
 }
 
+/*
 int sread(int i, void* addr, int num) {
 	int do_read = min(sockets[i].length, num);
 	int index = sockets[i].start;
@@ -191,7 +208,9 @@ int sread(int i, void* addr, int num) {
 	sockets[i].length -= do_read;
 	return do_read;
 }
+*/
 
+/*
 int swrite(int i, void* addr, int num) {
 	int do_write = min(SOCKET_BUFFER_SIZE - sockets[i].length, num);
 	int index = (sockets[i].start + sockets[i].length) % SOCKET_BUFFER_SIZE;
@@ -205,6 +224,7 @@ int swrite(int i, void* addr, int num) {
 	sockets[i].length += do_write;
 	return do_write;
 }
+*/
 
 void reset_timer() {
 	hardware::ARM_TIMER[3] = 0;
@@ -251,13 +271,12 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			int socket = (int)current_context->r0;
 			void* addr = (void*)current_context->r1;
 			int size = (int)current_context->r2;
-			int num_read = sread(socket, addr, size);
-			if (num_read > 0) {
-				current_context->r0 = num_read;
-			} else {
+			if (sockets[socket]->isEmpty()) {
 				processes[active_process].process_state = PROCESS_WAIT_READ;
 				go_next_process(current_context);
 				reset_timer();
+			} else {
+				current_context->r0 = sockets[socket]->read(addr, size);
 			}
 			return;
 		}
@@ -265,13 +284,12 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			int socket = (int)current_context->r0;
 			void* addr = (void*)current_context->r1;
 			int size = (int)current_context->r2;
-			int num_written = swrite(socket, addr, size);
-			if (num_written > 0) {
-				current_context->r0 = num_written;
-			} else {
+			if (sockets[socket]->isFull()) {
 				processes[active_process].process_state = PROCESS_WAIT_WRITE;
 				go_next_process(current_context);
 				reset_timer();
+			} else {
+				current_context->r0 = sockets[socket]->write(addr, size);
 			}
 			return;
 		}
@@ -329,11 +347,11 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			reset_timer();
 		}
 		case SVC_READY_READ: {
-			current_context->r0 = (sockets[current_context->r0].length > 0);
+			current_context->r0 = !(sockets[current_context->r0]->isEmpty());
 			return;
 		}
 		case SVC_READY_WRITE: {
-			current_context->r0 = (sockets[current_context->r0].length < SOCKET_BUFFER_SIZE);
+			current_context->r0 = !(sockets[current_context->r0]->isFull());
 			return;
 		}
 		case SVC_PROCESS_ALIVE: {
@@ -364,7 +382,7 @@ void init_process_table() {
 	//	processes[i].process_state = PROCESS_INEXISTANT;
 	//}
 	
-	free_socket = 0;
+	//free_socket = 0;
 	sockets.init();
 	//for (int i = 0; i < MAX_SOCKETS; i++) {
 	//	sockets[i].start = i + 1;
@@ -436,11 +454,11 @@ bool ready(int i) {
 		}
 		case PROCESS_WAIT_READ: {
 			int sock = processes[i].cont.r0;
-			if (sockets[sock].length > 0) {
+			if (!sockets[sock]->isEmpty()) {
 				// TODO: quand y'aura le MMU, danger...
-				int num_read = sread(sock, (void*)processes[i].cont.r1,
-				                                  processes[i].cont.r2);
-			    assert(num_read > 0, 0);
+				int num_read = sockets[sock]->read(
+						(void*)processes[i].cont.r1,
+				        processes[i].cont.r2);
 				processes[i].cont.r0 = num_read;
 				processes[i].process_state = PROCESS_ACTIVE;
 				return true;
@@ -450,11 +468,11 @@ bool ready(int i) {
 		}
 		case PROCESS_WAIT_WRITE: {
 			int sock = processes[i].cont.r0;
-			if (sockets[sock].length < SOCKET_BUFFER_SIZE) {
+			if (sockets[sock]->isFull()) {
 				// TODO: quand y'aura le MMU, danger...
-				int num_written = swrite(sock, (void*)processes[i].cont.r1,
-				                                      processes[i].cont.r2);
-			    assert(num_written > 0, 0);
+				int num_written = sockets[sock]->write(
+						(void*)processes[i].cont.r1,
+				        processes[i].cont.r2);
 				processes[i].cont.r0 = num_written;
 				processes[i].process_state = PROCESS_ACTIVE;
 				return true;

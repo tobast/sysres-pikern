@@ -101,13 +101,13 @@ void kernel_run(void*) {
 
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
-	int stdin_socket = create_socket();
+	int stdin_socket = create_socket(nw::bindUdpPort(3141));
 	int stdout_socket = create_socket();
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
 	ec->argc = 0;
 	ec->argv = NULL;
-	node *file = follow_path("bin/hello");
+	node *file = follow_path("bin/cat");
 	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
 	assert(u != -1, 0x9a);

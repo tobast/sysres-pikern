@@ -2,11 +2,12 @@
 
 #include "common.h"
 #include "expArray.h"
+#include "genericSocket.h"
 
 void init_process_table();
 
 // Create a new socket
-int create_socket();
+int create_socket(GenericSocket *s = NULL);
 
 // Close the socket number i
 void close_socket(int i);
