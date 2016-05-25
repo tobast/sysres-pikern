@@ -10,6 +10,7 @@
 #include "malloc.h"
 #include "expArray.h"
 #include "genericSocket.h"
+#include "filesystem.h"
 #include "gpio.h" // FIXME DEBUG
 
 struct context {
@@ -359,6 +360,37 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			pstate state = processes[pid].process_state;
 			current_context->r0 = (state != PROCESS_INEXISTANT) &&
 			                      (state != PROCESS_ZOMBIE);
+			return;
+		}
+		case SVC_FIND_FILE: {
+			current_context->r0 = (s32)follow_path((const char*)
+				current_context->r0);
+			return;
+		}
+		case SVC_FILE_SIZE: {
+			node *nd = (node*)current_context->r0;
+			if (nd->type != NODE_FILE) {
+				current_context->r0 = -1;
+				return;
+			}
+			current_context->r0 = nd->node_file->data.size();
+			return;
+		}
+		case SVC_FILE_READ: {
+			node *nd = (node*)current_context->r0;
+			if (nd->type != NODE_FILE) {
+				current_context->r0 = 0;
+				return;
+			}
+			int offset = current_context->r1;
+			char *addr = (char*)current_context->r2;
+			int length = current_context->r3;
+			int actual_read = min(length, ((int)nd->node_file->data.size()) - offset);
+			char *dt = &nd->node_file->data[offset];
+			for (int i = 0; i < actual_read; i++) {
+				addr[i] = dt[i];
+			}
+			current_context->r0 = actual_read;
 			return;
 		}
 		default:

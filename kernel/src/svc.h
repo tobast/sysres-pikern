@@ -14,7 +14,10 @@ enum svcs {
 	SVC_WAIT = 9,
 	SVC_READY_READ = 10,
 	SVC_READY_WRITE = 11,
-	SVC_PROCESS_ALIVE = 12
+	SVC_PROCESS_ALIVE = 12,
+	SVC_FIND_FILE = 13,
+	SVC_FILE_SIZE = 14,
+	SVC_FILE_READ = 15
 };
 
 extern "C" {
@@ -35,5 +38,8 @@ int wait(int pid);
 int is_ready_read(int fd);
 int is_ready_write(int fd);
 int is_process_alive(int pid);
+int find_file(const char* name);
+int file_size(int file);
+int file_read(int file, int offset, void* addr, int length);
 
 }
