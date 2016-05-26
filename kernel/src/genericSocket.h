@@ -55,9 +55,11 @@ class GenericSocket {
 		bool isEmpty();
 		bool isBlocking();
 
-		Queue<uint8_t> data, delims;
 	private:
 		bool blocking;
 		unsigned maxSize, sinceLastDelim;
+
+		Queue<uint8_t> data;
+		Queue<unsigned> delims;
 };
 
