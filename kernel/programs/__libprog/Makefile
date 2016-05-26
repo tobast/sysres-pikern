@@ -6,7 +6,6 @@
 #########################################################
 
 PROJROOT=../../
-RAMFS=$(PROJROOT)initial_fs/
 
 ARM_PREFIX = arm-none-eabi
 CC = $(ARM_PREFIX)-g++
@@ -18,34 +17,27 @@ OC = $(ARM_PREFIX)-objcopy
 APPLINK = ../app_link.sh
 PYTHON = python3
 
-PROGRAM=$(shell basename `pwd`)
-
-LINKER=../program.ld
-
 BUILD=_build/
 SRC=./
 KERNEL_SRC=$(PROJROOT)src/
 LIBKERN_DIR=$(PROJROOT)
-TARGET=$(PROGRAM).bin
+TARGET=libprog.a
 
 CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -fPIC \
 	-mpic-data-is-text-relative \
-	-I $(SRC) -I $(KERNEL_SRC) -I ../__libprog
-CLIBS = -L$(LIBKERN_DIR) -L../__libprog -lkern -lprog
+	-I $(SRC) -I $(KERNEL_SRC)
+CLIBS = -L$(LIBKERN_DIR) -lkern
 BIN_CFLAGS= --specs=nosys.specs
 
 #### PUT HERE ANY ADDITIONAL OBJECT THAT NEEDS COMPILATION! ###################
-OBJS=$(BUILD)$(PROGRAM).o
+OBJS=$(BUILD)io.o
 ###############################################################################
 
 all: $(TARGET)
 
-$(TARGET): $(BUILD)$(PROGRAM).elf $(BUILD)
-	$(APPLINK) $< $@
-
-$(BUILD)$(PROGRAM).elf: $(OBJS) $(BUILD)
-	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(CLIBS) $(OBJS) -T $(LINKER) -o $@
+$(TARGET): $(OBJS)
+	$(AR) rs $@ $^
 
 $(BUILD)%.o: $(SRC)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -56,8 +48,4 @@ $(BUILD):
 clean:
 	rm -rf $(BUILD)
 	rm -f $(TARGET)
-
-install: $(TARGET) $(RAMFS)
-	mkdir -p $(RAMFS)bin/
-	cp $(TARGET) $(RAMFS)bin/$(PROGRAM)
 
