@@ -106,8 +106,13 @@ void kernel_run(void*) {
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
 	ec->argc = 1;
-	ec->argv = (const char**)(malloc(2 * sizeof(const char*)));
-	ec->argv[1] = "Balances.z5";
+	ec->argv = (char**)(malloc(2 * sizeof(const char*)));
+	const char* filename = "Balances.z5";
+	const int len = str_len(filename);
+	ec->argv[1] = (char*)(malloc(len));
+	for (int i = 0; i < len; i++) {
+		ec->argv[1][i] = filename[i];
+	}
 	node *file = follow_path("bin/zmachine");
 	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
