@@ -17,7 +17,11 @@ enum svcs {
 	SVC_PROCESS_ALIVE = 12,
 	SVC_FIND_FILE = 13,
 	SVC_FILE_SIZE = 14,
-	SVC_FILE_READ = 15
+	SVC_FILE_READ = 15,
+	SVC_NB_PROCESSES = 16,
+	SVC_GET_PROCESSES = 17,
+	SVC_GET_PROCESS_NAME = 18,
+	SVC_GET_PROCESS_STATE = 19
 };
 
 extern "C" {
@@ -41,5 +45,9 @@ int is_process_alive(int pid);
 int find_file(const char* name);
 int file_size(int file);
 int file_read(int file, int offset, void* addr, int length);
+int nb_processes();
+int get_processes(int* data, int max_processes);
+void get_process_name(int pid, char* name);
+char get_process_state(int pid);
 
 }

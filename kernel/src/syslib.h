@@ -54,4 +54,19 @@ int file_size(int file);
 // Reads up to length bytes of data in file file, at offset offset.
 int file_read(int file, int offset, void* addr, int length);
 
+// Gets the number of active processes.
+int nb_processes();
+
+// Get the PIDs of all processes in data, with a maximum number
+// of max_processes processes.
+// Returns the number of processes actually written.
+int get_processes(int* data, int max_processes);
+
+// Writes the name of process with PID pid in name.
+// name should be at least 32 bytes long.
+void get_process_name(int pid, char* name);
+
+// Returns the state of process pid.
+char get_process_state(int pid);
+
 }

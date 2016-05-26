@@ -48,13 +48,14 @@ enum pstate {
 	PROCESS_WAITING
 };
 
+const int PNAME_MAX_SIZE = 32;
 struct process {
 	context cont;
 	int next_process;
 	int previous_process;
 	pstate process_state;
 	u64 state_info;
-	char process_name[32];
+	char process_name[PNAME_MAX_SIZE];
 };
 
 const int NUMBER_INTERRUPTS = 64;
@@ -391,6 +392,46 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 				addr[i] = dt[i];
 			}
 			current_context->r0 = actual_read;
+			return;
+		}
+		case SVC_NB_PROCESSES: {
+			int r = 0;
+			for (unsigned i = 0; i < processes.size(); i++) {
+				pstate state = processes[i].process_state;
+				if (state != PROCESS_INEXISTANT && state != PROCESS_ZOMBIE) {
+					r++;
+				}
+			}
+			current_context->r0 = r;
+			return;
+		}
+		case SVC_GET_PROCESSES: {
+			int* data = (int*)current_context->r0;
+			int maxp = current_context->r1;
+			int index = 0;
+			for (unsigned i = 0; i < processes.size(); i++) {
+				pstate state = processes[i].process_state;
+				if (state != PROCESS_INEXISTANT && state != PROCESS_ZOMBIE) {
+					data[index++] = i;
+					if (index == maxp) {
+						break;
+					}
+				}
+			}
+			current_context->r0 = index;
+			return;
+		}
+		case SVC_GET_PROCESS_NAME: {
+			int pid = current_context->r0;
+			const char* name = process_name(pid);
+			for (int i = 0; i < PNAME_MAX_SIZE; i++) {
+			    ((char*)current_context->r1)[i] = name[i];
+			}
+			return;
+		}
+		case SVC_GET_PROCESS_STATE: {
+			current_context->r0 = (int)(unsigned char)
+				process_state(current_context->r0);
 			return;
 		}
 		default:

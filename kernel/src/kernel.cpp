@@ -114,16 +114,19 @@ void kernel_run(void*) {
 	// TODO: recognize EOF
 	while (true) {
 		char buffer[257];
-		int n = read(stdout_socket, (void*)buffer, 256);
-		buffer[n] = '\0';
-		appendLog(LogDebug, "main", buffer);
-	}
-	wait(u);
+		if (is_ready_read(stdout_socket)) {
+			int n = read(stdout_socket, (void*)buffer, 256);
+			buffer[n] = '\0';
+			appendLog(LogDebug, "main", buffer);
+		} else if (!is_process_alive(u)) {
+			break;
+		} else {
+			sleep(200);
+	    }
+	}	
+	appendLog(LogDebug, "dbg", "Process finished!");
 
-	// Fixme: replace that with a clean exit call
-	while (1) {
-		asm volatile ("wfi");
-	}
+	exit(0);
 }
 
 void kernel_main(void) {
