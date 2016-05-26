@@ -133,7 +133,8 @@ void kernel_run(void*) {
 		} else {
 			sleep(200);
 	    }
-	}	
+	}
+	wait(u);
 	appendLog(LogDebug, "dbg", "Process finished!");
 
 	exit(0);

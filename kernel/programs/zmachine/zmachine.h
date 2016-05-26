@@ -1,4 +1,5 @@
 #include "syslib.h"
+#include "proglib.h"
 #include <cstdint>
 
 //#define DEBUG(x) x

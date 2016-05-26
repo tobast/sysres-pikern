@@ -772,7 +772,8 @@ void read_file(char* file)
 {
 	int src = find_file(file);
 	if (src == 0) {
-		return;
+		printf("Error: file %s not found", file);
+		exit(1);
 	}
 
 	int size = file_size(src);
