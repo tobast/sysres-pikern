@@ -72,6 +72,7 @@ class LogDump(threading.Thread):
 
             if(addr[1] != from_port): # Wrong incoming port
                 continue
+            sender.addr = (addr[0], send_port)
             print(data.decode('utf-8'), end='')
 
 logDump = LogDump()

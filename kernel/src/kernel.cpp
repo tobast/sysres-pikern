@@ -117,7 +117,7 @@ void kernel_run(void*) {
 	for (int i = 0; i < len; i++) {
 		ec->argv[1][i] = filename[i];
 	}
-	node *file = follow_path("bin/cat");
+	node *file = follow_path("bin/zmachine");
 	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
 	assert(u != -1, 0x9a);
