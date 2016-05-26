@@ -12,8 +12,6 @@ typedef uint16_t u16;
 typedef int16_t s16;
 typedef uint32_t u32;
 
-u8* default_alphabet_table;
-
 class Screen {
 	u8 current_window;
 	u8 current_style;
