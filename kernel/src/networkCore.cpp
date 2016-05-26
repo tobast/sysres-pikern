@@ -105,7 +105,6 @@ Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac, uint16_t etherType) {
 }
 
 Ipv4Addr getEthAddr() {
-	return 0x0a00000f; // FIXME TOO
 	return 0x81c79dae; // FIXME
 }
 
