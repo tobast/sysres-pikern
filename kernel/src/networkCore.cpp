@@ -57,7 +57,7 @@ void processPacket(Bytes frame) {
 						if(buffer == NULL)
 							buffer = malloc(USPI_FRAME_BUFFER_SIZE);
 						frame.writeToBuffer(buffer, infos.dataSize);
-						portLinks[infos.toPort]->write(buffer, frame.size(),
+						portLinks[infos.toPort]->write(buffer, infos.dataSize,
 								infos.fromAddr, infos.fromPort);
 					}
 					}

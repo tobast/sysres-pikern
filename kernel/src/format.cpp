@@ -104,6 +104,9 @@ void formatToBytes(Bytes& dest, const char* fmt, va_list args) {
 					case 's':
 						dest << va_arg(args, const char*);
 						break;
+					case 'c':
+						dest << (char)va_arg(args, int);
+						break;
 					case 'M': // MAC address
 						toMacAddr(dest, va_arg(args, HwAddr));
 						break;
