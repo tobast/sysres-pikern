@@ -50,7 +50,7 @@ for dirpath, dirnames, filenames in os.walk(input_folder):
 	ad = dirpath[len(input_folder):]
 	varname = "fsroot" + ad.replace("/", "__")
 	for fname in filenames:
-		vvname = varname + "___" + fname
+		vvname = varname + "___" + (fname.replace('.','_'))
 		rname = os.path.join(dirpath, fname)
 		k, s = file_to_string(rname)
 		assert (len(fname) <= 31)

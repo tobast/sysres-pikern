@@ -103,7 +103,7 @@ void kernel_run(void*) {
 
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
-	int stdin_socket = create_socket(nw::bindUdpPort(3141));
+	int stdin_socket = create_socket(nw::bindUdpPort(4042));
 	int stdout_socket = create_socket();
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
