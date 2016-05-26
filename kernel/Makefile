@@ -66,6 +66,7 @@ OBJS = \
 FS_POPULATOR_GEN = fs_populator.py
 FS_POPULATOR = fs_populator.cpp
 FS_INIT = initial_fs
+PROGRAMS_DIR = programs
 
 LIBUSPI=uspi/lib/libuspi.a
 LIBUSPI_CFG=uspi/Config.mk
@@ -90,8 +91,12 @@ $(ELF): $(LIBUSPI) $(OBJS) $(LINKER)
 		-T $(LINKER) \
 		-o $@
 
-$(BUILD)$(FS_POPULATOR): $(FS_POPULATOR_GEN) $(FS_INIT) $(BUILD)
+$(BUILD)$(FS_POPULATOR): $(FS_POPULATOR_GEN) $(FS_INIT) $(BUILD) prgm_build
 	$(PYTHON) $(FS_POPULATOR_GEN)
+
+.PHONY: prgm_build
+prgm_build: $(LIBKERN)
+	make -C $(PROGRAMS_DIR) install
 
 $(BUILD)init.o: $(SOURCE)init.s $(BUILD)
 	$(CC) $(CFLAGS) $(HARDWARE) -c $< -o $@
