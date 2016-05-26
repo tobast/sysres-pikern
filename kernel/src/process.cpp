@@ -166,7 +166,7 @@ int create_socket(GenericSocket *s) {
 	//}
 	//assert (i < MAX_SOCKETS);
 	if (s == NULL) {
-		GenericSocket *s = (GenericSocket*)malloc(sizeof(GenericSocket));
+		s = (GenericSocket*)malloc(sizeof(GenericSocket));
 		*s = GenericSocket(true);
 	}
 	for (unsigned i = 0; i < sockets.size(); i++) {
