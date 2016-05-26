@@ -39,7 +39,7 @@ class Sender(threading.Thread):
         self.addr = None
     def run(self):
         while True:
-            data = input()
+            data = input() + '\n'
             if self.sock == None or self.addr == None:
                 continue
             self.sock.sendto(data.encode('utf-8'), self.addr)
