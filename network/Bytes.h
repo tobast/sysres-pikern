@@ -59,9 +59,10 @@ class Bytes {
 		/// Extracts a sub-bytes, beginning at character [beg], containing
 		/// [len] chars. If [beg+len] >= [size()], throws OutOfRange.
 		
-		void writeToBuffer(void* buff) const;
+		void writeToBuffer(void* buff, unsigned maxLen=0) const;
 		/// Writes the contents of this array in the buffer [buff].
 		/// The user must provide a buffer of at least [size()] bytes.
+		/// If [maxLen] != 0, writes at most [maxLen] bytes to buff.
 	
 		void hexdump(Bytes& dest) const;
 		/// Dumps the packet to [dest] in hexadecimal form.

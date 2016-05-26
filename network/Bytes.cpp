@@ -109,8 +109,10 @@ Bytes Bytes::sub(size_t beg, size_t len) const {
 	return out;
 }
 
-void Bytes::writeToBuffer(void* buff) const {
-	for(size_t pos=0; pos < size(); pos++)
+void Bytes::writeToBuffer(void* buff, unsigned maxLen) const {
+	if(maxLen == 0)
+		maxLen = size();
+	for(size_t pos=0; pos < min(maxLen, size()); pos++)
 		((uint8_t*)buff)[pos] = at(pos);
 }
 
