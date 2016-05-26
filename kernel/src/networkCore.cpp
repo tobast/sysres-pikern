@@ -7,7 +7,7 @@ namespace nw {
 
 const unsigned PACKET_TRIES_TIMEOUT = 1000; // 0.1s
 
-GenericSocket* portLinks[1<<16];
+UdpSocket* portLinks[1<<16];
 
 void processPacket(Bytes frame) {
 	HwAddr toMac, fromMac;
@@ -58,7 +58,7 @@ void processPacket(Bytes frame) {
 							buffer = malloc(USPI_FRAME_BUFFER_SIZE);
 						frame.writeToBuffer(buffer);
 						portLinks[infos.toPort]->write(buffer, frame.size(),
-								true);
+								infos.fromAddr, infos.fromPort);
 					}
 					}
 				default: // not supported
@@ -78,13 +78,23 @@ void processPacket(Bytes frame) {
 	}
 }
 
-GenericSocket* bindUdpPort(uint16_t port) {
+UdpSocket* bindUdpPort(uint16_t port) {
 	if(portLinks[port] != NULL || port < 16)
 		return NULL;
-	GenericSocket* out = (GenericSocket*) malloc(sizeof(GenericSocket));
-	*out = GenericSocket(false);
+	UdpSocket* out = (UdpSocket*) malloc(sizeof(UdpSocket));
+	*out = UdpSocket(false);
 	portLinks[port] = out;
 	return out;
+}
+
+void readUdpSocket(UdpSocket* handle, void* buff, unsigned maxLen,
+		UdpSysRead* out)
+{
+	UdpSocket::PckInfo info;
+	unsigned len = handle->read(buff, maxLen, info);
+	out->len = len;
+	out->fromAddr = info.fromAddr;
+	out->fromPort = info.fromPort;
 }
 
 uint16_t networkChksum(const Bytes& b, unsigned headBeg, unsigned headEnd,

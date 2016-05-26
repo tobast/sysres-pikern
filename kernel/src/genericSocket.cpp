@@ -5,11 +5,14 @@ GenericSocket::GenericSocket(bool blockingState, unsigned maxSize) :
 	blocking(blockingState), maxSize(maxSize), sinceLastDelim(0)
 {}
 
-unsigned GenericSocket::write(const void* inData, unsigned len, bool addDelim)
+unsigned GenericSocket::write(const void* inData, unsigned len, bool addDelim,
+		bool writeWhole)
 {
 	if(len == 0)
 		return 0;
 	unsigned actualLen = min(len, maxSize - data.size());
+	if(writeWhole && actualLen != len)
+		return 0;
 
 	// Force at least one loop turn, to run writeByte's checks
 	for(unsigned pos=0; pos < max(1u, actualLen); pos++)
@@ -32,7 +35,7 @@ void GenericSocket::writeDelimiter() {
 	sinceLastDelim = 0;
 }
 
-unsigned GenericSocket::read(void* buff, unsigned maxSize) {
+unsigned GenericSocket::read(void* buff, unsigned maxSize, bool* atDelim) {
 	unsigned len = min(maxSize, data.size());
 	if(!delims.empty() && delims.front() == 0)
 		delims.pop();
@@ -40,11 +43,15 @@ unsigned GenericSocket::read(void* buff, unsigned maxSize) {
 	for(unsigned pos=0; pos < len; pos++) {
 		if(!delims.empty() && delims.front() == 0) {
 			delims.pop();
+			if(atDelim != NULL)
+				*atDelim = true;
 			return pos;
 		}
 		((uint8_t*)buff)[pos] = readByte();
 	}
 
+	if(atDelim != NULL)
+		*atDelim = false;
 	return len;
 }
 uint8_t GenericSocket::readByte() {
@@ -61,13 +68,13 @@ uint8_t GenericSocket::readByte() {
 	return data.pop();
 }
 
-bool GenericSocket::isFull() {
+bool GenericSocket::isFull() const {
 	return data.size() == maxSize;
 }
-bool GenericSocket::isEmpty() {
+bool GenericSocket::isEmpty() const {
 	return data.size() == 0;
 }
-bool GenericSocket::isBlocking() {
+bool GenericSocket::isBlocking() const {
 	return blocking;
 }
 

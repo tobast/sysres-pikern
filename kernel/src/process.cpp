@@ -149,24 +149,9 @@ const int SOCKET_BUFFER_SIZE = 2048;
 //	char buffer[SOCKET_BUFFER_SIZE];
 //x};
 ExpArray<GenericSocket*> sockets;
-//int free_socket = 0;
-//socket sockets[MAX_SOCKETS];
-//pool_allocator<MAX_SOCKETS, socket, sockets> sockets_allocator;
-//int free_socket = 0;
-//socket sockets[MAX_SOCKETS];
+ExpArray<UdpSocket*> udpSockets;
 
 int create_socket(GenericSocket *s) {
-	//int i = sockets_allocator.alloc();
-	//int i = free_socket;
-	//if (i >= (int)sockets.size()) {
-	//	socket sock;
-	//	sock.start = 0;
-	//	sock.length = 0;
-	//	sockets.push_back(sock);
-	//	free_socket = i + 1;
-	//	return i;
-	//}
-	//assert (i < MAX_SOCKETS);
 	if (s == NULL) {
 		s = (GenericSocket*)malloc(sizeof(GenericSocket));
 		*s = GenericSocket(true);
@@ -180,20 +165,37 @@ int create_socket(GenericSocket *s) {
 	unsigned i = sockets.size();
 	sockets.push_back(s);
 	return i;
-//	free_socket = sockets[i].start;
-//	sockets[i].start = 0;
-//	sockets[i].length = 0;
-//	return i;
+}
+
+int create_udp_socket(UdpSocket *s) {
+	if (s == NULL) {
+		s = (UdpSocket*)malloc(sizeof(UdpSocket));
+		*s = UdpSocket(true);
+	}
+	for (unsigned i = 0; i < udpSockets.size(); i++) {
+		if (udpSockets[i] == NULL) {
+			udpSockets[i] = s;
+			return i;
+		}
+	}
+	unsigned i = udpSockets.size();
+	udpSockets.push_back(s);
+	return i;
 }
 
 void close_socket(int i) {
 	// TODO: processes that use that socket
 	// --> file descriptors table?
-	// sockets_allocator.dealloc(i);
-	//sockets[i].start = free_socket;
-	//free_socket = i;
-	// TODO: free memory... but sockets have no free method
+	(sockets[i])->GenericSocket::~GenericSocket();
+	free(sockets[i]);
 	sockets[i] = NULL;
+}
+
+void close_udp_socket(int i) {
+	// TODO same as above
+	(udpSockets[i])->UdpSocket::~UdpSocket();
+	free(udpSockets[i]);
+	udpSockets[i] = NULL;
 }
 
 /*
@@ -438,6 +440,18 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 		case SVC_SEND_UDP_PACKET: {
 			current_context->r0 = nw::sendSysPacket(
 					(UdpSysData*)current_context->r0);
+			return;
+		}
+		case SVC_BIND_UDP: {
+			current_context->r0 = (int) nw::bindUdpPort(
+					(uint16_t)current_context->r0);
+			return;
+		}
+		case SVC_READ_UDP: {
+			nw::readUdpSocket( (UdpSocket*) current_context->r0,
+					(void*) current_context->r1,
+					(unsigned) current_context->r2,
+					(UdpSysRead*) current_context->r3 );
 			return;
 		}
 		default:

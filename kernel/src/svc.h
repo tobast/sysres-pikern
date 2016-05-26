@@ -23,7 +23,9 @@ enum svcs {
 	SVC_GET_PROCESSES = 17,
 	SVC_GET_PROCESS_NAME = 18,
 	SVC_GET_PROCESS_STATE = 19,
-	SVC_SEND_UDP_PACKET = 20
+	SVC_SEND_UDP_PACKET = 20,
+	SVC_BIND_UDP = 21,
+	SVC_READ_UDP = 22
 };
 
 extern "C" {
@@ -53,5 +55,7 @@ void get_process_name(int pid, char* name);
 char get_process_state(int pid);
 
 int udp_write(UdpSysData* data);
+int udp_bind(uint16_t port);
+void udp_read(int handle, void* buff, unsigned maxLen, UdpSysRead* out);
 
 }

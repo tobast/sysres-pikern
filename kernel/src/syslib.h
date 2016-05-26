@@ -74,4 +74,12 @@ char get_process_state(int pid);
 // effectively written.
 int udp_write(UdpSysData* data);
 
+// Binds the given UDP port. Returns a socket handle, or 0 if an error occured.
+int udp_bind(uint16_t port);
+
+// Reads up to [max_len] bytes from [udpHandle] to [buff], returning
+// the address and port the packet came from, and its size.
+void udp_read(int udpHandle, void* buff, unsigned maxLen, UdpSysRead* out);
+
 }
+

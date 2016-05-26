@@ -50,6 +50,7 @@ OBJS = \
 		$(BUILD)gpio.o \
 		$(BUILD)sleep.o \
 		$(BUILD)genericSocket.o \
+		$(BUILD)udpSocket.o \
 		$(BUILD)Bytes.o \
 		$(BUILD)ipv4.o \
 		$(BUILD)udp.o \

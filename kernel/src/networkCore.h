@@ -11,6 +11,7 @@
 #include "ipv4.h"
 #include "queue.h"
 #include "genericSocket.h"
+#include "udpSocket.h"
 #include "udpSysWrite.h"
 #include <uspi.h>
 
@@ -27,10 +28,14 @@ namespace nw {
 	 * [firstShort] to the sum, if provided.
 	 **/
 
-	GenericSocket* bindUdpPort(uint16_t port);
+	UdpSocket* bindUdpPort(uint16_t port);
 	/** Binds the given UDP port to a socket, returned by the function.
 	 * The returned socket is NULL if the port is already bound.
 	 **/
+
+	void readUdpSocket(UdpSocket* handle, void* buff, unsigned maxLen,
+			UdpSysRead* out);
+	/** Reads a packet from the given UDP socket to [buff], filling [out]. */
 
 	// TODO closeUdpPort
 

@@ -16,3 +16,13 @@ struct UdpSysData {
 	unsigned len;
 };
 
+struct UdpSysRead {
+	UdpSysRead() {}
+	UdpSysRead(Ipv4Addr fromAddr, uint16_t fromPort, unsigned len) :
+		fromAddr(fromAddr), fromPort(fromPort), len(len) {}
+
+	Ipv4Addr fromAddr;
+	uint16_t fromPort;
+	unsigned len;
+};
+

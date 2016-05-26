@@ -3,14 +3,17 @@
 #include "common.h"
 #include "expArray.h"
 #include "genericSocket.h"
+#include "udpSocket.h"
 
 void init_process_table();
 
 // Create a new socket
 int create_socket(GenericSocket *s = NULL);
+int create_udp_socket(UdpSocket *s = NULL);
 
 // Close the socket number i
 void close_socket(int i);
+void close_udp_socket(int i);
 
 // Add a process before active_process
 void add_process(int i);

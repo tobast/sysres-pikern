@@ -22,7 +22,8 @@ class GenericSocket {
 		 * drop the packet.
 		 **/
 
-		unsigned write(const void* inData, unsigned len, bool addDelim=false);
+		unsigned write(const void* inData, unsigned len, bool addDelim=false,
+				bool writeWhole=false);
 		/**
 		 * Writes the first [len] bytes of [inData] to the socket. If the
 		 * socket is full, will act depending on the socket's state (see
@@ -30,6 +31,7 @@ class GenericSocket {
 		 * [len] bytes, all bytes that can be written will be.
 		 * If [addDelim] is true, [writeDelimiter()] will be called after
 		 * writing the [len] bytes.
+		 * If [writeWhole] is true, writes everything if possible, or nothing.
 		 * Returns the number of bytes actually written.
 		 **/
 		void writeByte(uint8_t v);
@@ -41,19 +43,21 @@ class GenericSocket {
 		 * concatenate two unrelated packets in one call.
 		 **/
 
-		unsigned read(void* buff, unsigned maxSize);
+		unsigned read(void* buff, unsigned maxSize, bool* atDelim=NULL);
 		/**
 		 * Tries to read at most [maxSize] bytes to [buff]. Stops on an
 		 * empty socket, or when a delimiter is encountered.
+		 * If [atDelim != NULL], sets [atDelim] to true if the reading was
+		 * stopped by a delimiter.
 		 **/
 		uint8_t readByte();
 		/** Reads a single byte from the socket. Raises [Empty] if empty.
 		 * Fails on assert if there is a delimiter at front.
 		 **/
 
-		bool isFull();
-		bool isEmpty();
-		bool isBlocking();
+		bool isFull() const;
+		bool isEmpty() const;
+		bool isBlocking() const;
 
 	private:
 		bool blocking;
