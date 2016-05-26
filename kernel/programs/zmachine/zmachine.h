@@ -5,7 +5,7 @@
 //#define DEBUG(x) x
 #define DEBUG(x)
 #define assert(x) if (!(x)) exit()
-#define NULL 0
+//#define NULL 0
 
 typedef uint8_t u8;
 typedef uint16_t u16;

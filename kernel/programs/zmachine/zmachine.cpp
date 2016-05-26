@@ -1,5 +1,7 @@
 #include "zmachine.h"
 
+#define UNUSED(expr) do { (void)(expr); } while (0)
+
 #define OP0(x) ((x)|0xb0)
 #define OP1(x) ((x)|0x80):case((x)|0x90):case((x)|0xa0)
 #define OP2(x) (x):case((x)|0x20):case((x)|0x40):case((x)|0x60):case((x)|0xc0)
@@ -25,6 +27,7 @@
   }
 #define VAR_READ_1ARG(name) \
   u16 name; \
+  UNUSED(name); \
   { u8 argtypes = pc_get_u8(); \
     assert ((argtypes & 0x3f) == 0x3f); \
 	assert ((argtypes >> 6) != 3); \
@@ -32,6 +35,7 @@
   }
 #define VAR_READ_2ARG(name1, name2) \
   u16 name1, name2; \
+  UNUSED(name1); UNUSED(name2); \
   { u8 argtypes = pc_get_u8(); \
     assert ((argtypes & 0x0f) == 0x0f); \
 	assert ((argtypes >> 6) != 3); \
@@ -204,8 +208,9 @@ void ZState::init_encoding_table() {
 	}
 }
 
+const int MAX_SIZE_BOUND = (1<<9);
 void ZState::encode(u16 addr, u8 length, u16* store_result, u8 max_size) {
-	u8 store_temp[max_size + 3]; // Easier not to check for overflows
+	u8 store_temp[MAX_SIZE_BOUND]; // Easier not to check for overflows
 	u8 index = 0;
 	for (u8 k = 0; k < length && index < max_size; k++) {
 		u8 c = get_u8(addr + k);
@@ -798,6 +803,9 @@ void init() {
 
 
 int main(int argc, char** argv) {
+	assert(argc >= 2);
+	puts("Hello, world!");
+	sleep(1000*1000);
 	printf("Trying to open file %s...\n", argv[1]);
 	sleep(1000 * 1000);
 	read_file(argv[1]);
