@@ -781,8 +781,8 @@ void read_file(char* file)
 	assert(size <= 512 * 1024);
 	u8* zstate_addr = (u8*)malloc(size * sizeof(uint8_t));
 	int index = 0;
-	int data_read = 0;
-	while ((data_read = file_read(src, index, (void*)(zstate_addr + index), size - index))) {
+	while (index < size) {
+		int data_read = file_read(src, index, (void*)(zstate_addr + index), size - index);
 		index += data_read;
 	}
 	zstate = ZState(zstate_addr, size);
@@ -798,6 +798,8 @@ void init() {
 
 
 int main(int argc, char** argv) {
+	printf("Trying to open file %s...\n", argv[1]);
+	sleep(1000 * 1000);
 	read_file(argv[1]);
 	init();
 }
