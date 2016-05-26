@@ -777,7 +777,7 @@ void read_file(char* file)
 {
 	int src = find_file(file);
 	if (src == 0) {
-		printf("Error: file %s not found", file);
+		printf("Error: file %s not found\n", file);
 		exit(1);
 	}
 
@@ -808,6 +808,16 @@ int main(int argc, char** argv) {
 	sleep(1000*1000);
 	printf("Trying to open file %s...\n", argv[1]);
 	sleep(1000 * 1000);
+
+	const char* atable =
+	 "abcdefghijklmnopqrstuvwxyz"
+	 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	" \n0123456789.,!?_#'\"/\\-:()";
+	default_alphabet_table = (u8*)(malloc(26 * 3));
+	for (int i = 0; i < 26 * 3; i++) {
+		default_alphabet_table[i] = atable[i];
+	}
+
 	read_file(argv[1]);
 	init();
 }
