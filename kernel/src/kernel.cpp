@@ -105,9 +105,10 @@ void kernel_run(void*) {
 	int stdout_socket = create_socket();
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
-	ec->argc = 0;
-	ec->argv = NULL;
-	node *file = follow_path("bin/cat");
+	ec->argc = 1;
+	ec->argv = (const char**)(malloc(2 * sizeof(const char*)));
+	ec->argv[1] = "Balances.z5";
+	node *file = follow_path("bin/zmachine");
 	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
 	assert(u != -1, 0x9a);
