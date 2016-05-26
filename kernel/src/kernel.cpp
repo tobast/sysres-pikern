@@ -127,8 +127,10 @@ void kernel_run(void*) {
 		if (is_ready_read(stdout_socket)) {
 			int n = read(stdout_socket, (void*)buffer, 256);
 			buffer[n] = '\0';
-			UdpSysData outPacket(0x0a000001, 42, 4042, buffer, n);
+			UdpSysData outPacket(0x81c79d16, 42, 4042, buffer, n); // tobast-laptop
 			udp_write(&outPacket);
+			UdpSysData outPacket2(0x81c79dac, 42, 4042, buffer, n); // wormhole
+			udp_write(&outPacket2);
 		} else if (!is_process_alive(u)) {
 			break;
 		} else {
