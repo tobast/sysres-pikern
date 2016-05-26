@@ -635,6 +635,7 @@ void ZState::run_step() {
 					break;
 				}
 				c = tolower(c);
+				DEBUG(printf("Set %X at %d\n", c, text_buffer + i + 2));
 				set_u8(text_buffer + i + 2, (u8)c);
 			}
 			set_u8(text_buffer + 1, i);
@@ -804,10 +805,6 @@ void init() {
 
 int main(int argc, char** argv) {
 	assert(argc >= 2);
-	puts("Hello, world!");
-	sleep(1000*1000);
-	printf("Trying to open file %s...\n", argv[1]);
-	sleep(1000 * 1000);
 
 	const char* atable =
 	 "abcdefghijklmnopqrstuvwxyz"

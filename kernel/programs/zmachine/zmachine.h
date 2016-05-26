@@ -2,8 +2,8 @@
 #include "proglib.h"
 #include <cstdint>
 
-//#define DEBUG(x) x
-#define DEBUG(x)
+#define DEBUG(x) x
+//#define DEBUG(x)
 #define assert(x) if (!(x)) exit()
 //#define NULL 0
 
