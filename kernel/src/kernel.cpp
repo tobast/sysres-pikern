@@ -109,10 +109,10 @@ void kernel_run(void*) {
 	int stdout_socket = create_socket();
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
-	ec->argc = 1;
+	ec->argc = 2;
 	ec->argv = (char**)(malloc(2 * sizeof(const char*)));
 	const char* filename = "Balances.z5";
-	const int len = str_len(filename);
+	const int len = str_len(filename) + 1;
 	ec->argv[1] = (char*)(malloc(len));
 	for (int i = 0; i < len; i++) {
 		ec->argv[1][i] = filename[i];
