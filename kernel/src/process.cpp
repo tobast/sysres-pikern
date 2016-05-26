@@ -443,12 +443,12 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			return;
 		}
 		case SVC_BIND_UDP: {
-			current_context->r0 = (int) nw::bindUdpPort(
-					(uint16_t)current_context->r0);
+			current_context->r0 = create_udp_socket(
+				nw::bindUdpPort((uint16_t)current_context->r0));
 			return;
 		}
 		case SVC_READ_UDP: {
-			nw::readUdpSocket( (UdpSocket*) current_context->r0,
+			nw::readUdpSocket(udpSockets[current_context->r0],
 					(void*) current_context->r1,
 					(unsigned) current_context->r2,
 					(UdpSysRead*) current_context->r3 );
