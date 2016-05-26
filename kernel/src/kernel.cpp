@@ -106,7 +106,7 @@ void kernel_run(void*) {
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
 	int stdin_socket = create_socket();
-	int inbound_udp_socket = create_udp_socket(nw::bindUdpPort(4042));
+	int inbound_udp_socket = udp_bind(4042);
 	int stdout_socket = create_socket();
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
