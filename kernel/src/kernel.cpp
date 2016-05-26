@@ -101,6 +101,8 @@ void kernel_run(void*) {
 //	async_start(&byte_blink_writer, (void*)socket);
 //	async_start(&byte_blink_listener, (void*)socket);
 
+	sleep(1000*1000);
+
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
 	int stdin_socket = create_socket(nw::bindUdpPort(4042));
@@ -125,7 +127,6 @@ void kernel_run(void*) {
 		if (is_ready_read(stdout_socket)) {
 			int n = read(stdout_socket, (void*)buffer, 256);
 			buffer[n] = '\0';
-//			appendLog(LogDebug, "main", buffer);
 			UdpSysData outPacket(0x0a000001, 42, 4042, buffer, n);
 			udp_write(&outPacket);
 		} else if (!is_process_alive(u)) {
@@ -162,6 +163,9 @@ void kernel_main(void) {
 	gpio::unset(gpio::LED_PIN);
 
 	enable_irq();
+
+	mailbox::setPowerState(0x00, 0x2); // Turn off SD card
+
 	async_start(&kernel_run, NULL, 0x5f,
 			"kernel"); // System mode, enable IRQ, disable FIQ
 	async_start(&act_blink, NULL, 0x50, "act_blink");
