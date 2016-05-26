@@ -452,6 +452,7 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 					(void*) current_context->r1,
 					(unsigned) current_context->r2,
 					(UdpSysRead*) current_context->r3 );
+			current_context->r0 = ((UdpSysRead*)current_context->r3)->len;
 			return;
 		}
 		default:

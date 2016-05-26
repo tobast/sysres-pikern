@@ -25,5 +25,5 @@ SVC(void get_process_name(int, char*), 18)
 SVC(char get_process_state(int), 19)
 SVC(int udp_write(UdpSysData*), 20)
 SVC(int udp_bind(uint16_t), 21)
-SVC(void udp_read(int, void*, unsigned, UdpSysRead*), 22)
+SVC(int udp_read(int, void*, unsigned, UdpSysRead*), 22)
 

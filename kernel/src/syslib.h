@@ -79,7 +79,7 @@ int udp_bind(uint16_t port);
 
 // Reads up to [max_len] bytes from [udpHandle] to [buff], returning
 // the address and port the packet came from, and its size.
-void udp_read(int udpHandle, void* buff, unsigned maxLen, UdpSysRead* out);
+int udp_read(int udpHandle, void* buff, unsigned maxLen, UdpSysRead* out);
 
 }
 

@@ -56,6 +56,6 @@ char get_process_state(int pid);
 
 int udp_write(UdpSysData* data);
 int udp_bind(uint16_t port);
-void udp_read(int handle, void* buff, unsigned maxLen, UdpSysRead* out);
+int udp_read(int handle, void* buff, unsigned maxLen, UdpSysRead* out);
 
 }

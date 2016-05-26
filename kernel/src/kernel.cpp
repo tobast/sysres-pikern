@@ -105,7 +105,8 @@ void kernel_run(void*) {
 
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
-	int stdin_socket = create_udp_socket(nw::bindUdpPort(4042));
+	int stdin_socket = create_socket();
+	int inbound_udp_socket = create_udp_socket(nw::bindUdpPort(4042));
 	int stdout_socket = create_socket();
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
@@ -123,9 +124,14 @@ void kernel_run(void*) {
 	assert(u != -1, 0x9a);
 	// TODO: recognize EOF
 	while (true) {
-		char buffer[257];
-		if (is_ready_read(stdout_socket)) {
-			int n = read(stdout_socket, (void*)buffer, 256);
+		char buffer[2048];
+		UdpSysRead inboundRead;
+		if (is_ready_write(stdin_socket) && udp_read(inbound_udp_socket,
+					(void*)buffer, 2048, &inboundRead) > 0) {
+			write(stdin_socket, (void*)buffer, inboundRead.len);
+		}
+		else if (is_ready_read(stdout_socket)) {
+			int n = read(stdout_socket, (void*)buffer, 1024);
 			buffer[n] = '\0';
 			UdpSysData outPacket(0x81c79d16, 42, 4042, buffer, n); // tobast-laptop
 			udp_write(&outPacket);
