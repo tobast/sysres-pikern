@@ -635,7 +635,6 @@ void ZState::run_step() {
 					break;
 				}
 				c = tolower(c);
-				DEBUG(printf("Set %X at %d\n", c, text_buffer + i + 2));
 				set_u8(text_buffer + i + 2, (u8)c);
 			}
 			set_u8(text_buffer + 1, i);
