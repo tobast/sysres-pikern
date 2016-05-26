@@ -13,6 +13,12 @@ unsigned UdpSocket::write(const void* inData, unsigned len,
 }
 
 unsigned UdpSocket::read(void* buff, unsigned maxSize, PckInfo& infos) {
+	if(isEmpty()) {
+		infos.fromAddr = 0;
+		infos.fromPort = 0;
+		infos.whole = false;
+		return 0;
+	}
 	bool atDelim = false;
 	unsigned len = GenericSocket::read(buff, maxSize, &atDelim);
 	infos.whole = atDelim;
