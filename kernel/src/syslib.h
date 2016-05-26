@@ -1,4 +1,5 @@
 #include "exec_context.h"
+#include "udpSysWrite.h"
 
 extern "C" {
 
@@ -68,5 +69,9 @@ void get_process_name(int pid, char* name);
 
 // Returns the state of process pid.
 char get_process_state(int pid);
+
+// Writes the given UdpSysData to the network. Returns the number of bytes
+// effectively written.
+int udp_write(UdpSysData* data);
 
 }

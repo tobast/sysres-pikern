@@ -11,6 +11,7 @@
 #include "expArray.h"
 #include "genericSocket.h"
 #include "filesystem.h"
+#include "networkCore.h"
 #include "gpio.h" // FIXME DEBUG
 
 struct context {
@@ -396,7 +397,7 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 		}
 		case SVC_NB_PROCESSES: {
 			int r = 0;
-			for (unsigned i = 0; i < processes.size(); i++) {
+			for (unsigned i = 1; i < processes.size(); i++) {
 				pstate state = processes[i].process_state;
 				if (state != PROCESS_INEXISTANT && state != PROCESS_ZOMBIE) {
 					r++;
@@ -409,7 +410,7 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			int* data = (int*)current_context->r0;
 			int maxp = current_context->r1;
 			int index = 0;
-			for (unsigned i = 0; i < processes.size(); i++) {
+			for (unsigned i = 1; i < processes.size(); i++) {
 				pstate state = processes[i].process_state;
 				if (state != PROCESS_INEXISTANT && state != PROCESS_ZOMBIE) {
 					data[index++] = i;
@@ -432,6 +433,11 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 		case SVC_GET_PROCESS_STATE: {
 			current_context->r0 = (int)(unsigned char)
 				process_state(current_context->r0);
+			return;
+		}
+		case SVC_SEND_UDP_PACKET: {
+			current_context->r0 = nw::sendSysPacket(
+					(UdpSysData*)current_context->r0);
 			return;
 		}
 		default:
@@ -589,7 +595,7 @@ void next_process() {
 	}
 }
 
-int async_start(async_func f, void* arg, s32 mode, char* name) {
+int async_start(async_func f, void* arg, s32 mode, const char* name) {
 	int i = create_process();
 	processes[i].cont = context();
 	processes[i].cont.lr = ((s32)f) + 4;

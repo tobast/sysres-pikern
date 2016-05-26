@@ -1,6 +1,7 @@
 #include "networkCore.h"
 #include "atomic.h"
 #include "logger.h"
+#include "interrupts.h"
 
 namespace nw {
 
@@ -104,6 +105,7 @@ Bytes& fillEthernetHeader(Bytes& buffer, HwAddr destMac, uint16_t etherType) {
 }
 
 Ipv4Addr getEthAddr() {
+	return 0x0a00000f; // FIXME TOO
 	return 0x81c79dae; // FIXME
 }
 
@@ -134,6 +136,8 @@ struct QueuedPacket {
 Queue<QueuedPacket*> *sendingQueue = NULL;
 mutex_t *queue_mutex = NULL;
 
+Queue<QueuedPacket*> *irqSendingQueue = NULL;
+
 int doSendFrame(void* buffer, unsigned len) {
 	ignoreLogs = true;
 	int out = USPiSendFrame(buffer, len);
@@ -151,6 +155,22 @@ void sendPacket(Bytes packet, Ipv4Addr to) {
 	mutex_lock(queue_mutex);
 	sendingQueue->push(nPacket);
 	mutex_unlock(queue_mutex);
+}
+
+unsigned sendSysPacket(const UdpSysData* data) {
+	// WARNING! DO CALL ONLY THROUGH SVC.
+	assert(is_interrupt(), 0);
+
+	unsigned len = min(data->len, 1024u); // < 1600, frame length.
+
+	Bytes payload(data->data, len), pck;
+	udp::formatPacket(pck, payload, data->fromPort, data->toAddr,
+			data->toPort);
+	QueuedPacket* qPck = (QueuedPacket*) malloc(sizeof(QueuedPacket));
+	*qPck = QueuedPacket(pck, data->toAddr);
+	irqSendingQueue->push(qPck);
+	
+	return len;
 }
 
 void sendFrame(const Bytes& frame, bool isPrio) {
@@ -205,6 +225,10 @@ void init() {
 	sendingQueue = (Queue<QueuedPacket*>*)malloc(sizeof(Queue<QueuedPacket*>));
 	*sendingQueue = Queue<QueuedPacket*>();
 
+	irqSendingQueue =
+		(Queue<QueuedPacket*>*)malloc(sizeof(Queue<QueuedPacket*>));
+	*irqSendingQueue = Queue<QueuedPacket*>();
+
 	arp::init();
 
 	queue_mutex = (mutex_t*)(malloc(sizeof(mutex_t)));
@@ -214,6 +238,18 @@ void init() {
 void logUsedIp() {
 	appendLog(LogInfo, "network", "Using IPv4 with address %I", getEthAddr());
 }
+
+void processSvcQueue() {
+	mutex_lock(queue_mutex);
+	disable_irq(); // FIXME askCritical();
+
+	while(!irqSendingQueue->empty())
+		sendingQueue->push(irqSendingQueue->pop());
+
+	enable_irq(); // FIXME doneCritical();
+	mutex_unlock(queue_mutex);
+}
+
 
 void packetHandlerStart() {
 	assert(sendingQueue != NULL, 0xca);
@@ -225,6 +261,9 @@ void packetHandlerStart() {
 	while(true) {
 		while(pollFrame(frame) != 0)
 			processPacket(frame);
+
+		if(!irqSendingQueue->empty())
+			processSvcQueue();
 
 		mutex_lock(queue_mutex);
 		while(sendingQueue->size() > 0) {

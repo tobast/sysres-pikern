@@ -11,6 +11,7 @@
 #include "ipv4.h"
 #include "queue.h"
 #include "genericSocket.h"
+#include "udpSysWrite.h"
 #include <uspi.h>
 
 namespace nw {
@@ -49,6 +50,9 @@ namespace nw {
 	/** Queues a layer 3-formatted packet (ie. WITHOUT Ethernet decoration)
 	 * for sending. Async.
 	 */
+
+	unsigned sendSysPacket(const UdpSysData* data);
+	/** Sends [data] as a UDP packet. */
 
 	void sendFrame(const Bytes& frame, bool isPrio=false);
 	/** Sends a frame over Ethernet. If isPrio=true, the frame is pushed

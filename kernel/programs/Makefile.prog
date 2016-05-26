@@ -32,7 +32,7 @@ CFLAGS = -O2 -std=c++11 -mfpu=vfp -mfloat-abi=hard -march=armv6zk \
 	-mtune=arm1176jzf-s -nostartfiles -Wall -Wextra -pedantic -fPIC \
 	-mpic-data-is-text-relative \
 	-I $(SRC) -I $(KERNEL_SRC) -I ../__libprog
-CLIBS = -L$(LIBKERN_DIR) -L../__libprog -lkern -lprog
+CLIBS = -L$(LIBKERN_DIR) -L../__libprog -lprog -lkern
 BIN_CFLAGS= --specs=nosys.specs
 
 #### PUT HERE ANY ADDITIONAL OBJECT THAT NEEDS COMPILATION! ###################
@@ -45,7 +45,7 @@ $(TARGET): $(BUILD)$(PROGRAM).elf $(BUILD)
 	$(APPLINK) $< $@
 
 $(BUILD)$(PROGRAM).elf: $(OBJS) $(BUILD)
-	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(CLIBS) $(OBJS) -T $(LINKER) -o $@
+	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(OBJS) $(CLIBS) -T $(LINKER) -o $@
 
 $(BUILD)%.o: $(SRC)%.cpp $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "udpSysWrite.h"
 
 enum svcs {
 	SVC_GET_PID = 1,
@@ -21,7 +22,8 @@ enum svcs {
 	SVC_NB_PROCESSES = 16,
 	SVC_GET_PROCESSES = 17,
 	SVC_GET_PROCESS_NAME = 18,
-	SVC_GET_PROCESS_STATE = 19
+	SVC_GET_PROCESS_STATE = 19,
+	SVC_SEND_UDP_PACKET = 20
 };
 
 extern "C" {
@@ -49,5 +51,7 @@ int nb_processes();
 int get_processes(int* data, int max_processes);
 void get_process_name(int pid, char* name);
 char get_process_state(int pid);
+
+int udp_write(UdpSysData* data);
 
 }

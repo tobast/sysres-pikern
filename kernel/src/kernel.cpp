@@ -84,8 +84,10 @@ void kernel_run(void*) {
 
 	assert(USPiEthernetAvailable() != 0, 0x01);
 
-	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f);
-	async_start(((void(*)(void*))&logger::mainLoop), NULL);
+	async_start(((void(*)(void*))&nw::packetHandlerStart), NULL, 0x5f,
+			"pck_handler");
+	async_start(((void(*)(void*))&logger::mainLoop), NULL, 0x50,
+			"syslogger");
 
 	/*
 	while(true) {
@@ -93,7 +95,7 @@ void kernel_run(void*) {
 		sleep(1000*1000);
 	}*/
 
-	async_start(&led_blink, NULL);
+	async_start(&led_blink, NULL, 0x50, "led_blink");
 
 //	int socket = create_socket();
 //	async_start(&byte_blink_writer, (void*)socket);
@@ -123,7 +125,9 @@ void kernel_run(void*) {
 		if (is_ready_read(stdout_socket)) {
 			int n = read(stdout_socket, (void*)buffer, 256);
 			buffer[n] = '\0';
-			appendLog(LogDebug, "main", buffer);
+//			appendLog(LogDebug, "main", buffer);
+			UdpSysData outPacket(0x0a000001, 42, 4042, buffer, n);
+			udp_write(&outPacket);
 		} else if (!is_process_alive(u)) {
 			break;
 		} else {
@@ -157,8 +161,9 @@ void kernel_main(void) {
 	gpio::unset(gpio::LED_PIN);
 
 	enable_irq();
-	async_start(&act_blink, NULL);
-	async_start(&kernel_run, NULL, 0x5f); // System mode, enable IRQ, disable FIQ
+	async_start(&kernel_run, NULL, 0x5f,
+			"kernel"); // System mode, enable IRQ, disable FIQ
+	async_start(&act_blink, NULL, 0x50, "act_blink");
 
 	async_go();
 }

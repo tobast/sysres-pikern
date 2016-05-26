@@ -9,6 +9,7 @@ char charOfDigit(int d) {
 	return 'A'+d-10;
 }
 
+extern "C" {
 void put_int(int v, unsigned base) {
 	if(v < 0) {
 		putchar('-');
@@ -17,6 +18,11 @@ void put_int(int v, unsigned base) {
 	put_uint((unsigned)v, base);
 }
 void put_uint(unsigned v, unsigned base) {
+	if(v == 0) {
+		putchar('0');
+		return;
+	}
+
 	char buff[11];
 	unsigned pos=0;
 	while(v > 0) {
@@ -70,5 +76,6 @@ void printf(const char* fmt, ...) {
 	}
 
 	va_end(args);
+}
 }
 

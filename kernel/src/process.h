@@ -24,7 +24,8 @@ void next_process();
 typedef void (*async_func)(void*);
 
 // Default mode : user mode, enable IRQ, disable FIQ)
-int async_start(async_func f, void* arg, s32 mode = 0x50, char* name = NULL);
+int async_start(async_func f, void* arg, s32 mode = 0x50,
+		const char* name = NULL);
 
 ExpArray<int> alive_processes();
 
