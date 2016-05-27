@@ -1,10 +1,7 @@
 #include "syslib.h"
-
-void puts(const char *s) {
-	char c;
-	while ((c = *(s++))) putchar(c);
-}
+#include "proglib.h"
 
 int main(int /*argc*/, char** /*argv*/) {
-	puts("Hello, world!\n");
+	puts("Hello, world!");
+	return 0;
 }

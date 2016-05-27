@@ -344,12 +344,17 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			}
 			if (processes[i].process_state == PROCESS_ZOMBIE) {
 				current_context->r0 = (s32)processes[i].state_info;
-				delete_process(i);
+			//	delete_process(i);
+				return;
+			}
+			else if(processes[i].process_state == PROCESS_INEXISTANT) {
+				current_context->r0 = (s32)-1;
 				return;
 			}
 			processes[active_process].process_state = PROCESS_WAITING;
 			go_next_process(current_context);
 			reset_timer();
+			return;
 		}
 		case SVC_READY_READ: {
 			current_context->r0 = !(sockets[current_context->r0]->isEmpty());

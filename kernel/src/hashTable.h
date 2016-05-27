@@ -21,10 +21,11 @@ public:
 	class NotFound {};
 
 	class Iterator {
+		friend class HashTable<Key,Value,ToInt>;
 		public:
 		Iterator& operator++() {
-			if(buck >= hashtbl->buckets.size())
-				return;
+			if(buck >= hashtbl->nbBuckets)
+				return *this;
 			bPos++;
 			if(bPos >= hashtbl->buckets[buck].size()) {
 				buck++;
@@ -47,11 +48,12 @@ public:
 			return !(*this == oth);
 		}
 		
-		private:
+		protected:
 		Iterator(HashTable<Key,Value,ToInt>* hashtbl,
 				unsigned buck, unsigned bPos) :
 			hashtbl(hashtbl), buck(buck), bPos(bPos) {}
 
+		private:
 		HashTable<Key,Value,ToInt>* hashtbl;
 		unsigned buck, bPos;
 	};
@@ -73,7 +75,7 @@ public:
 		return Iterator(this, 0, 0);
 	}
 	Iterator end() {
-		return Iterator(this, buckets.size(), 0);
+		return Iterator(this, nbBuckets, 0);
 	}
 
 	void insert(const Key& k, const Value& v) {
