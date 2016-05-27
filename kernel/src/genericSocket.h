@@ -7,7 +7,7 @@
 #include "common.h"
 #include "queue.h"
 
-const int DFT_MAX_SIZE=2048;
+const int DFT_MAX_SIZE=4096;
 
 class GenericSocket {
 	public:

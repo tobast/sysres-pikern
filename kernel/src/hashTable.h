@@ -20,6 +20,43 @@ class HashTable {
 public:
 	class NotFound {};
 
+	class Iterator {
+		public:
+		Iterator& operator++() {
+			if(buck >= hashtbl->buckets.size())
+				return;
+			bPos++;
+			if(bPos >= hashtbl->buckets[buck].size()) {
+				buck++;
+				bPos=0;
+			}
+			return *this;
+		}
+
+		const Value& operator*() const {
+			return hashtbl->buckets[buck][bPos].second;
+		}
+		const Key& key() const {
+			return hashtbl->buckets[buck][bPos].first;
+		}
+
+		bool operator==(const Iterator& oth) const {
+			return (buck == oth.buck && bPos == oth.bPos);
+		}
+		bool operator!=(const Iterator& oth) const {
+			return !(*this == oth);
+		}
+		
+		private:
+		Iterator(HashTable<Key,Value,ToInt>* hashtbl,
+				unsigned buck, unsigned bPos) :
+			hashtbl(hashtbl), buck(buck), bPos(bPos) {}
+
+		HashTable<Key,Value,ToInt>* hashtbl;
+		unsigned buck, bPos;
+	};
+
+
 	HashTable() {
 		init();
 	}
@@ -30,6 +67,13 @@ public:
 		for(unsigned buck=0; buck < nbBuckets; buck++)
 			buckets[buck].~Bucket();
 		free(buckets);
+	}
+
+	Iterator begin() {
+		return Iterator(this, 0, 0);
+	}
+	Iterator end() {
+		return Iterator(this, buckets.size(), 0);
 	}
 
 	void insert(const Key& k, const Value& v) {
