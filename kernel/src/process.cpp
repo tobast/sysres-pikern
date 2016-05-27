@@ -572,7 +572,7 @@ void delete_process(int i) {
 	int u = processes[i].previous_process;
 	int v = processes[i].next_process;
 	processes[u].next_process = v;
-	processes[v].next_process = u;
+	processes[v].previous_process = u;
 	processes[i].next_process = free_process;
 	processes[i].process_state = PROCESS_INEXISTANT;
 	free_process = i;
