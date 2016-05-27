@@ -31,7 +31,8 @@ enum svcs {
 	SVC_IS_FOLDER = 24,
 	SVC_NUM_CHILDREN = 25,
 	SVC_GET_CHILD = 26,
-	SVC_GET_NODE_NAME = 27
+	SVC_GET_NODE_NAME = 27,
+	SVC_NEW_SOCKET = 28
 };
 
 extern "C" {
@@ -70,5 +71,7 @@ int is_folder(int node);
 int num_children(int folder);
 int get_child(int folder, int child_num);
 void get_node_name(int node, char* buffer, int max_chars);
+
+int new_socket();
 
 }

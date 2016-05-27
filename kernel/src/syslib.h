@@ -6,6 +6,9 @@ extern "C" {
 void putchar(char c);
 char getchar();
 
+int get_stdin();
+int get_stdout();
+
 int get_pid();
 
 // Reads up to num_bytes of data from socket fd, to data.
@@ -98,6 +101,9 @@ int get_child(int folder, int child_num);
 // Copies the name of node to buffer, with a maximum of max_chars
 // characters.
 void get_node_name(int node, char* buffer, int max_chars);
+
+// Creates a socket, and returns its identifier
+int new_socket();
 
 }
 

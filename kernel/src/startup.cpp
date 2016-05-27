@@ -37,4 +37,12 @@ int atomic_cas(int *p, int old_value, int new_value) {
 	return atomic_cas_svc(p, old_value, new_value);
 }
 
+int get_stdin() {
+	return _stdin_socket;
+}
+
+int get_stdout() {
+	return _stdout_socket;
+}
+
 }

@@ -501,6 +501,10 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			}
 			return;
 		}
+		case SVC_NEW_SOCKET: {
+			current_context->r0 = create_socket();
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?
