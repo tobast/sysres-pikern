@@ -456,9 +456,11 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			return;
 		}
 		case SVC_EXECUTE_FILE: {
+			execution_context *ec =
+				(execution_context*)(malloc(sizeof(execution_context)));
+			*ec = *(execution_context*)current_context->r1;
 			current_context->r0 = run_process(
-				(node*)current_context->r0,
-				(execution_context*)current_context->r1);
+				(node*)current_context->r0, ec);
 			return;
 		}
 		case SVC_IS_FOLDER: {
