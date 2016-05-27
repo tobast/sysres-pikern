@@ -81,5 +81,23 @@ int udp_bind(uint16_t port);
 // the address and port the packet came from, and its size.
 int udp_read(int udpHandle, void* buff, unsigned maxLen, UdpSysRead* out);
 
+// Execute a file, in the following execution context.
+// Returns the pid of the process, or -1 if the file could not be executed.
+int execute_file(int file, execution_context *ec);
+
+// Returns 1 if node is a folder
+int is_folder(int node);
+
+// Returns the number of children of folder
+int num_children(int folder);
+
+// Returns the child number child_num of folder
+// Returns 0 on failure
+int get_child(int folder, int child_num);
+
+// Copies the name of node to buffer, with a maximum of max_chars
+// characters.
+void get_node_name(int node, char* buffer, int max_chars);
+
 }
 

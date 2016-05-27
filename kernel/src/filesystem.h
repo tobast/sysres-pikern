@@ -5,6 +5,8 @@
 #include "common.h"
 #include "exec_context.h"
 
+const int MAX_NAME_LENGTH = 31;
+
 struct file {
 	ExpArray<char> data;
 };
@@ -20,7 +22,7 @@ enum node_type {
 };
 
 struct node {
-	char name[32];
+	char name[MAX_NAME_LENGTH + 1];
 	node_type type;
 	union {
 		file *node_file;

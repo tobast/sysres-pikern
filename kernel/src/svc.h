@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "udpSysWrite.h"
+#include "exec_context.h"
 
 enum svcs {
 	SVC_GET_PID = 1,
@@ -25,7 +26,12 @@ enum svcs {
 	SVC_GET_PROCESS_STATE = 19,
 	SVC_SEND_UDP_PACKET = 20,
 	SVC_BIND_UDP = 21,
-	SVC_READ_UDP = 22
+	SVC_READ_UDP = 22,
+	SVC_EXECUTE_FILE = 23,
+	SVC_IS_FOLDER = 24,
+	SVC_NUM_CHILDREN = 25,
+	SVC_GET_CHILD = 26,
+	SVC_GET_NODE_NAME = 27
 };
 
 extern "C" {
@@ -57,5 +63,12 @@ char get_process_state(int pid);
 int udp_write(UdpSysData* data);
 int udp_bind(uint16_t port);
 int udp_read(int handle, void* buff, unsigned maxLen, UdpSysRead* out);
+
+int execute_file(int file, execution_context *ec);
+
+int is_folder(int node);
+int num_children(int folder);
+int get_child(int folder, int child_num);
+void get_node_name(int node, char* buffer, int max_chars);
 
 }

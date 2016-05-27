@@ -455,6 +455,52 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			current_context->r0 = ((UdpSysRead*)current_context->r3)->len;
 			return;
 		}
+		case SVC_EXECUTE_FILE: {
+			current_context->r0 = run_process(
+				(node*)current_context->r0,
+				(execution_context*)current_context->r1);
+			return;
+		}
+		case SVC_IS_FOLDER: {
+			current_context->r0 =
+				((node*)current_context->r0)->type == NODE_FOLDER;
+			return;
+		}
+		case SVC_NUM_CHILDREN: {
+			node *nd = (node*)current_context->r0;
+			if (nd->type != NODE_FOLDER) {
+				current_context->r0 = -1;
+				return;
+			}
+			current_context->r0 = nd->node_folder->contents.size();
+			return;
+		}
+		case SVC_GET_CHILD: {
+			node *nd = (node*)current_context->r0;
+			int child_id = current_context->r1;
+			if (nd->type != NODE_FOLDER) {
+				current_context->r0 = 0;
+				return;
+			}
+			if (child_id < 0 ||
+					child_id > (int)nd->node_folder->contents.size()) {
+				current_context->r0 = 0;
+				return;
+			}
+			current_context->r0 = (int)nd->node_folder->contents[child_id];
+			return;
+		}
+		case SVC_GET_NODE_NAME: {
+			node *nd = (node*)current_context->r0;
+			char *data = (char*)current_context->r1;
+			int max_chars = current_context->r2;
+			for (int i = 0; i < min(max_chars, MAX_NAME_LENGTH + 1); i++) {
+				char c = nd->name[i];
+				data[i] = c;
+				if (c == '\0') break;
+			}
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?

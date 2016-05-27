@@ -3,7 +3,7 @@
 #include "process.h"
 
 bool streq(const char* name1, const char* name2) {
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < MAX_NAME_LENGTH + 1; i++) {
 		if (name1[i] != name2[i])
 			return false;
 		else if (name1[i] == '\0')
@@ -28,7 +28,7 @@ node* find_child(const folder *f, const char* name) {
 }
 
 node* follow_path(const char* path) {
-	char current_name[32];
+	char current_name[MAX_NAME_LENGTH + 1];
 	u32 index = 0;
 	u32 i = 0;
 	folder *current_folder = &fsroot;
@@ -48,7 +48,7 @@ node* follow_path(const char* path) {
 			}
 			current_folder = n->node_folder;
 			i = 0;
-		} else if (i >= 31) {
+		} else if (i >= MAX_NAME_LENGTH) {
 			return NULL;
 		} else {
 			current_name[i++] = c;
