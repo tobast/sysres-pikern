@@ -76,6 +76,7 @@ int main(int /*argc*/, char** /*argv*/) {
 		ec.stdout = get_stdout();
 		ec.argc = split.size();
 		ec.argv = (char**)(malloc(ec.argc * sizeof(char*)));
+		ec.cwd = 0; // Use our cwd.
 		for (int i = 0; i < ec.argc; i++) {
 			ec.argv[i] = split[i];
 		}

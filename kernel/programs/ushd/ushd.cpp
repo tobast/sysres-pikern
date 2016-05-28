@@ -70,6 +70,7 @@ int main(int, char**) {
 				execution_context context;
 				context.stdin = new_socket();
 				context.stdout = new_socket();
+				context.cwd = 0; // Use our cwd
 				context.argc = 1;
 				context.argv = (char**)malloc(sizeof(char*));
 				context.argv[0] = (char*) malloc(sizeof(char)*CHILD_NAME_LEN);
