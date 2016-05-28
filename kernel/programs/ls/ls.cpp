@@ -26,21 +26,20 @@ void dispLsEntry(int handle) {
 }
 
 int main(int argc, char** argv) {
+	int dirHandle;
 	if(argc < 2) {
-		puts("You must specify a directory, or ask Nathanaël "
-				"for a 'working directory' concept.");
-		exit(1);
-	}
+		dirHandle = get_cwd();
+	} else {
+		dirHandle = find_file(argv[1]);
+		if(dirHandle == 0) {
+			printf("No such file or directory: %s.\n", argv[1]);
+			exit(1);
+		}
 
-	int dirHandle = find_file(argv[1]);
-	if(dirHandle == 0) {
-		printf("No such file or directory: %s.\n", argv[1]);
-		exit(1);
-	}
-
-	if(!is_folder(dirHandle)) {
-		printf("Not a directory: %s.\n", argv[1]);
-		exit(1);
+		if(!is_folder(dirHandle)) {
+			printf("Not a directory: %s.\n", argv[1]);
+			exit(1);
+		}
 	}
 
 	int nbChildren = num_children(dirHandle);
