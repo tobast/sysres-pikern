@@ -85,7 +85,7 @@ int main(int /*argc*/, char** /*argv*/) {
 			int return_value = wait(child);
 			printf("Child exited with code %d.\n", return_value);
 		} else {
-			printf("Failed to run file %s.", ec.argv[0]);
+			printf("Failed to run file %s.\n", ec.argv[0]);
 		}
 	}
 }
