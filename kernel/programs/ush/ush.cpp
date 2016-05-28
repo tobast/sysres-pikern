@@ -83,9 +83,9 @@ int main(int /*argc*/, char** /*argv*/) {
 		getline(buffer, 1024);
 		ExpArray<char*> split = split_string(buffer, ' ');
 		if (split.empty()) continue;
-		if (str_eq(split, "cd")) {
+		if (str_eq(split[0], "cd")) {
 			int new_cwd;
-			if (split.length() < 2) {
+			if (split.size() < 2) {
 				new_cwd = find_file("/");
 			} else {
 				new_cwd = find_file(split[1]);
