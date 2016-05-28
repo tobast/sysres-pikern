@@ -6,7 +6,8 @@ void dispLsEntry(int handle) {
 	get_node_name(handle, name, 256);
 
 	if(is_folder(handle))
-		printf("%F%F%s%F", AnsiFormat(ANSI_FG, ANSI_BLUE),
+		printf("%F%F%s%F", AnsiFormat(ANSI_BOLD),
+				AnsiFormat(ANSI_FG, ANSI_BLUE),
 				name, AnsiFormat());
 	else
 		printf("%s", name);

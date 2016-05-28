@@ -44,7 +44,9 @@ void puts(const char* v, bool endl) {
 }
 
 void put_formatter(const AnsiFormat& fmt) {
-	printf("\x1b[%dm", fmt());
+	puts("\x1b[", false);
+	put_uint(fmt());
+	putchar('m');
 }
 
 void printf(const char* fmt, ...) {
