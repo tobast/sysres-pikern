@@ -29,11 +29,20 @@ struct UshCli {
 
 typedef HashTable<Channel, UshCli, ChannelHasher> UshCliTable;
 
+const uint16_t LISTEN_PORT = 22;
+
+void sendMotd(Ipv4Addr toAddr, uint16_t toPort) {
+	const char* MOTD = "=Hello=\n";
+	unsigned MOTD_LEN = str_len(MOTD);
+	UdpSysData destData(toAddr, LISTEN_PORT, toPort, MOTD, MOTD_LEN);
+	udp_write(&destData);
+}
+
 int main(int, char**) {
 	const char* CHILD_NAME = "/bin/ush";
 	const unsigned CHILD_NAME_LEN = 8;
-	const uint16_t LISTEN_PORT = 22;
 	const unsigned BUFFER_SIZE = 2048;
+	const char* OPEN_SESSION_MSG = "=Hey, listen!=\n";
 
 	UshCliTable ushCliTable;
 
@@ -47,14 +56,22 @@ int main(int, char**) {
 	while(true) {
 		// ==== READ INBOUND DATA ====
 		UdpSysRead readData;
-		char buff[BUFFER_SIZE];
+		char buff[BUFFER_SIZE+1];
 		int len = udp_read(udpSock, (void*)buff, BUFFER_SIZE, &readData);
+		buff[len] = '\0';
 		
 		if(len > 0) {
 			UshCliTable::Iterator itCli =
 				ushCliTable.findIter(Channel(readData));
 			
 			if(itCli != ushCliTable.end()) { // Known client, open session.
+				if(str_cmp(buff, OPEN_SESSION_MSG)) {
+					// TODO maybe kill the previous shell?
+					sendMotd(readData.fromAddr, readData.fromPort);
+					buff[0]='\n';
+					buff[1]='\0';
+					len=2;
+				}
 				UshCli cli = *itCli;
 
 				if(!is_ready_write(cli.stdinSock))
@@ -67,6 +84,9 @@ int main(int, char**) {
 				}
 			}
 			else { // Unknown client
+				if(!str_cmp(buff, OPEN_SESSION_MSG))
+					continue;
+
 				execution_context context;
 				context.stdin = new_socket();
 				context.stdout = new_socket();
@@ -81,11 +101,7 @@ int main(int, char**) {
 				UshCli cli(pid, context.stdin, context.stdout);
 				ushCliTable.insert(Channel(readData), cli);
 
-				const char* motd = "Hello, world!\n";
-				unsigned motdLen = 15;
-				UdpSysData destData(readData.fromAddr, LISTEN_PORT,
-						readData.fromPort, motd, motdLen);
-				udp_write(&destData);
+				sendMotd(readData.fromAddr, readData.fromPort);
 			}
 		}
 		else {

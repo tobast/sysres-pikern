@@ -86,5 +86,16 @@ void printf(const char* fmt, ...) {
 
 	va_end(args);
 }
+
+bool str_cmp(const char* c1, const char* c2) {
+	int l1 = str_len(c1), l2 = str_len(c2);
+	if(l1 != l2)
+		return false;
+	for(int pos=0; pos < l1; pos++)
+		if(c1[pos] != c2[pos])
+			return false;
+	return true;
+}
+
 }
 

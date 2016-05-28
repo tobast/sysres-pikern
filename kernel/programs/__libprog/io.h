@@ -42,5 +42,7 @@ void put_uint(unsigned v, unsigned base=10);
 void puts(const char* v, bool endl=true);
 
 void printf(const char* fmt, ...);
+
+bool str_cmp(const char* c1, const char* c2);
 }
 

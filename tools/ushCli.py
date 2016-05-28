@@ -4,6 +4,7 @@ import socket
 import datetime
 import sys
 import threading
+import time
 import argparse
 
 
@@ -27,6 +28,8 @@ class Sender(threading.Thread):
         threading.Thread.__init__(self)
         self.sock = None
         self.addr = None
+        self.stop = False
+        self.doSend = False
     def run(self):
         global parsed
         host = parsed.host
@@ -34,10 +37,21 @@ class Sender(threading.Thread):
 
         self.addr = (host, port)
 
+        if(self.addr == None):
+            print('ERROR: Address unbound.', file=sys.stdout)
+            sys.exit(1)
+
+        self.sock.sendto(b'=Hey, listen!=\n', self.addr)
+
+        while not self.doSend:
+            time.sleep(0.01)
+            if self.stop:
+                exit(1)
+
         while True:
             data = input() + '\n'
             if self.addr == None:
-                print('ERROR: Address unbound.', file=sys.stdout)
+                print('ERROR: Address unbound.', file=sys.stderr)
                 continue
             self.sock.sendto(data.encode('utf-8'), self.addr)
 
@@ -57,8 +71,23 @@ class LogDump(threading.Thread):
         sender.sock = sock
         sender.start()
 
-        print("Listening on {}:{} from *:{}..." \
-                .format(parsed.bind_addr, port, from_port))
+        sockTimeout = 0.5
+        startWaitTime = time.time()
+        while True:
+            try:
+                sock.settimeout(sockTimeout - (time.time() - startWaitTime))
+                data,addr = sock.recvfrom(4096)
+                if(addr[1] != from_port):
+                    continue
+                if(data == b"=Hello=\n"):
+                    break
+            except socket.timeout:
+                print('ERROR: timeout.', file=sys.stderr)
+                sender.stop = True
+                sys.exit(1)
+        sock.settimeout(None)
+        sender.doSend = True
+
         while True:
             data,addr = sock.recvfrom(4096)
 
