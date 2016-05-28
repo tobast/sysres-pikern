@@ -55,14 +55,15 @@ ExpArray<char*> split_string(char* string, char delim) {
 	return split;
 }
 
-void printPrompt() {
+void printPrompt(int lastExitCode) {
 	const char* HOST = "pi";
 	char cwd[256];
 	get_node_path(get_cwd(), cwd, 256);
 	
-	printf("%F[%F%s %F%s%F]$%F ",
-			AnsiFormat(ANSI_BOLD), AnsiFormat(ANSI_FG, ANSI_RED),
-			HOST,
+	printf("%F[%F%d %F%s %F%s%F]$%F ",
+			AnsiFormat(ANSI_BOLD),
+			AnsiFormat(ANSI_FG, ANSI_YELLOW), lastExitCode,
+			AnsiFormat(ANSI_FG, ANSI_RED), HOST,
 			AnsiFormat(ANSI_FG, ANSI_BLUE), cwd,
 			AnsiFormat(ANSI_FG, ANSI_COLOR_DEFAULT),
 			AnsiFormat(ANSI_DEFAULT));
@@ -90,8 +91,9 @@ int resolve_path(const char* path) {
 }
 
 int main(int /*argc*/, char** /*argv*/) {
+	int lastExitCode = 0;
 	while (true) {
-		printPrompt();
+		printPrompt(lastExitCode);
 		char buffer[1024];
 		getline(buffer, 1024);
 		ExpArray<char*> split = split_string(buffer, ' ');
@@ -122,8 +124,8 @@ int main(int /*argc*/, char** /*argv*/) {
 		int file = resolve_path(ec.argv[0]);
 		int child = execute_file(file, &ec);
 		if (child >= 0) {
-			int return_value = wait(child);
-			printf("Child exited with code %d.\n", return_value);
+			lastExitCode = wait(child);
+//			printf("Child exited with code %d.\n", return_value);
 		} else {
 			printf("Failed to run file %s.\n", ec.argv[0]);
 		}
