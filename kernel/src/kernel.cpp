@@ -122,8 +122,9 @@ void kernel_run(void*) {
 	*/
 	ec->argc = 0;
 	ec->argv = NULL;
+	ec->cwd = (int)follow_path("/");
 
-	node *file = follow_path("bin/ushd");
+	node *file = follow_path("/bin/ushd");
 	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
 	assert(u != -1, 0x9a);

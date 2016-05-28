@@ -57,6 +57,7 @@ struct process {
 	pstate process_state;
 	u64 state_info;
 	char process_name[PNAME_MAX_SIZE];
+	node* cwd;
 };
 
 const int NUMBER_INTERRUPTS = 64;
@@ -371,8 +372,13 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			return;
 		}
 		case SVC_FIND_FILE: {
+			node *cwd = processes[active_process].cwd;
+			folder *cwf = NULL;
+			if (cwd != NULL && cwd->type == NODE_FOLDER) {
+				cwf = cwd->node_folder;
+			}
 			current_context->r0 = (s32)follow_path((const char*)
-				current_context->r0);
+				current_context->r0, cwf);
 			return;
 		}
 		case SVC_FILE_SIZE: {
@@ -463,6 +469,9 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			execution_context *ec =
 				(execution_context*)(malloc(sizeof(execution_context)));
 			*ec = *(execution_context*)current_context->r1;
+			if (ec->cwd == 0) {
+				ec->cwd = (int)processes[active_process].cwd;
+			}
 			current_context->r0 = run_process(
 				(node*)current_context->r0, ec);
 			return;
@@ -666,7 +675,9 @@ void next_process() {
 	}
 }
 
-int async_start(async_func f, void* arg, s32 mode, const char* name) {
+int async_start(async_func f, void* arg, s32 mode, const char* name,
+	int cwd)
+{
 	int i = create_process();
 	processes[i].cont = context();
 	processes[i].cont.lr = ((s32)f) + 4;
@@ -686,6 +697,7 @@ int async_start(async_func f, void* arg, s32 mode, const char* name) {
 	} else {
 		processes[i].process_name[0] = '\0';
 	}
+	processes[i].cwd = (node*)cwd;
 	return i;
 }
 

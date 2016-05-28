@@ -30,7 +30,7 @@ struct UshCli {
 typedef HashTable<Channel, UshCli, ChannelHasher> UshCliTable;
 
 int main(int, char**) {
-	const char* CHILD_NAME = "bin/ush";
+	const char* CHILD_NAME = "/bin/ush";
 	const unsigned CHILD_NAME_LEN = 8;
 	const uint16_t LISTEN_PORT = 22;
 	const unsigned BUFFER_SIZE = 2048;

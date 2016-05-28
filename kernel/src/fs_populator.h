@@ -2,4 +2,4 @@
 
 #include "filesystem.h"
 
-void populate_fs(folder *fsroot);
+void populate_fs(node *fsroot);

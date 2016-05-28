@@ -24,6 +24,7 @@ enum node_type {
 struct node {
 	char name[MAX_NAME_LENGTH + 1];
 	node_type type;
+	node *parent;
 	union {
 		file *node_file;
 		folder *node_folder;
@@ -32,5 +33,5 @@ struct node {
 
 void init_filesystem();
 node* find_child(const folder *f, const char* name);
-node* follow_path(const char* path);
+node* follow_path(const char* path, const folder *cwd = NULL);
 int run_process(node *file, execution_context *ec);

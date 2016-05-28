@@ -12,9 +12,13 @@ bool streq(const char* name1, const char* name2) {
 	return true;
 }
 
-folder fsroot;
+node fsroot;
 void init_filesystem() {
-	fsroot.contents.init();
+	fsroot.name[0] = '\0';
+	fsroot.type = NODE_FOLDER;
+	fsroot.parent = NULL;
+	fsroot.node_folder = (folder*)(sizeof(folder));
+	fsroot.node_folder->contents.init();
 	populate_fs(&fsroot);
 }
 
@@ -27,11 +31,18 @@ node* find_child(const folder *f, const char* name) {
 	return NULL;
 }
 
-node* follow_path(const char* path) {
+node* follow_path(const char* path, const folder *cwd) {
 	char current_name[MAX_NAME_LENGTH + 1];
 	u32 index = 0;
 	u32 i = 0;
-	folder *current_folder = &fsroot;
+	const folder *current_folder = fsroot.node_folder;
+	if (path[0] == '/') {
+		index = 1;
+		current_folder = cwd;
+		if (current_folder == NULL) {
+			return NULL;
+		}
+	}
 	while (true) {
 		char c = path[index++];
 		if (c == '\0') {
@@ -87,5 +98,7 @@ int run_process(node *file, execution_context *ec) {
 	for (unsigned i = 0; i < gots; i++) {
 		got[i] += goffset;
 	}
-	return async_start((async_func)(prog), (void*)ec, 0x50, file->name);
+	return async_start((async_func)(prog), (void*)ec, 0x50, file->name,
+		ec->cwd
+	);
 }

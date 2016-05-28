@@ -25,7 +25,7 @@ void set_name(node *n, const char* name, unsigned length) {
 	}
 }
 
-void populate_fs(folder *fsroot) {
+void populate_fs(node *fsroot) {
 
 """
 
@@ -58,20 +58,22 @@ for dirpath, dirnames, filenames in os.walk(input_folder):
 		out += "%s->type = NODE_FILE;\n" % vvname
 		out += "set_name(%s, %s, %d);\n" % (vvname, dump_string(fname), len(fname) + 1)
 		out += "%s->node_file = create_file(%s, %d);\n" % (vvname, s, k)
-		out += "%s->contents.push_back(%s);\n" % (varname, vvname)
+		out += "%s->parent = %s;\n" % (vvname, varname)
+		out += "%s->node_folder->contents.push_back(%s);\n" % (varname, vvname)
 		out += "\n"
 
 	for dname in dirnames:
-		vvname = varname + "___" + dname
-		vfname = varname + "__" + dname
+		vfname = varname + "___" + dname
+		vvname = varname + "__" + dname
 		assert (len(dname) <= 31)
 		out += "node* %s = (node*)(malloc(sizeof(node)));\n" % vvname
 		out += "%s->type = NODE_FOLDER;\n" % vvname
 		out += "set_name(%s, %s, %d);\n" % (vvname, dump_string(dname), len(dname) + 1)
 		out += "%s->node_folder = (folder*)(malloc(sizeof(folder)));\n" % vvname
+		out += "%s->parent = %s;\n" % (vvname, varname)
 		out += "folder* %s = %s->node_folder;\n" % (vfname, vvname)
 		out += "%s->contents.init();\n" % vfname
-		out += "%s->contents.push_back(%s);\n" % (varname, vvname)
+		out += "%s->node_folder->contents.push_back(%s);\n" % (varname, vvname)
 		out += "\n"
 
 out += "}\n"
