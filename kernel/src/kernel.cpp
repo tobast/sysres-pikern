@@ -106,10 +106,11 @@ void kernel_run(void*) {
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
 	int stdin_socket = create_socket();
-	int inbound_udp_socket = udp_bind(4042);
 	int stdout_socket = create_socket();
+//	int inbound_udp_socket = udp_bind(42);
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
+	/*
 	ec->argc = 2;
 	ec->argv = (char**)(malloc(2 * sizeof(const char*)));
 	const char* filename = "Balances.z5";
@@ -118,33 +119,40 @@ void kernel_run(void*) {
 	for (int i = 0; i < len; i++) {
 		ec->argv[1][i] = filename[i];
 	}
-	node *file = follow_path("bin/zmachine");
+	*/
+	ec->argc = 0;
+	ec->argv = NULL;
+
+	node *file = follow_path("bin/ushd");
 	assert(file != NULL, 0x99);
 	int u = run_process(file, ec);
 	assert(u != -1, 0x9a);
 	// TODO: recognize EOF
 	while (true) {
 		char buffer[2048];
+		/*
 		UdpSysRead inboundRead;
 		if (is_ready_write(stdin_socket) && udp_read(inbound_udp_socket,
 					(void*)buffer, 2048, &inboundRead) > 0) {
 			write(stdin_socket, (void*)buffer, inboundRead.len);
 		}
-		else if (is_ready_read(stdout_socket)) {
+		else */if (is_ready_read(stdout_socket)) {
 			int n = read(stdout_socket, (void*)buffer, 1024);
 			buffer[n] = '\0';
+			/*
 			UdpSysData outPacket(0x81c79d16, 42, 4042, buffer, n); // tobast-laptop
 			udp_write(&outPacket);
 			UdpSysData outPacket2(0x81c79dac, 42, 4042, buffer, n); // wormhole
-			udp_write(&outPacket2);
+			udp_write(&outPacket2);*/
+			appendLog(LogDebug, "ushd", buffer);
 		} else if (!is_process_alive(u)) {
 			break;
 		} else {
 			sleep(200);
 	    }
 	}
-	wait(u);
-	appendLog(LogDebug, "dbg", "Process finished!");
+	int exitCode = wait(u);
+	appendLog(LogDebug, "dbg", "Process finished with exit code %d.", exitCode);
 
 	exit(0);
 }

@@ -27,10 +27,7 @@ public:
 			if(buck >= hashtbl->nbBuckets)
 				return *this;
 			bPos++;
-			if(bPos >= hashtbl->buckets[buck].size()) {
-				buck++;
-				bPos=0;
-			}
+			toNextValid();
 			return *this;
 		}
 
@@ -51,7 +48,19 @@ public:
 		protected:
 		Iterator(HashTable<Key,Value,ToInt>* hashtbl,
 				unsigned buck, unsigned bPos) :
-			hashtbl(hashtbl), buck(buck), bPos(bPos) {}
+			hashtbl(hashtbl), buck(buck), bPos(bPos)
+		{
+			toNextValid();
+		}
+
+		void toNextValid() {
+			while(buck < hashtbl->nbBuckets &&
+					bPos >= hashtbl->buckets[buck].size())
+			{
+				buck++;
+				bPos=0;
+			}
+		}
 
 		private:
 		HashTable<Key,Value,ToInt>* hashtbl;
@@ -106,6 +115,15 @@ public:
 		}
 		throw NotFound();
 	};
+
+	const Iterator findIter(const Key& k) {
+		unsigned buck = hash(k);
+		for(unsigned pos=0; pos < buckets[buck].size(); pos++) {
+			if(buckets[buck][pos].first == k)
+				return Iterator(this, buck, pos);
+		}
+		return end();
+	}
 
 	void init(unsigned nbBuck=7) {
 		nbBuckets = nbBuck;

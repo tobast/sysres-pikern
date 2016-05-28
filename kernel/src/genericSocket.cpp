@@ -50,7 +50,12 @@ unsigned GenericSocket::read(void* buff, unsigned maxSize, bool* atDelim) {
 		((uint8_t*)buff)[pos] = readByte();
 	}
 
-	if(atDelim != NULL)
+	if(!delims.empty() && delims.front() == 0) {
+		delims.pop();
+		if(atDelim != NULL)
+			*atDelim = true;
+	}
+	else if(atDelim != NULL)
 		*atDelim = false;
 	return len;
 }

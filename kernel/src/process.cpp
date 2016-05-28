@@ -169,8 +169,7 @@ int create_socket(GenericSocket *s) {
 
 int create_udp_socket(UdpSocket *s) {
 	if (s == NULL) {
-		s = (UdpSocket*)malloc(sizeof(UdpSocket));
-		*s = UdpSocket(true);
+		return -1;
 	}
 	for (unsigned i = 0; i < udpSockets.size(); i++) {
 		if (udpSockets[i] == NULL) {
@@ -344,7 +343,7 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			}
 			if (processes[i].process_state == PROCESS_ZOMBIE) {
 				current_context->r0 = (s32)processes[i].state_info;
-			//	delete_process(i);
+				delete_process(i);
 				return;
 			}
 			else if(processes[i].process_state == PROCESS_INEXISTANT) {

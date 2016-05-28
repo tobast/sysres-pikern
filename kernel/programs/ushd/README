@@ -1,0 +1,6 @@
+ushd
+====
+
+Unsecure SHell Daemon.
+
+Shell over UDP with no security at all.
