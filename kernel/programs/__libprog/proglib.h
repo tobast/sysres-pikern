@@ -1,6 +1,7 @@
 #pragma once
 
 #include "io.h"
+#include "fs.h"
 #include "hashTable.h"
 #include "syslib.h"
 #include "expArray.h"

@@ -31,7 +31,9 @@ CLIBS = -L$(LIBKERN_DIR) -lkern
 BIN_CFLAGS= --specs=nosys.specs
 
 #### PUT HERE ANY ADDITIONAL OBJECT THAT NEEDS COMPILATION! ###################
-OBJS=$(BUILD)io.o
+OBJS=\
+	$(BUILD)io.o \
+	$(BUILD)fs.o
 ###############################################################################
 
 all: $(TARGET)
