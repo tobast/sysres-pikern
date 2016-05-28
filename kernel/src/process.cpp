@@ -274,6 +274,11 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 		}
 		case SVC_READ: {
 			int socket = (int)current_context->r0;
+			if(socket == -1) {// /dev/null
+				current_context->r0 = 0;
+				return;
+			}
+
 			void* addr = (void*)current_context->r1;
 			int size = (int)current_context->r2;
 			if (sockets[socket]->isEmpty()) {
@@ -289,6 +294,11 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			int socket = (int)current_context->r0;
 			void* addr = (void*)current_context->r1;
 			int size = (int)current_context->r2;
+			if(socket == -1) { // /dev/null
+				current_context->r0 = size;
+				return;
+			}
+
 			if (sockets[socket]->isFull()) {
 				processes[active_process].process_state = PROCESS_WAIT_WRITE;
 				go_next_process(current_context);
@@ -357,10 +367,18 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			return;
 		}
 		case SVC_READY_READ: {
+			if(current_context->r0 == -1) {
+				current_context->r0 = false;
+				return;
+			}
 			current_context->r0 = !(sockets[current_context->r0]->isEmpty());
 			return;
 		}
 		case SVC_READY_WRITE: {
+			if(current_context->r0 == -1) {
+				current_context->r0 = true;
+				return;
+			}
 			current_context->r0 = !(sockets[current_context->r0]->isFull());
 			return;
 		}

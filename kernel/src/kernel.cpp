@@ -63,6 +63,69 @@ uint32_t invEndianness(uint32_t v) {
 	return out;
 }
 
+int execBinary(const char* path) {
+	int handle = find_file(path);
+	if(handle == 0) {
+		appendLog(LogError, "init",
+				"Cannot start %s: no such file or directory.", path);
+		return 0;
+	}
+
+	execution_context* context = (execution_context*)
+			malloc(sizeof(execution_context));
+	context->stdin = -1; // /dev/null
+	context->stdout = -1; // /dev/null
+	context->argc = 1;
+	context->argv = (char**) malloc(sizeof(char*));
+	context->argv[1] = (char*) malloc(sizeof(char)*(str_len(path)+1));
+	for(unsigned pos=0; pos < str_len(path)+1; pos++) // +1: copy \0 as well.
+		context->argv[1][pos] = path[pos];
+	context->cwd = find_file("/");
+
+	int pid = execute_file(handle, context);
+	appendLog(LogInfo, "init", "Starting daemon %s with pid %d.", path, pid);
+	return pid;
+}
+
+void init() {
+	const char* USERSPACE_INIT = "/etc/boot.targets";
+	const int BUFFER_SIZE = 1024;
+
+	int targetsHandle = find_file(USERSPACE_INIT);
+	if(targetsHandle == 0) {
+		appendLog(LogWarning, "init", "/etc/boot.targets: no "
+				"such file or directory.");
+		return;
+	}
+
+	char buffer[BUFFER_SIZE];
+	int buffRealSize = file_read(targetsHandle, 0, (void*)buffer, BUFFER_SIZE);
+	if(buffRealSize == BUFFER_SIZE)
+		appendLog(LogWarning, "init", "%s: exceeding "
+				"buffer size. Ask a guru to enlarge me!", USERSPACE_INIT);
+
+	char curBin[BUFFER_SIZE];
+	int cBinPos=0;
+	for(int pos=0; pos < buffRealSize; pos++) {
+		if(buffer[pos] == '\n') {
+			curBin[cBinPos] = '\0';
+			if(cBinPos > 0) {
+				execBinary(curBin);
+				// TODO wait (select?)
+			}
+			cBinPos = 0;
+		}
+		else {
+			curBin[cBinPos] = buffer[pos];
+			cBinPos++;
+		}
+	}
+	if(cBinPos > 0) {
+		execBinary(curBin);
+		// TODO wait (select?)
+	}
+}
+
 void kernel_run(void*) {
 	nw::init();
 	logger::init();
@@ -89,37 +152,18 @@ void kernel_run(void*) {
 	async_start(((void(*)(void*))&logger::mainLoop), NULL, 0x50,
 			"syslogger");
 
-	/*
-	while(true) {
-		appendLog(LogDebug, "dbg", "Hello, world!");
-		sleep(1000*1000);
-	}*/
-
 	async_start(&led_blink, NULL, 0x50, "led_blink");
-
-//	int socket = create_socket();
-//	async_start(&byte_blink_writer, (void*)socket);
-//	async_start(&byte_blink_listener, (void*)socket);
 
 	sleep(1000*1000);
 
+	init();
+/*
 	execution_context *ec = (execution_context*)
 		(malloc(sizeof(execution_context)));
 	int stdin_socket = create_socket();
 	int stdout_socket = create_socket();
-//	int inbound_udp_socket = udp_bind(42);
 	ec->stdin = stdin_socket;
 	ec->stdout = stdout_socket;
-	/*
-	ec->argc = 2;
-	ec->argv = (char**)(malloc(2 * sizeof(const char*)));
-	const char* filename = "Balances.z5";
-	const int len = str_len(filename) + 1;
-	ec->argv[1] = (char*)(malloc(len));
-	for (int i = 0; i < len; i++) {
-		ec->argv[1][i] = filename[i];
-	}
-	*/
 	ec->argc = 0;
 	ec->argv = NULL;
 	ec->cwd = (int)follow_path("/");
@@ -131,20 +175,9 @@ void kernel_run(void*) {
 	// TODO: recognize EOF
 	while (true) {
 		char buffer[2048];
-		/*
-		UdpSysRead inboundRead;
-		if (is_ready_write(stdin_socket) && udp_read(inbound_udp_socket,
-					(void*)buffer, 2048, &inboundRead) > 0) {
-			write(stdin_socket, (void*)buffer, inboundRead.len);
-		}
-		else */if (is_ready_read(stdout_socket)) {
+		if (is_ready_read(stdout_socket)) {
 			int n = read(stdout_socket, (void*)buffer, 1024);
 			buffer[n] = '\0';
-			/*
-			UdpSysData outPacket(0x81c79d16, 42, 4042, buffer, n); // tobast-laptop
-			udp_write(&outPacket);
-			UdpSysData outPacket2(0x81c79dac, 42, 4042, buffer, n); // wormhole
-			udp_write(&outPacket2);*/
 			appendLog(LogDebug, "ushd", buffer);
 		} else if (!is_process_alive(u)) {
 			break;
@@ -154,7 +187,7 @@ void kernel_run(void*) {
 	}
 	int exitCode = wait(u);
 	appendLog(LogDebug, "dbg", "Process finished with exit code %d.", exitCode);
-
+*/
 	exit(0);
 }
 
@@ -184,7 +217,7 @@ void kernel_main(void) {
 	mailbox::setPowerState(0x00, 0x2); // Turn off SD card
 
 	async_start(&kernel_run, NULL, 0x5f,
-			"kernel"); // System mode, enable IRQ, disable FIQ
+			"init"); // System mode, enable IRQ, disable FIQ
 	async_start(&act_blink, NULL, 0x50, "act_blink");
 
 	async_go();
