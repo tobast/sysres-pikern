@@ -49,7 +49,11 @@ class Sender(threading.Thread):
                 exit(1)
 
         while True:
-            data = input() + '\n'
+            try:
+                data = input() + '\n'
+            except EOFError:
+                sys.exit(0)
+
             if self.addr == None:
                 print('ERROR: Address unbound.', file=sys.stderr)
                 continue
@@ -85,11 +89,17 @@ class LogDump(threading.Thread):
                 print('ERROR: timeout.', file=sys.stderr)
                 sender.stop = True
                 sys.exit(1)
-        sock.settimeout(None)
+        sock.settimeout(1)
         sender.doSend = True
 
         while True:
-            data,addr = sock.recvfrom(4096)
+            if not sender.is_alive():
+                sys.exit(0)
+
+            try:
+                data,addr = sock.recvfrom(4096)
+            except socket.timeout:
+                continue
 
             if(addr[1] != from_port): # Wrong incoming port
                 continue
