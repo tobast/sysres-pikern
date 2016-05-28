@@ -89,7 +89,7 @@ class LogDump(threading.Thread):
                 print('ERROR: timeout.', file=sys.stderr)
                 sender.stop = True
                 sys.exit(1)
-        sock.settimeout(1)
+        sock.settimeout(0.1)
         sender.doSend = True
 
         while True:

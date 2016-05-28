@@ -70,7 +70,7 @@ int main(int, char**) {
 					sendMotd(readData.fromAddr, readData.fromPort);
 					buff[0]='\n';
 					buff[1]='\0';
-					len=2;
+					len=1;
 				}
 				UshCli cli = *itCli;
 
