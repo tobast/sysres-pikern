@@ -36,12 +36,13 @@ node* follow_path(const char* path, const folder *cwd) {
 	u32 index = 0;
 	u32 i = 0;
 	const folder *current_folder = fsroot.node_folder;
-	if (path[0] == '/') {
-		index = 1;
+	if (path[0] != '/') {
 		current_folder = cwd;
 		if (current_folder == NULL) {
 			return NULL;
 		}
+	} else {
+		index = 1;
 	}
 	while (true) {
 		char c = path[index++];
