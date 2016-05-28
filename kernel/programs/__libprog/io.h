@@ -8,7 +8,9 @@ enum AnsiColors {
 	ANSI_BLUE=4,
 	ANSI_MAGENTA=5,
 	ANSI_CYAN=6,
-	ANSI_WHITE=7
+	ANSI_WHITE=7,
+
+	ANSI_COLOR_DEFAULT=9
 };
 
 enum AnsiFormatType {

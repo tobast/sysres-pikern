@@ -55,6 +55,19 @@ ExpArray<char*> split_string(char* string, char delim) {
 	return split;
 }
 
+void printPrompt() {
+	const char* HOST = "pi";
+	char cwd[256];
+	get_node_path(get_cwd(), cwd, 256);
+	
+	printf("%F[%F%s %F%s%F]$%F ",
+			AnsiFormat(ANSI_BOLD), AnsiFormat(ANSI_FG, ANSI_RED),
+			HOST,
+			AnsiFormat(ANSI_FG, ANSI_BLUE), cwd,
+			AnsiFormat(ANSI_FG, ANSI_COLOR_DEFAULT),
+			AnsiFormat(ANSI_DEFAULT));
+}
+
 int resolve_path(const char* path) {
 	int file = find_file(path);
 	if (file != 0) {
@@ -78,7 +91,7 @@ int resolve_path(const char* path) {
 
 int main(int /*argc*/, char** /*argv*/) {
 	while (true) {
-		printf("pi$ ");
+		printPrompt();
 		char buffer[1024];
 		getline(buffer, 1024);
 		ExpArray<char*> split = split_string(buffer, ' ');
