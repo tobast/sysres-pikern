@@ -43,6 +43,9 @@ node* follow_path(const char* path, const folder *cwd) {
 		}
 	} else {
 		index = 1;
+		if (path[index] == '\0') {
+			return &fsroot;
+		}
 	}
 	while (true) {
 		char c = path[index++];
