@@ -89,10 +89,12 @@ int main(int /*argc*/, char** /*argv*/) {
 				new_cwd = find_file("/");
 			} else {
 				new_cwd = find_file(split[1]);
+				if (new_cwd == 0) {
+					printf("No such file or directory: %s\n", split[1]);
+					continue;
+				}
 			}
-			if (new_cwd != 0) {
-				set_cwd(new_cwd);
-			}
+			set_cwd(new_cwd);
 			continue;
 		}
 		execution_context ec;
