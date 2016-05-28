@@ -13,6 +13,18 @@ void getline(char* buffer, int max_length) {
 	buffer[max_length - 1] = '\0';
 }
 
+bool str_eq(const char* str1, const char* str2) {
+	int i = 0;
+	while (true) {
+		if (str1[i] != str2[i]) {
+			return false;
+		} else if (str1[i] == '\0') {
+			return true;
+		}
+		i++;
+	}
+}
+
 ExpArray<char*> split_string(char* string, char delim) {
 	ExpArray<char*> split;
 	int starti = 0;
@@ -71,6 +83,18 @@ int main(int /*argc*/, char** /*argv*/) {
 		getline(buffer, 1024);
 		ExpArray<char*> split = split_string(buffer, ' ');
 		if (split.empty()) continue;
+		if (str_eq(split, "cd")) {
+			int new_cwd;
+			if (split.length() < 2) {
+				new_cwd = find_file("/");
+			} else {
+				new_cwd = find_file(split[1]);
+			}
+			if (new_cwd != 0) {
+				set_cwd(new_cwd);
+			}
+			continue;
+		}
 		execution_context ec;
 		ec.stdin = get_stdin();
 		ec.stdout = get_stdout();
