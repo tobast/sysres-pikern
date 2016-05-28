@@ -51,7 +51,7 @@ int is_ready_write(int fd);
 // Returns true if a process with PID pid is alive.
 int is_process_alive(int pid);
 
-// Returns a file handle to the file called name.
+// Returns a file handle to the file called name, or 0 if inexistant.
 int find_file(const char* name);
 
 // Returns the size of the file file.
