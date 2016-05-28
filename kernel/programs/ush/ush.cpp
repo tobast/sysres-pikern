@@ -43,6 +43,27 @@ ExpArray<char*> split_string(char* string, char delim) {
 	return split;
 }
 
+int resolve_path(const char* path) {
+	int file = find_file(path);
+	if (file != 0) {
+		return file;
+	}
+	const char* prefix = "/bin/";
+	int prefix_len = str_len(prefix);
+	int len = prefix_len + str_len(path);
+	char* cc = (char*)(malloc(len + 1));
+	for (int i = 0; i < prefix_len; i++) {
+		cc[i] = prefix[i];
+	}
+	for (int i = prefix_len; i < len; i++) {
+		cc[i] = path[i - prefix_len];
+	}
+	cc[len] = '\0';
+	int result = find_file(cc);
+	free(cc);
+	return result;
+}
+
 int main(int /*argc*/, char** /*argv*/) {
 	while (true) {
 		printf("pi$ ");
@@ -58,7 +79,7 @@ int main(int /*argc*/, char** /*argv*/) {
 		for (int i = 0; i < ec.argc; i++) {
 			ec.argv[i] = split[i];
 		}
-		int file = find_file(ec.argv[0]);
+		int file = resolve_path(ec.argv[0]);
 		int child = execute_file(file, &ec);
 		if (child >= 0) {
 			int return_value = wait(child);
