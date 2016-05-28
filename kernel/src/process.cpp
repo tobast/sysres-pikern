@@ -520,6 +520,21 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			current_context->r0 = create_socket();
 			return;
 		}
+		case SVC_GET_CWD: {
+			current_context->r0 = (int)processes[active_process].cwd;
+			return;
+		}
+		case SVC_SET_CWD: {
+			node* cwd = (node*)current_context->r0;
+			if (cwd->type == NODE_FOLDER) {
+				processes[active_process].cwd = cwd;
+			}
+			return;
+		}
+		case SVC_GET_PARENT: {
+			current_context->r0 = (int)((node*)current_context->r0)->parent;
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?

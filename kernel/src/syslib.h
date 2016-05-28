@@ -107,5 +107,15 @@ void get_node_name(int node, char* buffer, int max_chars);
 // Creates a socket, and returns its identifier
 int new_socket();
 
+// Returns the handle to the current working directory.
+int get_cwd();
+
+// Sets the current working directory to node with the provided handle.
+void set_cwd(int node);
+
+// Returns the handle to the parent of node. This can be 0 if
+// node is the root of the filesystem.
+int get_parent(int node);
+
 }
 
