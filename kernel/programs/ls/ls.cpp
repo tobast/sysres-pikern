@@ -5,7 +5,11 @@ void dispLsEntry(int handle) {
 	char name[256];
 	get_node_name(handle, name, 256);
 
-	printf("%s", name);
+	if(is_folder(handle))
+		printf("%F%F%s%F", AnsiFormat(ANSI_FG, ANSI_BLUE),
+				name, AnsiFormat());
+	else
+		printf("%s", name);
 }
 
 int main(int argc, char** argv) {

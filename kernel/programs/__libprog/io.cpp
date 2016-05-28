@@ -43,6 +43,10 @@ void puts(const char* v, bool endl) {
 		putchar('\n');
 }
 
+void put_formatter(const AnsiFormat& fmt) {
+	printf("\x1b[%dm", fmt());
+}
+
 void printf(const char* fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
@@ -65,6 +69,9 @@ void printf(const char* fmt, ...) {
 					break;
 				case 'c':
 					putchar(va_arg(args, int));
+					break;
+				case 'F':
+					put_formatter(va_arg(args, AnsiFormat));
 					break;
 				default:
 					puts("[UNKNOWN FORMATTER]", false);
