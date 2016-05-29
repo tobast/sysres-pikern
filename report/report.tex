@@ -52,7 +52,27 @@ bonne partie des jeux publiés par Infocom.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Vue d'ensemble}
 
-\todo{Résumer ce qu'on a fait, utilisation d'USPi, etc.}
+\subsection{Organisation globale}
+La partie principale du projet est le noyau lui-même. Celui-ci (dans
+\fname{kernel/}) se décompose lui-même en plusieurs modules de fonctions
+différentes, qui seront décrits en détail plus tard dans le rapport. Notons
+tout de même que certaines parties traitent de communication avec le matériel,
+d'autres de réseau, d'autres encore de gestion des processus, \ldots
+
+Afin de gérer l'USB --- et donc la carte réseau, branchée au contrôleur
+USB ---, nous avons utilisé \href{https://github.com/rsta2/uspi}{USPi}, un
+driver \textit{bare-metal} de bonne qualité trouvé sur Internet. En effet,
+l'USB des Raspberry Pi est très mal documenté, très difficile à interfacer
+et encore plus difficile à maintenir, d'après le développeur du driver Linux~;
+ainsi avons-nous préféré utiliser du code déjà existant (le seul que nous ayons
+utilisé dans ce projet) pour cela.
+
+Enfin, notre système supporte l'exécution de fichiers exécutables
+(compilés avec des options particulières et décorés) chargés depuis un
+système de fichiers en mémoire. Ceux-ci représentent une partie importante
+du projet en termes de fonctionnalités~: le shell distant, par exemple, est
+un programme indépendant du noyau (interfacé avec celui-ci \textit{via} une
+bibliothèque).
 
 \subsection{Organisation du code}
 
@@ -252,7 +272,7 @@ ajoutons le décalage convenable aux variables dans la section
 décalages voulus. Le format de l'en-tête d'un fichier exécutable est
 donc le suivant~:
 \begin{itemize}
-\item{constante magique \lstc{"\\x7fELF"} (4 octets),}
+\item{constante magique \lstc{"\\x7fELF"} (4 octets),} % chktex 18
 \item{fin de la section \texttt{.bss} (4 octets), permet de savoir la
   mémoire statique à allouer au processus,}
 \item{position de la section \texttt{.got} (4 octets),}
@@ -312,9 +332,9 @@ les recevoir, que ce soit pendant la phase d'initialisation, ou plus tard
 Nous avons implémenté un shell (\fname{ush}) et un démon de shell réseau
 (\fname{ushd}). Ceci nous permet de nous connecter au port 22 de la
 Raspberry Pi en UDP et d'obtenir une console. Celle-ci étant totalement
-non-sécurisée, nous l'avons nommée Unsecure SHell (ou Unreliable SHell,
-au choix)~: la connexion passe par UDP, n'est pas chiffrée, se fait sans mot
-de passe, \ldots
+non-sécurisée, nous l'avons nommée Unsecure SHell (ou Unreliable SHell ou
+Micro Shell, au choix)~: la connexion passe par UDP,
+n'est pas chiffrée, se fait sans mot de passe, \ldots
 
 Le démon écoute les paquets réseau sur le port 22 et ouvre des \fname{ush}
 pour chaque nouveau client (\ie{} nouveau couple adresse-port), dont il gère
@@ -332,7 +352,7 @@ rendre portables ce type de jeux publiés à cette époque, le nombre
 d'architectures existant étant très élevé~! Cette objectif de
 portabilité nous a permis d'en implanter également une version, qui
 peut éxécuter de manière minimaliste les fichiers de la version 5 de
-la Z-machine -- une des plus utilisées de nos jours. Ainsi, ce petit
+la Z-machine --- une des plus utilisées de nos jours. Ainsi, ce petit
 programme ($\approx 1500$ lignes) nous permet de jouer à un grand
 nombre de jeux (probablement plusieurs milliers~!).
 
@@ -427,7 +447,7 @@ par la suite au début de la table contenant les registres du processus
 
 Cependant, lors de l'ajout des appels SVC, le pointeur de pile se
 retrouvait alors là où on l'avait laissé, le Raspberry Pi démarrant en
-mode SVC. La pile écrasait alors la table des processus, et provoquant
+mode SVC\@. La pile écrasait alors la table des processus, et provoquant
 ainsi un crash difficile à expliquer.
 
 \end{document}
