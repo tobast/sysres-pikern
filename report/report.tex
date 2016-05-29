@@ -6,6 +6,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{tocloft}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
 
 % Custom packages
@@ -18,7 +19,12 @@
 {\small PiKern, un noyau minimaliste pour Raspberry Pi}}
 \date{28 mai 2016}
 
+\newcommand{\hex}[1]{\texttt{0$\times$#1}}
+\newcommand{\fname}[1]{\texttt{#1}} %% NOTE use this to format file names
+
 \newcommand{\todo}[1]{\colorbox{orange}{\color{blue}{\Large TODO:} #1}}
+
+\renewcommand{\cftsubsecfont}{\small}
 
 \begin{document}
 \maketitle
@@ -49,89 +55,142 @@ bonne partie des jeux publiés par Infocom.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Vue d'ensemble}
 
-\subsection{organisation du code}
+\todo{Résumer ce qu'on a fait, utilisation d'USPi, etc.}
+
+\subsection{Organisation du code}
 
 Tout le code source du noyau peut être trouvé sur Github
 \href{https://github.com/tobast/sysres-pikern}{ici}, versionné.
 
-Le code du noyau (dossier \texttt{kernel/src}) est organisé dans les fichiers
+Le code du noyau (dossier \fname{kernel/src}) est organisé dans les fichiers
 suivants~:
 
 \begin{itemize}
-	\item \texttt{arp}~: gestion des paquets ARP (découverte d'adresse MAC)~;
-	\item \texttt{assert}~: gestion des assertions~;
-	\item \texttt{atomic}~: opérations atomiques (mutex, \ldots)~;
-	\item \texttt{barriers}~: barrières mémoire et d'instructions~;
-	\item \texttt{Bytes}~: classe munie d'opérateurs << et >> pour gérer des
+	\item \fname{arp}~: gestion des paquets ARP (découverte d'adresse MAC)~;
+	\item \fname{assert}~: gestion des assertions~;
+	\item \fname{atomic}~: opérations atomiques (mutex, \ldots)~;
+	\item \fname{barriers}~: barrières mémoire et d'instructions~;
+	\item \fname{Bytes}~: classe munie d'opérateurs << et >> pour gérer des
 		octets en big endian, utilisé essentiellement pour le réseau~;
-	\item \texttt{common}~: déclarations de types et de fonctions usuelles~;
-	\item \texttt{exec\_context}~: contexte d'exécution d'un programme
+	\item \fname{cinit}~: fonction sur laquelle saute le point d'entrée
+		(écrit en assembleur) après avoir déplacé le stack pointer~;
+	\item \fname{common}~: déclarations de types et de fonctions usuelles~;
+	\item \fname{exec\_context}~: contexte d'exécution d'un programme
 		(stdin, stdout, working directory, \ldots)~;
-	\item \texttt{expArray}~: équivalent à \lstcpp{std::vector}~;
-	\item \texttt{filesystem}~: un RAMFS~;
-	\item \texttt{format}~: formatteur sur le modèle de sprintf, pour des
-		\texttt{Bytes}~;
-	\item \texttt{fs\_populator}~: remplissage initial du RAMFS~;
-	\item \texttt{genericSocket}~: classe de base pour les sockets (entre
+	\item \fname{expArray}~: équivalent à \lstcpp{std::vector}~;
+	\item \fname{filesystem}~: un RAMFS~;
+	\item \fname{format}~: formatteur sur le modèle de sprintf, pour des
+		\fname{Bytes}~;
+	\item \fname{fs\_populator}~: remplissage initial du RAMFS~;
+	\item \fname{genericSocket}~: classe de base pour les sockets (entre
 		applications et réseau)~;
-	\item \texttt{gpio}~: gestion des GPIOs (pins logiques matériels)~;
-	\item \texttt{hardware\_constants}~: constantes dépendant de la version
+	\item \fname{gpio}~: gestion des GPIOs (pins logiques matériels)~;
+	\item \fname{hardware\_constants}~: constantes dépendant de la version
 		de Raspberry Pi utilisée~;
-	\item \texttt{hashTable}~: une table de hachage~;
-	\item \texttt{icmp}~: gestion des paquets ICMP (actuellement, uniquement
+	\item \fname{hashTable}~: une table de hachage~;
+	\item \fname{icmp}~: gestion des paquets ICMP (actuellement, uniquement
 		réponse au ping)~;
-	\item \texttt{interrupts}~: gestion des interruptions~;
-	\item \texttt{ipv4}~: gestion de la couche IPv4~;
-	\item \texttt{logger}~: interface de logs via le réseau~;
-	\item \texttt{mailbox}~: gestion du protocole \textit{mailbox}, permettant
+	\item \fname{init.s}~: point d'entrée (assembleur) du programme~;
+	\item \fname{interrupts}~: gestion des interruptions~;
+	\item \fname{ipv4}~: gestion de la couche IPv4~;
+	\item \fname{kernel}~: fonction principale (main)~;
+	\item \fname{logger}~: interface de logs via le réseau~;
+	\item \fname{mailbox}~: gestion du protocole \textit{mailbox}, permettant
 		de dialoguer avec le matériel (récupération de l'adresse MAC, 
 		de la température des composants, de gérer l'alimentation des
 		composants, \ldots)~;
-	\item \texttt{malloc}~: malloc naïf (\lstc{sbrk})~;
-	\item \texttt{networkCore}~: cœur de gestion du réseau~;
-	\item \texttt{pair}~: équivalent à \lstcpp{std::pair}~;
-	\item \texttt{pool\_allocator}~: malloc/free de taille constante, utilisé
+	\item \fname{malloc}~: malloc naïf (\lstc{sbrk})~;
+	\item \fname{networkCore}~: cœur de gestion du réseau~;
+	\item \fname{pair}~: équivalent à \lstcpp{std::pair}~;
+	\item \fname{pool\_allocator}~: malloc/free de taille constante, utilisé
 		dans la gestion des sockets inter-process (code mort~?)~;
-	\item \texttt{process}~: gestion des processus et des SVC~;
-	\item \texttt{queue}~: équivalent à \lstcpp{std::queue}~;
-	\item \texttt{sleep}~: gestion des \lstc{sleep}, et plus généralement
+	\item \fname{process}~: gestion des processus et des SVC~;
+	\item \fname{queue}~: équivalent à \lstcpp{std::queue}~;
+	\item \fname{sleep}~: gestion des \lstc{sleep}, et plus généralement
 		du temps (timers, \ldots)~;
-	\item \texttt{start\_message}~: contient une chaîne de caractères envoyée
+	\item \fname{start\_message}~: contient une chaîne de caractères envoyée
 		sur le réseau au boot~;
-	\item \texttt{svc}~: appels SVC (appels système)~;
-	\item \texttt{syslib}~: header pour les programmes indépendants~;
-	\item \texttt{udp}~: gestion des paquets UDP~;
-	\item \texttt{udpSocket}~: socket (héritant de \lstc{GenericSocket}
+	\item \fname{startup}~: fonctions standard d'initialisation des programmes
+		indépendants, inclus dans \fname{libsys.a}~;
+	\item \fname{svc}~: appels SVC (appels système)~;
+	\item \fname{syslib}~: header pour les programmes indépendants~;
+	\item \fname{udp}~: gestion des paquets UDP~;
+	\item \fname{udpSocket}~: socket (héritant de \lstc{GenericSocket})
 		spécialisé pour l'UDP~;
-	\item \texttt{udpSysWrite}~: structure pour écrire de l'UDP sur le
+	\item \fname{udpSysWrite}~: structure pour écrire de l'UDP sur le
 		réseau depuis un programme indépendant~;
-	\item \texttt{uspi\_interface}~: interfaçage avec USPi (driver USB).
+	\item \fname{uspi\_interface}~: interfaçage avec USPi (driver USB).
 \end{itemize}
+
+\subsection{Dépendances}
+\todo{Dépendances, outils nécessaires à la compilation}
+
+\subsection{Compilation}
+\todo{Processus de compilation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Bas niveau et matériel}
 
+\subsection{Matériel}
+Notre noyau a été conçu et testé sur une 
+\href{https://www.raspberrypi.org/products/model-b/}{Raspberry Pi B version 1}.
+Nous avons de plus soudé sur une plaque de prototypage quelques headers de
+pins auxquels sont reliées huit LEDs identiques pour afficher un octet,
+une LED d'état et une LED de crash, connectables par GPIO à la Raspberry Pi~;
+ainsi qu'un interrupteur d'alimentation et les ports USB allant avec, afin
+d'éviter d'user les connecteurs à brancher et débrancher le câble USB
+d'alimentation (seule manière prévue d'allumer et d'éteindre la Raspberry Pi).
+
+Le chargement du noyau se faisait en écrivant directement sur la carte SD
+(qui sert de stockage et de disque de démarrage à la Raspberry Pi) à place
+du \fname{kernel.img} installé par la distribution standard Linux pour
+Raspberry Pi, à l'aide de \lstbash{make install}.
+
+\subsection{Séquence de boot}
+Nous avons conservé le bootloader par défaut de
+\href{https://www.raspberrypi.org/downloads/raspbian/}{Raspbian} pour démarrer
+notre \fname{kernel.img}. La séquence de boot standard (que nous n'avons donc
+pas implémentée) démarre tout d'abord le GPU, qui va exécuter le bootloader,
+charger (par simple \lstc{memcpy}) l'image système en RAM, puis démarrer le
+CPU et lui donner la main.
+
+Celui-ci déplace son \lstc{PC} (Program Counter) à l'adresse \hex{8000},
+où doit se trouver la fonction de démarrage du noyau, correspondant pour nous
+au contenu de \fname{init.s}, qui déplace le \lstc{SP} à \hex{8000} (la stack
+croît vers le bas), puis saute sur le \lstc{\_c\_init} (dans \fname{cinit.cpp})
+qui écrit le \lstc{BSS} et donne la main à \lstc{kernel\_main}.
+
+\subsection{GPIO}
+Les pins GPIO se contrôlent aisément à l'aide de constantes à écrire à un
+endroit précis en mémoire pour en gérer le sens (input ou output) et en écrire
+l'état.
+
+\subsection{Mailbox}
+Ce protocole permet d'interagir avec les différents composants matériels,
+comme le GPU (non-implémenté), mais aussi la récupération de l'adresse MAC
+de la carte réseau, la mise sous tension des composants, les capteurs de
+température, \ldots
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Processus}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Pour gérer plusieurs processus s'éxécutant en parallèle, on effectue
 de la simulation séquentielle du parallélisme, en utilisant un seul
 cœur du Raspberry Pi, qui éxécute séquentiellement des morceaux de
 chaque processus.
 
 Pour faire la transition entre chaque processus, il s'agit de
-sauvegarder son état (i.e. l'état de tous ses registres et de son mode
+sauvegarder son état (\ie{} l'état de tous ses registres et de son mode
 uniquement, puisqu'il n'y a pas de MMU). On garde ces informations,
 ainsi que quelques autres (état du processus, nom, répertoire
-courant...) dans une table globale.
+courant\ldots) dans une table globale.
 
 Les appels système se font par l'intermédiaire des intructions SVC,
 qui font un appel au superviseur (et en particulier, changent le mode
 du processeur~; c'est la seule manière de sortir du mode
 \textit{user}). Il y a un type d'appel SVC pour chaque appel système
 souhaité~; chacun d'entre eux ayant du code associé dans
-\texttt{process.cpp}.
+\fname{process.cpp}.
 
 Les informations retenues pour chaque processus sont~:
 \begin{itemize}
@@ -176,10 +235,11 @@ Malgré cela, il semblerait qu'il reste quelques problèmes avec la
 relocalisation des éxécutables~: ainsi, les exceptions et
 l'utilisation de chaînes de caractères globales semblent poser
 problème. Comme nous n'avions pas énormément de temps, et que le
-format des fichiers produits par \texttt{gcc} est complexe, nous
+format des fichiers produits par \lstbash{gcc} est complexe, nous
 n'avons pas cherché à corriger ces problèmes (ce qu'il faudrait bien
 sûr faire dans un vrai système d'exploitation~!).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Réseau}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
