@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[francais]{babel} %% FRENCH, FIXME if typing in english
+\usepackage[francais]{babel}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -32,7 +32,7 @@ noyau minimaliste bootable pour Raspberry Pi. Nous avons réussi à implémenter
 une gestion de processus distincts avec ordonnanceur, une couche réseau
 complète gérant le ping et l'UDP, un système de fichiers en mémoire
 pouvant contenir des fichiers exécutables, un shell distant
-minimaliste, ainsi que quelques jeux~: un serveur snake, et une
+minimaliste, ainsi que quelques jeux~: un serveur snake et une
 implantation basique de la Z-machine, permettant de jouer à un grand
 nombre de jeux d'\textit{interactive fiction}, en particulier une
 bonne partie des jeux publiés par Infocom.
@@ -94,13 +94,13 @@ suivants~:
 		(stdin, stdout, working directory, \ldots)~;
 	\item \fname{expArray}~: équivalent à \lstcpp{std::vector}~;
 	\item \fname{filesystem}~: un RAMFS~;
-	\item \fname{format}~: formatteur sur le modèle de sprintf, pour des
+	\item \fname{format}~: formatteur sur le modèle de \lstc{sprintf}, pour des
 		\fname{Bytes}~;
 	\item \fname{fs\_populator}~: remplissage initial du RAMFS~;
 	\item \fname{genericSocket}~: classe de base pour les sockets (entre
 		applications et réseau)~;
 	\item \fname{gpio}~: gestion des GPIOs (pins logiques matériels)~;
-	\item \fname{hardware\_constants}~: constantes dépendant de la version
+	\item \fname{hardware\_constants}~: constantes dépendantes de la version
 		de Raspberry Pi utilisée~;
 	\item \fname{hashTable}~: une table de hachage~;
 	\item \fname{icmp}~: gestion des paquets ICMP (actuellement, uniquement
@@ -108,12 +108,12 @@ suivants~:
 	\item \fname{init.s}~: point d'entrée (assembleur) du programme~;
 	\item \fname{interrupts}~: gestion des interruptions~;
 	\item \fname{ipv4}~: gestion de la couche IPv4~;
-	\item \fname{kernel}~: fonction principale (main)~;
+	\item \fname{kernel}~: fonction principale (\lstc{kernel_main})~;
 	\item \fname{logger}~: interface de logs via le réseau~;
 	\item \fname{mailbox}~: gestion du protocole \textit{mailbox}, permettant
 		de dialoguer avec le matériel (récupération de l'adresse MAC, 
-		de la température des composants, de gérer l'alimentation des
-		composants, \ldots)~;
+		de la température des composants, permettant de gérer l'alimentation
+		des composants, \ldots)~;
 	\item \fname{malloc}~: malloc naïf (\lstc{sbrk})~;
 	\item \fname{networkCore}~: cœur de gestion du réseau~;
 	\item \fname{pair}~: équivalent à \lstcpp{std::pair}~;
@@ -187,7 +187,7 @@ ainsi qu'un interrupteur d'alimentation et les ports USB allant avec, afin
 d'éviter d'user les connecteurs à brancher et débrancher le câble USB
 d'alimentation (seule manière prévue d'allumer et d'éteindre la Raspberry Pi).
 
-Le chargement du noyau se faisait en écrivant directement sur la carte SD
+Le chargement du noyau se fait en écrivant directement sur la carte SD
 (qui sert de stockage et de disque de démarrage à la Raspberry Pi) à place
 du \fname{kernel.img} installé par la distribution standard Linux pour
 Raspberry Pi, à l'aide de \lstbash{make install}.
@@ -231,7 +231,7 @@ uniquement, puisqu'il n'y a pas de MMU). On garde ces informations,
 ainsi que quelques autres (état du processus, nom, répertoire
 courant\ldots) dans une table globale.
 
-Les appels système se font par l'intermédiaire des intructions SVC,
+Les appels système se font par l'intermédiaire des instructions SVC,
 qui font un appel au superviseur (et en particulier, changent le mode
 du processeur~; c'est la seule manière de sortir du mode
 \textit{user}). Il y a un type d'appel SVC pour chaque appel système
@@ -331,7 +331,7 @@ Nous avons implémenté un shell (\fname{ush}) et un démon de shell réseau
 (\fname{ushd}). Ceci nous permet de nous connecter au port 22 de la
 Raspberry Pi en UDP et d'obtenir une console. Celle-ci étant totalement
 non-sécurisée, nous l'avons nommée Unsecure SHell (ou Unreliable SHell ou
-Micro Shell, au choix)~: la connexion passe par UDP,
+Micro SHell, au choix)~: la connexion passe par UDP,
 n'est pas chiffrée, se fait sans mot de passe, \ldots
 
 Le démon écoute les paquets réseau sur le port 22 et ouvre des \fname{ush}
@@ -346,17 +346,18 @@ Les commandes suivantes sont implémentées~:
 \subsection{Interpréteur de Z-machine}
 La Z-machine est une machine virtuelle inventée en 1979 et spécialisée
 pour les jeux de fiction interactive~: elle a été créée dans le but de
-rendre portables ce type de jeux publiés à cette époque, le nombre
+rendre portable ce type de jeux publiés à cette époque, le nombre
 d'architectures existant étant très élevé~! Cette objectif de
 portabilité nous a permis d'en implanter également une version, qui
-peut éxécuter de manière minimaliste les fichiers de la version 5 de
+peut exécuter de manière minimaliste les fichiers de la version 5 de
 la Z-machine --- une des plus utilisées de nos jours. Ainsi, ce petit
 programme ($\approx 1500$ lignes) nous permet de jouer à un grand
 nombre de jeux (probablement plusieurs milliers~!).
 
 L'interpréteur se contente de lire le fichier donné en argument, et
-d'éxécuter son contenu en suivant la spécification
-(c.f. \href{http://inform-fiction.org/zmachine/standards/z1point1/index.html}
+d'exécuter son contenu en suivant la spécification
+(\textit{cf}.
+\href{http://inform-fiction.org/zmachine/standards/z1point1/index.html}
 {http://inform-fiction.org/zmachine/standards/z1point1/index.html})
 lorsque c'était possible et pas trop compliqué, ou en se débrouillant
 pour écrire quelque chose de minimaliste permettant aux jeux de
@@ -372,7 +373,7 @@ avec l'interpréteur fourni.
 \subsection{Serveur de Snake multijoueur}
 Nous avons également implanté un petit jeu de Snake multijoueur en
 Python, puis recodé le serveur en C++ en utilisant les appels système
-de notre noyau afin de pouvoir éxécuter celui-ci sur le Raspberry
+de notre noyau afin de pouvoir exécuter celui-ci sur la Raspberry
 Pi. Il est ainsi possible de se connecter avec plusieurs joueurs,
 chacun contrôlant un serpent indépendamment.
 
@@ -406,7 +407,7 @@ buff = (uint32_t*) (mem + ((16 - ((Ptr)mem & 0xF)) & (0xFFFFFFF0)));
 
 Le résultat est que \lstc{buff} se trouvait modulé --- et non aligné --- sur 4
 octets, et toute écriture dans \lstc{buff} provoquait donc l'écrasement de la
-table de vecteurs, entraînant une erreur incompréhensible\ldots surtout
+table de vecteurs, entraînant une erreur incompréhensible\ldots{} surtout
 lorsqu'on doit la débugger avec des LEDs.
 
 
@@ -433,7 +434,7 @@ la section \lstc{.text.unlikely}, placée \emph{avant} \lstc{.text.startup}.
 
 Ainsi, l'ajout d'un constructeur à une classe empêchait le démarrage
 (pas le moindre clignottement de LED~!) de la Raspberry Pi, puisque le code
-exécuté au démarrage (adresse \hex{8000}) était\ldots un constructeur d'une
+exécuté au démarrage (adresse \hex{8000}) était\ldots{} un constructeur d'une
 structure inutile, puis un return.
 
 \subsection*{Pile du mode SVC mal placée}
@@ -444,7 +445,7 @@ par la suite au début de la table contenant les registres du processus
 à lancer, par souci de cohérence avec le reste du code.
 
 Cependant, lors de l'ajout des appels SVC, le pointeur de pile se
-retrouvait alors là où on l'avait laissé, le Raspberry Pi démarrant en
+retrouvait alors là où on l'avait laissé, la Raspberry Pi démarrant en
 mode SVC\@. La pile écrasait alors la table des processus, et provoquant
 ainsi un crash difficile à expliquer.
 
