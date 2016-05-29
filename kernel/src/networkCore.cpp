@@ -66,10 +66,15 @@ void processPacket(Bytes frame) {
 				}
 			} catch(ipv4::BadChecksum&) {
 				appendLog(LogWarning, "udp", "Bad checksum from %M", fromMac);
+			} catch(icmp::BadChecksum&) {
+				appendLog(LogWarning, "icmp", "Bad checksum from %M", fromMac);
 			} catch(udp::WrongProtocol&) {
 				appendLog(LogWarning, "udp", "Bad protocol");
 			} catch(ipv4::WrongProtocol&) {
 				appendLog(LogWarning, "IPv4", "Bad protocol");
+			} catch(Bytes::OutOfRange&) {
+				appendLog(LogWarning, "nw", "Tried to read too much out of "
+						"a packet.");
 			} catch(...) {
 				appendLog(LogWarning, "udp", "Unexpected unknown exception.");
 			}
@@ -100,6 +105,7 @@ void readUdpSocket(UdpSocket* handle, void* buff, unsigned maxLen,
 uint16_t networkChksum(const Bytes& b, unsigned headBeg, unsigned headEnd,
 		uint16_t firstShort)
 {
+	assert((headBeg+headEnd)%2 == 0, 0x32); // Same parity
 	uint32_t chksum = firstShort;
 	for(unsigned cpos=headBeg; cpos < headEnd; cpos+=2) {
 		chksum += (((uint16_t)b.at(cpos)<<8)+(b.at(cpos+1)));

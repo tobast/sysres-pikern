@@ -9,9 +9,10 @@ bool respondToPing(Bytes& pck, const ipv4::PckInfos& infos) {
 	Bytes resp;
 	resp << (uint32_t) 0x00;
 
-
-	if(nw::networkChksum(pck, 0, pckSize) != 0x00)
-		throw BadChecksum();
+	if(pckSize % 2 == 0) { // What are we supposed to do with odd parity?
+		if(nw::networkChksum(pck, 0, pckSize) != 0x00)
+			throw BadChecksum();
+	}
 
 	uint8_t type, code, payloadByte;
 	uint16_t ignoreU16, idNum, seqNum;
