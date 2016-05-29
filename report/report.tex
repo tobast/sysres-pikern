@@ -37,6 +37,12 @@ bonne partie des jeux publiés par Infocom.
 	\todo{suite}
 \end{abstract}
 
+\begin{center}
+	\href{https://github.com/tobast/sysres-pikern}
+		{\Large \includegraphics[height=3em]{github.png}
+		\raisebox{1em}{Code source}}
+\end{center}
+
 \tableofcontents
 \newpage
 
@@ -44,6 +50,63 @@ bonne partie des jeux publiés par Infocom.
 \section{Vue d'ensemble}
 
 \subsection{organisation du code}
+
+Tout le code source du noyau peut être trouvé sur Github
+\href{https://github.com/tobast/sysres-pikern}{ici}, versionné.
+
+Le code du noyau (dossier \texttt{kernel/src}) est organisé dans les fichiers
+suivants~:
+
+\begin{itemize}
+	\item \texttt{arp}~: gestion des paquets ARP (découverte d'adresse MAC)~;
+	\item \texttt{assert}~: gestion des assertions~;
+	\item \texttt{atomic}~: opérations atomiques (mutex, \ldots)~;
+	\item \texttt{barriers}~: barrières mémoire et d'instructions~;
+	\item \texttt{Bytes}~: classe munie d'opérateurs << et >> pour gérer des
+		octets en big endian, utilisé essentiellement pour le réseau~;
+	\item \texttt{common}~: déclarations de types et de fonctions usuelles~;
+	\item \texttt{exec\_context}~: contexte d'exécution d'un programme
+		(stdin, stdout, working directory, \ldots)~;
+	\item \texttt{expArray}~: équivalent à \lstcpp{std::vector}~;
+	\item \texttt{filesystem}~: un RAMFS~;
+	\item \texttt{format}~: formatteur sur le modèle de sprintf, pour des
+		\texttt{Bytes}~;
+	\item \texttt{fs\_populator}~: remplissage initial du RAMFS~;
+	\item \texttt{genericSocket}~: classe de base pour les sockets (entre
+		applications et réseau)~;
+	\item \texttt{gpio}~: gestion des GPIOs (pins logiques matériels)~;
+	\item \texttt{hardware\_constants}~: constantes dépendant de la version
+		de Raspberry Pi utilisée~;
+	\item \texttt{hashTable}~: une table de hachage~;
+	\item \texttt{icmp}~: gestion des paquets ICMP (actuellement, uniquement
+		réponse au ping)~;
+	\item \texttt{interrupts}~: gestion des interruptions~;
+	\item \texttt{ipv4}~: gestion de la couche IPv4~;
+	\item \texttt{logger}~: interface de logs via le réseau~;
+	\item \texttt{mailbox}~: gestion du protocole \textit{mailbox}, permettant
+		de dialoguer avec le matériel (récupération de l'adresse MAC, 
+		de la température des composants, de gérer l'alimentation des
+		composants, \ldots)~;
+	\item \texttt{malloc}~: malloc naïf (\lstc{sbrk})~;
+	\item \texttt{networkCore}~: cœur de gestion du réseau~;
+	\item \texttt{pair}~: équivalent à \lstcpp{std::pair}~;
+	\item \texttt{pool\_allocator}~: malloc/free de taille constante, utilisé
+		dans la gestion des sockets inter-process (code mort~?)~;
+	\item \texttt{process}~: gestion des processus et des SVC~;
+	\item \texttt{queue}~: équivalent à \lstcpp{std::queue}~;
+	\item \texttt{sleep}~: gestion des \lstc{sleep}, et plus généralement
+		du temps (timers, \ldots)~;
+	\item \texttt{start\_message}~: contient une chaîne de caractères envoyée
+		sur le réseau au boot~;
+	\item \texttt{svc}~: appels SVC (appels système)~;
+	\item \texttt{syslib}~: header pour les programmes indépendants~;
+	\item \texttt{udp}~: gestion des paquets UDP~;
+	\item \texttt{udpSocket}~: socket (héritant de \lstc{GenericSocket}
+		spécialisé pour l'UDP~;
+	\item \texttt{udpSysWrite}~: structure pour écrire de l'UDP sur le
+		réseau depuis un programme indépendant~;
+	\item \texttt{uspi\_interface}~: interfaçage avec USPi (driver USB).
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Bas niveau et matériel}
