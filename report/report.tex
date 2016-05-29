@@ -131,7 +131,32 @@ Pour fonctionner, le projet dans son état actuel nécessite~:
 \end{itemize}
 
 \subsection{Compilation}
-\todo{Processus de compilation}
+La compilation se déroule en plusieurs étapes~:
+\begin{enumerate}
+	\item compilation de \fname{libsys.a}~;
+	\item compilation de chaque programme indépendant, décoration de ce
+		fichier comme exécutable pour notre noyau et copie dans le
+		dossier du RAMFS initial~;
+	\item génération du fichier C++ définissant le contenu du RAMFS initial~;
+	\item compilation des objets qui ne sont pas encore compilés pour le
+		noyau~;
+	\item assemblage dans \fname{\_build/output.elf}~;
+	\item copie de l'objet compilé avec les décorations nécessaires en
+		\fname{kernel.img}~;
+	\item éventuellement (\lstbash{make install}), copie sur la carte SD\@.
+\end{enumerate}
+
+L'étape d'assemblage utilise un script de linker essentiellement repris de
+\fname{arm-none-eabi-ld}, à une ou deux modifications près. Chaque
+compilation vers un objet nécessite un certain nombre d'options, afin de
+compiler pour la bonne architecture et sans le code d'initialisation, entre
+autres.
+
+La compilation des programmes indépendants est un peu compliquée également~:
+comme nous n'avons pas utilisé de MMU, nous avons dû produire de l'assembleur
+\textit{position-independant}, stockant ses variables globales à des endroits
+adaptés (et non en plein milieu de la pile système, comme ce qui est fait
+par défaut\ldots), etc.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Bas niveau et matériel}
