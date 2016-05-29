@@ -210,9 +210,10 @@ public:
 			ExpArray<pos> &s = snakes[i].snake;
 			pos p = s[s.size() - 1];
 			pos np = p + snakes[i].direction;
-			printf("Snake %d moving from (%d, %d) to (%d, %d)\n", i, p.x, p.y, np.x, np.y);
+			//printf("Snake %d moving from (%d, %d) to (%d, %d)\n",
+			//	i, p.x, p.y, np.x, np.y);
 			if (snake_exists(np) || !is_valid(np)) {
-				printf("Snake %d died.\n", i);
+				//printf("Snake %d died.\n", i);
 				stopped = true;
 				return;
 			}
