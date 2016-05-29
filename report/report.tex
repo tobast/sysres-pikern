@@ -254,7 +254,7 @@ ajoutons le décalage convenable aux variables dans la section
 décalages voulus. Le format de l'en-tête d'un fichier éxécutable est
 donc le suivant~:
 \begin{itemize}
-\item{constante magique \texttt{$\backslash{}$x7fELF} (4 octets),}
+\item{constante magique \lstc{"\\x7fELF"} (4 octets),}
 \item{fin de la section \texttt{.bss} (4 octets), permet de savoir la
   mémoire statique à allouer au processus,}
 \item{position de la section \texttt{.got} (4 octets),}
@@ -328,10 +328,37 @@ Les commandes suivantes sont implémentées~:
 %lstc et non lstbash pour éviter la coloration syntaxique.
 
 \subsection{Interpréteur de Z-machine}
-\todo{Nath}
+La Z-machine est une machine virtuelle inventée en 1979 et spécialisée
+pour les jeux de fiction interactive~: elle a été créée dans le but de
+rendre portables ce type de jeux publiés à cette époque, le nombre
+d'architectures existant étant très élevé~! Cette objectif de
+portabilité nous a permis d'en implanter également une version, qui
+peut éxécuter de manière minimaliste les fichiers de la version 5 de
+la Z-machine -- une des plus utilisées de nos jours. Ainsi, ce petit
+programme ($\approx 1500$ lignes) nous permet de jouer à un grand
+nombre de jeux (probablement plusieurs milliers~!).
+
+L'interpréteur se contente de lire le fichier donné en argument, et
+d'éxécuter son contenu en suivant la spécification
+(c.f. \href{http://inform-fiction.org/zmachine/standards/z1point1/index.html}
+{http://inform-fiction.org/zmachine/standards/z1point1/index.html})
+lorsque c'était possible et pas trop compliqué, ou en se débrouillant
+pour écrire quelque chose de minimaliste permettant aux jeux de
+fonctionner dans les autres cas. Le lecteur est invité à essayer des
+jeux comme
+\href{http://ifdb.tads.org/viewgame?id=x6ne0bbd2oqm6h3a}{\textit{Balances}} ou
+\href{http://ifdb.tads.org/viewgame?id=5e23lnq25gon9tp3}{\textit{All
+    Things Devours}} pour se représenter les jeux en question~; une
+partie importante des titres sortis par Infocom (dont \textit{Trinity}, un des
+jeux du genre jugé parmi les meilleurs) devraient pouvoir être utilisés
+avec l'interpréteur fourni.
 
 \subsection{Serveur de Snake multijoueur}
-\todo{Nath}
+Nous avons également implanté un petit jeu de Snake multijoueur en
+Python, puis recodé le serveur en C++ en utilisant les appels système
+de notre noyau afin de pouvoir éxécuter celui-ci sur le Raspberry
+Pi. Il est ainsi possible de se connecter avec plusieurs joueurs,
+chacun contrôlant un serpent indépendamment.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Difficultés rencontrées}
