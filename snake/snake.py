@@ -26,7 +26,7 @@ class ServerConnection(threading.Thread):
 class App:
     def __init__(self):
         self.tk = Tk()
-        self.connection = ServerConnection("127.0.0.1", SERVER_PORT, 0, self.got_server_message)
+        self.connection = ServerConnection("129.199.157.174", SERVER_PORT, 0, self.got_server_message)
         self.connection.start()
         self.can = Canvas(self.tk, width = PSIZE * WIDTH, height = PSIZE * HEIGHT, bg = "white")
         self.can.pack()

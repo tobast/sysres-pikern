@@ -77,6 +77,9 @@ struct SnakeInfo {
 	int extend_size;
 	SnakeInfo() {
 		snake.init();
+		direction = pos(0, 0);
+		snake_color = color(0, 0, 0);
+		extend_size = 0;
 	}
 };
 
@@ -150,7 +153,7 @@ public:
 		DIRS[2] = pos(-1, 0);
 		DIRS[3] = pos(0, -1);
 		send_buffer = (char*)malloc(65536);
-		stopped = false;
+		reset();
 	};
 
 	bool snake_exists(pos p) {
@@ -182,7 +185,23 @@ public:
 			process_incoming();
 			move();
 			send_data();
-			sleep(100 * 1000);
+			if (stopped) {
+				sleep(2 * 1000 * 1000);
+				reset();
+			} else {
+				sleep(100 * 1000);
+			}
+		}
+	};
+
+	void reset() {
+		stopped = false;
+		apples.clear();
+		for (uint16_t i = 0; i < snakes.size(); i++) {
+			new_snake(i);
+		}
+		for (uint16_t i = 0; i < NB_APPLES; i++) {
+			add_apple();
 		}
 	};
 
@@ -273,11 +292,12 @@ public:
 		}
 	};
 
-	void new_client(int clientId) {
+	bool new_snake(int id) {
 		const int initial_length = 5;
 		const int ahead_length = 3;
 		const int w = initial_length + ahead_length;
 		const int tries = 100;
+		snakes[id].snake.clear();
 		for (int _ = 0; _ < tries; _++) {
 			uint16_t x = rand_next(WIDTH - w);
 			uint16_t y = rand_next(HEIGHT);
@@ -289,20 +309,26 @@ public:
 				}
 			}
 			if (ok) {
-				SnakeInfo sn;
 				for (int i = 0; i < w; i++) {
-					sn.snake.push_back(pos(x + i, y));
+					snakes[id].snake.push_back(pos(x + i, y));
 				}
-				sn.direction = pos(1, 0);
-				sn.extend_size = 0;
-				snakes.push_back(sn);
-				printf("Hello %d\n", clientId);
-				return;
+				snakes[id].direction = pos(1, 0);
+				snakes[id].extend_size = 0;
+				return true;
 			}
 		}
-		Packet rpck(send_buffer, 0);
-		rpck.add_uint8(TOCLIENT_ACCESS_DENIED);
-		sendClient(clientId, rpck.buffer, rpck.len);
+		return false;
+    };
+
+    void new_client(int clientId) {
+		SnakeInfo sn;
+		snakes.push_back(sn);
+		bool ok = new_snake(clientId);
+		if (!ok) {
+		    Packet rpck(send_buffer, 0);
+			rpck.add_uint8(TOCLIENT_ACCESS_DENIED);
+			sendClient(clientId, rpck.buffer, rpck.len);
+		}
 	};
 
 	void send_data() {
