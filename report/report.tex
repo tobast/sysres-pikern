@@ -27,7 +27,12 @@
 Au cours de ce projet, nous nous sommes intéressés à l'écriture en C++ d'un
 noyau minimaliste bootable pour Raspberry Pi. Nous avons réussi à implémenter
 une gestion de processus distincts avec ordonnanceur, une couche réseau
-complète gérant le ping et l'UDP,
+complète gérant le ping et l'UDP, un système de fichiers en mémoire
+pouvant contenir des fichiers éxécutables, un shell distant
+minimaliste, ainsi que quelques jeux~: un serveur snake, et une
+implantation basique de la Z-machine, permettant de jouer à un grand
+nombre de jeux d'\textit{interactive fiction}, en particulier une
+bonne partie des jeux publiés par Infocom.
 
 	\todo{suite}
 \end{abstract}
@@ -47,6 +52,71 @@ complète gérant le ping et l'UDP,
 \section{Processus}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Pour gérer plusieurs processus s'éxécutant en parallèle, on effectue
+de la simulation séquentielle du parallélisme, en utilisant un seul
+cœur du Raspberry Pi, qui éxécute séquentiellement des morceaux de
+chaque processus.
+
+Pour faire la transition entre chaque processus, il s'agit de
+sauvegarder son état (i.e. l'état de tous ses registres et de son mode
+uniquement, puisqu'il n'y a pas de MMU). On garde ces informations,
+ainsi que quelques autres (état du processus, nom, répertoire
+courant...) dans une table globale.
+
+Les appels système se font par l'intermédiaire des intructions SVC,
+qui font un appel au superviseur (et en particulier, changent le mode
+du processeur~; c'est la seule manière de sortir du mode
+\textit{user}). Il y a un type d'appel SVC pour chaque appel système
+souhaité~; chacun d'entre eux ayant du code associé dans
+\texttt{process.cpp}.
+
+Les informations retenues pour chaque processus sont~:
+\begin{itemize}
+\item{l'état des registres et le mode,}
+\item{les processus suivants et précédents dans la liste circulaire
+  doublement chaînée des processus,}
+\item{le répertoire courant,}
+\item{l'état du processus~: actif, en train d'attendre de
+  l'entrée-sortie, d'attendre la terminaison d'un autre processus,
+  de dormir, ou zombi, ainsi qu'un entier 64 bits indiquant une
+  information d'état (le moment de réveil pour un processus endormi,
+  par exemple).}
+\end{itemize}
+
+Tout cela permet d'avoir des processus s'éxécutant en même temps, et
+pouvant communiquer à travers les sockets existants. Cependant, il
+y a une difficulté pour éxécuter des processus depuis un fichier.
+\\
+
+En effet, éxécuter un processus depuis un fichier requiert le
+chargement du fichier en mémoire, et l'éxécution de celui-ci. Or, nous
+n'avons pas de MMU, le fichier ne peut donc pas être facilement placé
+à n'importe quel endroit de la mémoire. La solution pour cela est de
+compiler les programmes avec l'option \texttt{-fPIC}, qui génère du
+code indépendant de la position.
+
+Cependant, ce code indépendant de la position a besoin d'une table
+globale indiquant les positions des données. Pour ce faire, nous
+ajoutons le décalage convenable aux variables dans la section
+\texttt{.got} (Global Offset Table), ce qui permet d'avoir les
+décalages voulus. Le format de l'en-tête d'un fichier éxécutable est
+donc le suivant~:
+\begin{itemize}
+\item{constante magique \texttt{$\backslash{}$x7fELF} (4 octets),}
+\item{fin de la section \texttt{.bss} (4 octets), permet de savoir la
+  mémoire statique à allouer au processus,}
+\item{position de la section \texttt{.got} (4 octets),}
+\item{longueur (en mots de 4 octets) de la section \texttt{.got} (4 octets).\\}
+\end{itemize}
+
+Malgré cela, il semblerait qu'il reste quelques problèmes avec la
+relocalisation des éxécutables~: ainsi, les exceptions et
+l'utilisation de chaînes de caractères globales semblent poser
+problème. Comme nous n'avions pas énormément de temps, et que le
+format des fichiers produits par \texttt{gcc} est complexe, nous
+n'avons pas cherché à corriger ces problèmes (ce qu'il faudrait bien
+sûr faire dans un vrai système d'exploitation~!).
+
 \section{Réseau}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
