@@ -35,3 +35,11 @@ kernel/kernel.img
 kernel/initial_fs/bin/*
 **/_build
 kernel/programs/**/*.bin
+**/__pycache__
+*.z5
+
+# LaTeX
+*.aux
+*.log
+*.toc
+*.pdf

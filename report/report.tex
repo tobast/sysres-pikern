@@ -1,0 +1,64 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[francais]{babel} %% FRENCH, FIXME if typing in english
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+% Custom packages
+\usepackage{my_listings}
+\usepackage{my_hyperref}
+\usepackage{math}
+
+\author{Théophile \textsc{Bastian}, Nathanaël \textsc{Courant}}
+\title{Systèmes et réseaux~: rendu de projet\\
+{\small PiKern, un noyau minimaliste pour Raspberry Pi}}
+\date{28 mai 2016}
+
+\newcommand{\todo}[1]{\colorbox{orange}{\color{blue}{\Large TODO:} #1}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Au cours de ce projet, nous nous sommes intéressés à l'écriture en C++ d'un
+noyau minimaliste bootable pour Raspberry Pi. Nous avons réussi à implémenter
+une gestion de processus distincts avec ordonnanceur, une couche réseau
+complète gérant le ping et l'UDP,
+
+	\todo{suite}
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Vue d'ensemble}
+
+\subsection{organisation du code}
+
+\section{Bas niveau et matériel}
+
+\section{Processus}
+
+\section{Réseau}
+
+\section{Difficultés rencontrées}
+
+\subsection{Compilation du code}\label{ssec:diff:compil}
+\todo{}
+\subsection{Recoder la bibliothèque standard}\label{ssec:diff:stdlib}
+\todo{}
+\subsection{Écrasement de la table de vecteurs}\label{ssec:diff:delvect}
+\todo{}
+\subsection{Liaison C et C++ à la fois de malloc}\label{ssec:diff:linkage}
+\todo{}
+\subsection{\lstc{.text.startup} n'est pas au début}\label{ssec:diff:startup}
+\todo{}
+\subsection{Stack des processus mal placée}\label{ssec:diff:async_stack}
+\todo{}
+
+\end{document}
+

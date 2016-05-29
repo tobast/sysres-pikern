@@ -1,0 +1,63 @@
+\usepackage{stmaryrd}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{fancybox}
+
+% Intervalle discret.
+\newcommand{\discrIv}[1]{\llbracket #1 \rrbracket}
+
+% ensembliste
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\newcommand{\card}[1]{\left\vert{} #1 \right\vert}
+\newcommand{\abs}[1]{\left\vert{} #1 \right\vert}
+\newcommand{\interior}[1]{\left({#1}\right)^\circ}
+\newcommand{\floor}[1]{\left\lfloor{} #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil{} #1 \right\rceil}
+
+% Abréviations courrantes
+\newcommand{\ie}{\textit{ie.}}
+\newcommand{\eg}{\textit{eg.}}
+
+% Notations à polices étranges
+\newcommand{\domain}{\mathcal{D}}
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calV}{\mathcal{V}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calP}{\mathcal{P}}
+
+% Ensembles
+\newcommand{\realset}{\mathbb{R}}
+\newcommand{\natset}{\mathbb{N}}
+\newcommand{\relset}{\mathbb{Z}}
+
+% Probas
+\newcommand{\prob}{\mathbb{P}}
+\newcommand{\probP}[1]{\mathbb{P}\left(#1\right)}
+\newcommand{\expec}{\mathbb{E}}
+\newcommand{\expecP}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\variance}{\mathbb{V}}
+\newcommand{\ber}{\mathcal{B}er}
+\newcommand{\bin}{\mathcal{B}in}
+\newcommand{\poi}{\mathcal{P}oi}
+
+% Suppression des points
+\newcommand{\ibar}{\overline{\imath}}
+\newcommand{\jbar}{\overline{\jmath}}
+
+% Fonctions
+%\newcommand{\functiondef}[4]{\left\lbrace \begin{tabular}{r l} #1 & \rightarrow #2 \\ #3 & \mapsto #4\end{tabular} \right.}
+\newcommand{\functiondef}[4]{\begin{cases}
+#1 & \to #2 \\
+#3 & \mapsto #4
+\end{cases}}
+
+
+% Preuve par équivalence - puces
+\newcommand{\impliesbullet}{\ovalbox{$\implies$}}
+\newcommand{\impliedbybullet}{\ovalbox{$\impliedby$}}
