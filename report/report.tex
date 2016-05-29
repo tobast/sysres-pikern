@@ -46,7 +46,7 @@ bonne partie des jeux publiés par Infocom.
 \begin{center}
 	\href{https://github.com/tobast/sysres-pikern}
 		{\Large \includegraphics[height=3em]{github.png}
-		\raisebox{1em}{Code source}}
+		\raisebox{1em}{\textbf{Code source}}}
 \end{center}
 
 \tableofcontents
@@ -241,7 +241,41 @@ sûr faire dans un vrai système d'exploitation~!).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Réseau}
-\todo{}
+Notre projet de noyau s'appuie fortement sur le réseau, puisque nous n'avons
+aucune interface (écran, clavier, souris, \ldots) branchée directement sur la
+Raspberry Pi. Nous l'utilisons entre autres pour envoyer des logs
+à d'autres machines et ouvrir un shell distant.
+
+\subsection{Protocoles supportés}
+Nous avons implémenté différents protocoles réseau afin d'aboutir à une
+architecture représentant un bon compromis de simplicité d'utilisation
+et d'implémentation.
+\begin{itemize}
+	\item Couche 2 (liaison de données)~: protocole \textbf{Ethernet}, en partie
+		implémenté par USPi (enrobage des frames). Il restait à coder
+		l'ajout d'adresses MAC (destination, origine) et un EtherType à la
+		frame.
+	\item Couche 3 (réseau)~: protocole \textbf{IPv4} servant d'enrobage à
+		d'autres protocoles.
+	\item Couche 3 (réseau)~: protocole \textbf{ARP} afin de découvrir les
+		adresses MAC sur le réseau local (nécessaire pour le protocole
+		Ethernet si on ne souhaite pas hardcoder les adresses MAC des
+		machines).
+	\item Couche 4 (transport)~: protocole \textbf{ICMP} partiellement
+		implémenté pour répondre au ping.
+	\item Couche 4 (transport)~: protocole \textbf{UDP} fortement utilisé
+		pour toute la transmission de données. UDP était bien plus simple à
+		implémenter que TCP, et semble fiable lorsqu'utilisé sur un réseau
+		local (aucune perte de paquets notée pendant les tests).
+\end{itemize}
+
+Nous avons de plus implémenté un protocole ad-hoc pour le logger.
+Lors de son initialisation, le logger envoie sur le réseau un paquet spécial
+(sur couche UDP), reconnu par le client de logs. Celui-ci a alors 500\ ms pour
+répondre un autre paquet spécial, afin que le logger l'enregistre comme
+client. Le logger envoie ensuite ses logs à tous les clients ayant demandé à
+les recevoir, que ce soit pendant la phase d'initialisation, ou plus tard
+(mais alors, le client aura raté tous les logs de démarrage).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Programmes indépendants}
@@ -304,11 +338,33 @@ lorsqu'on doit la débugger avec des LEDs.
 
 
 \subsection*{Liaison C et C++ à la fois de malloc}
-\todo{}
+Pour faire marcher USPi, il est nécessaire d'implémenter les fonctions
+définies dans le header \fname{uspi/include/uspios.h}, dont \lstc{malloc},
+définie dans un bloc \lstcpp{extern "C"} dans ce header. % chktex 18
+
+Or, \lstc{malloc} était également définie dans \fname{malloc.h}, sans liaison
+C cette fois. Certains fichiers incluaient \fname{uspios.h} sans inclure
+\fname{malloc.h}, ainsi aucun warning de redéfinition n'était levé~; toutefois,
+si on appelait \lstc{malloc} depuis ces fichiers, les conventions d'appel
+différentes provoquaient une erreur brutale, et tout aussi difficile à
+trouver que la précédente.
+
 \subsection*{\lstc{.text.startup} n'est pas au début}
-\todo{}
+Pour s'assurer que l'assembleur contenu dans \fname{init.s} serait placé par
+le linker script à l'adresse \hex{8000}, nous avions manuellement indiqué
+que celui-ci devait se trouver dans la section \lstc{.text.startup}.
+
+Cela marchait très bien, jusqu'au jour où un constructeur jamais appelé a été
+ajouté à une structure. Le compilateur a alors jugé bon de le placer dans
+la section \lstc{.text.unlikely}, placée \emph{avant} \lstc{.text.startup}.
+
+Ainsi, l'ajout d'un constructeur à une classe empêchait le démarrage
+(pas le moindre clignottement de LED~!) de la Raspberry Pi, puisque le code
+exécuté au démarrage (adresse \hex{8000}) était\ldots un constructeur d'une
+structure inutile, puis un return.
+
 \subsection*{Stack des processus mal placée}
-\todo{}
+\todo{Nath}
 
 \end{document}
 
