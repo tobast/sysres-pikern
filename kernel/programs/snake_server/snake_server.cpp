@@ -181,6 +181,7 @@ public:
 		while (true) {
 			process_incoming();
 			move();
+			send_data();
 			sleep(100 * 1000);
 		}
 	};
