@@ -103,8 +103,8 @@ public:
 		add_uint16(c.b);
 	};
 	void add_position(pos p) {
-		add_uint16(p.x);
-		add_uint16(p.y);
+		add_uint8(p.x);
+		add_uint8(p.y);
 	};
 	void add_position_list(ExpArray<pos> positions) {
 		add_uint16(positions.size());
