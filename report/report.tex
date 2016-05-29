@@ -420,8 +420,17 @@ Ainsi, l'ajout d'un constructeur à une classe empêchait le démarrage
 exécuté au démarrage (adresse \hex{8000}) était\ldots un constructeur d'une
 structure inutile, puis un return.
 
-\subsection*{Stack des processus mal placée}
-\todo{Nath}
+\subsection*{Pile du mode SVC mal placée}
+La gestion des interrupts se fait par copie des registres du processus
+actuel sur la pile, afin de les sauver. Le code lançant le premier
+processus mettait ainsi le pointeur de pile, qui n'était plus utilisé
+par la suite au début de la table contenant les registres du processus
+à lancer, par souci de cohérence avec le reste du code.
+
+Cependant, lors de l'ajout des appels SVC, le pointeur de pile se
+retrouvait alors là où on l'avait laissé, le Raspberry Pi démarrant en
+mode SVC. La pile écrasait alors la table des processus, et provoquant
+ainsi un crash difficile à expliquer.
 
 \end{document}
 
