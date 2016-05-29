@@ -241,28 +241,73 @@ sûr faire dans un vrai système d'exploitation~!).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Réseau}
+\todo{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Programmes indépendants}
 
+\subsection{Shell et démon de shell réseau}
+Nous avons implémenté un shell (\fname{ush}) et un démon de shell réseau
+(\fname{ushd}). Ceci nous permet de nous connecter au port 22 de la
+Raspberry Pi en UDP et d'obtenir une console. Celle-ci étant totalement
+non-sécurisée, nous l'avons nommée Unsecure SHell (ou Unreliable SHell,
+au choix)~: la connexion passe par UDP, n'est pas chiffrée, se fait sans mot
+de passe, \ldots
+
+Le démon écoute les paquets réseau sur le port 22 et ouvre des \fname{ush}
+pour chaque nouveau client (\ie{} nouveau couple adresse-port), dont il gère
+l'entrée et la sortie standard pour les interfacer avec le réseau.
+
 \subsection{Commandes usuelles de shell}
-\subsection{Interpréteur de ZMachine}
+Les commandes suivantes sont implémentées~:
+\lstc{cat}, \lstc{echo}, \lstc{ls}, \lstc{ps}, \lstc{pwd}, \lstc{cd}.
+%lstc et non lstbash pour éviter la coloration syntaxique.
+
+\subsection{Interpréteur de Z-machine}
+\todo{Nath}
+
 \subsection{Serveur de Snake multijoueur}
+\todo{Nath}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Difficultés rencontrées}
 
-\subsection{Compilation du code}\label{ssec:diff:compil}
+% \subsection* : économiser de la place dans la ToC.
+
+\subsection*{Recoder la bibliothèque standard}
+Nous avons eu des problèmes systématiquement dès lors que nous avons essayé
+d'utiliser les bibliothèques standard C et C++, qu'il s'agisse de problèmes de
+lien des objets, d'utiliser notre \lstc{malloc} et non le \lstc{malloc}
+standard, \ldots
+
+Nous nous sommes donc résolus à recoder les parties de ces bibliothèques dont
+nous avons eu besoin~: \lstc{printf}, quelques fonctions sur les chaînes de
+caractères C, un tableau redimensionnable, une table de hachage, \ldots
+
+\subsection*{Écrasement de la table de vecteurs}
+La table de vecteurs se trouve à l'adresse mémoire \hex{00}. Une fonction de
+mailbox nécessitait un bloc de mémoire alloué sur le tas aligné sur 4 octets,
+et une inattention avait conduit à la ligne
+\begin{lstlisting}[language=C++]
+buff = (uint32_t*) (mem + ((16 - ((Ptr)mem & 0xFFFFFFF0)) & (0xFFFFFFF0)));
+\end{lstlisting}
+
+au lieu de
+\begin{lstlisting}[language=C++]
+buff = (uint32_t*) (mem + ((16 - ((Ptr)mem & 0xF)) & (0xFFFFFFF0)));
+\end{lstlisting}
+
+Le résultat est que \lstc{buff} se trouvait modulé --- et non aligné --- sur 4
+octets, et toute écriture dans \lstc{buff} provoquait donc l'écrasement de la
+table de vecteurs, entraînant une erreur incompréhensible\ldots surtout
+lorsqu'on doit la débugger avec des LEDs.
+
+
+\subsection*{Liaison C et C++ à la fois de malloc}
 \todo{}
-\subsection{Recoder la bibliothèque standard}\label{ssec:diff:stdlib}
+\subsection*{\lstc{.text.startup} n'est pas au début}
 \todo{}
-\subsection{Écrasement de la table de vecteurs}\label{ssec:diff:delvect}
-\todo{}
-\subsection{Liaison C et C++ à la fois de malloc}\label{ssec:diff:linkage}
-\todo{}
-\subsection{\lstc{.text.startup} n'est pas au début}\label{ssec:diff:startup}
-\todo{}
-\subsection{Stack des processus mal placée}\label{ssec:diff:async_stack}
+\subsection*{Stack des processus mal placée}
 \todo{}
 
 \end{document}
