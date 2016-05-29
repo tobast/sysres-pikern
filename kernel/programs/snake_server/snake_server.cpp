@@ -307,6 +307,7 @@ public:
 		for (uint16_t i = 0; i < snakes.size(); i++) {
 			Packet pck(send_buffer, 0);
 			pck.add_uint8(SET_SNAKE);
+			pck.add_uint16(i);
 			pck.add_position_list(snakes[i].snake);
 			sendAll(pck.buffer, pck.len);
 		}
