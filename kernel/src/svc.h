@@ -35,7 +35,8 @@ enum svcs {
 	SVC_NEW_SOCKET = 28,
 	SVC_GET_CWD = 29,
 	SVC_SET_CWD = 30,
-	SVC_GET_PARENT = 31
+	SVC_GET_PARENT = 31,
+	SVC_GPIO_SET = 32
 };
 
 extern "C" {
@@ -81,5 +82,7 @@ int get_cwd();
 void set_cwd(int node);
 int get_parent(int node);
 void get_node_path(int node, char* buffer, int max_chars);
+
+void gpio_set(int led_id, int value);
 
 }

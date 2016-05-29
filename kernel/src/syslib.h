@@ -117,5 +117,8 @@ void set_cwd(int node);
 // node is the root of the filesystem.
 int get_parent(int node);
 
+// Sets the led led to value.
+int gpio_set(int led, int value);
+
 }
 

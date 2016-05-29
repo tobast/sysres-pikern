@@ -552,6 +552,13 @@ extern "C" void on_svc(void* stack_pointer, int svc_number) {
 			current_context->r0 = (int)((node*)current_context->r0)->parent;
 			return;
 		}
+		case SVC_GPIO_SET: {
+			int i = current_context->r0;
+			if (0 <= i && i < 8) {
+				gpio::setVal(gpio::BYTE_PINS[i], (current_context->r1 != 0));
+			}
+			return;
+		}
 		default:
 			// Invalid svc
 			// Kill process?
