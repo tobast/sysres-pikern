@@ -67,7 +67,7 @@ suivants~:
 	\item \fname{assert}~: gestion des assertions~;
 	\item \fname{atomic}~: opérations atomiques (mutex, \ldots)~;
 	\item \fname{barriers}~: barrières mémoire et d'instructions~;
-	\item \fname{Bytes}~: classe munie d'opérateurs << et >> pour gérer des
+	\item \fname{Bytes}~: classe munie d'opérateurs \lstc{<<} et \lstc{>>} pour gérer des
 		octets en big endian, utilisé essentiellement pour le réseau~;
 	\item \fname{cinit}~: fonction sur laquelle saute le point d'entrée
 		(écrit en assembleur) après avoir déplacé le stack pointer~;
@@ -99,8 +99,6 @@ suivants~:
 	\item \fname{malloc}~: malloc naïf (\lstc{sbrk})~;
 	\item \fname{networkCore}~: cœur de gestion du réseau~;
 	\item \fname{pair}~: équivalent à \lstcpp{std::pair}~;
-	\item \fname{pool\_allocator}~: malloc/free de taille constante, utilisé
-		dans la gestion des sockets inter-process (code mort~?)~;
 	\item \fname{process}~: gestion des processus et des SVC~;
 	\item \fname{queue}~: équivalent à \lstcpp{std::queue}~;
 	\item \fname{sleep}~: gestion des \lstc{sleep}, et plus généralement

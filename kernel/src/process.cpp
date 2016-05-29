@@ -2,7 +2,6 @@
 #include "barriers.h"
 #include "hardware_constants.h"
 #include "interrupts.h"
-#include "pool_allocator.h"
 #include "process.h"
 #include "sleep.h"
 #include "svc.h"
